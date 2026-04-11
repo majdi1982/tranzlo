@@ -86,13 +86,13 @@ export default async function AdminUsersPage() {
                       <div className="flex items-center justify-end gap-2">
                         {/* Verify Translator */}
                         {!user.labels?.includes('verified') ? (
-                          <form action={async () => { "use server"; await verifyTranslator(user.$id); }}>
+                          <form action={verifyTranslator.bind(null, user.$id) as any}>
                             <button type="submit" title="Verify Translator" className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
                               <ShieldPlus className="h-3.5 w-3.5" /> Verify
                             </button>
                           </form>
                         ) : (
-                          <form action={async () => { "use server"; await revokeTranslatorVerification(user.$id); }}>
+                          <form action={revokeTranslatorVerification.bind(null, user.$id) as any}>
                             <button type="submit" title="Revoke Verification" className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg-main)] px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-red-50 hover:text-red-600 transition-colors">
                               <ShieldOff className="h-3.5 w-3.5" /> Revoke
                             </button>
@@ -100,13 +100,13 @@ export default async function AdminUsersPage() {
                         )}
                         {/* Ban / Unban */}
                         {user.status ? (
-                          <form action={async () => { await banUser(user.$id); }}>
+                          <form action={banUser.bind(null, user.$id) as any}>
                             <button type="submit" title="Ban User" className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 transition-colors dark:border-red-800 dark:bg-red-900/30 dark:text-red-400">
                               <UserX className="h-3.5 w-3.5" /> Ban
                             </button>
                           </form>
                         ) : (
-                          <form action={async () => { await unbanUser(user.$id); }}>
+                          <form action={unbanUser.bind(null, user.$id) as any}>
                             <button type="submit" title="Unban User" className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
                               <UserCheck className="h-3.5 w-3.5" /> Unban
                             </button>

@@ -63,7 +63,7 @@ export default async function AdminJobsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <form action={async () => { await deleteJob(job.$id); }}>
+                    <form action={deleteJob.bind(null, job.$id) as any}>
                       <button type="submit" className="flex items-center gap-1 ml-auto rounded-lg border border-red-200 bg-red-50 px-2 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 transition-colors dark:border-red-800 dark:bg-red-900/30 dark:text-red-400">
                         <Trash2 className="h-3.5 w-3.5" /> Remove
                       </button>

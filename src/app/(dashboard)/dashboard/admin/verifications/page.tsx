@@ -61,7 +61,7 @@ export default async function AdminVerificationsPage() {
                       <td className="px-6 py-4 font-medium text-[var(--text-primary)]">{user.name || 'Unnamed'}</td>
                       <td className="px-6 py-4 text-[var(--text-secondary)]">{user.email}</td>
                       <td className="px-6 py-4 text-right">
-                        <form action={async () => { "use server"; await verifyTranslator(user.$id); }}>
+                        <form action={verifyTranslator.bind(null, user.$id) as any}>
                           <button type="submit" className="flex items-center gap-1 ml-auto rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
                             <ShieldCheck className="h-3.5 w-3.5" /> Approve
                           </button>
@@ -99,7 +99,7 @@ export default async function AdminVerificationsPage() {
                       </td>
                       <td className="px-6 py-4 text-[var(--text-secondary)]">{user.email}</td>
                       <td className="px-6 py-4 text-right">
-                        <form action={async () => { "use server"; await revokeTranslatorVerification(user.$id); }}>
+                        <form action={revokeTranslatorVerification.bind(null, user.$id) as any}>
                           <button type="submit" className="flex items-center gap-1 ml-auto rounded-lg border border-[var(--border)] bg-[var(--bg-main)] px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors">
                             <ShieldOff className="h-3.5 w-3.5" /> Revoke
                           </button>

@@ -22,8 +22,9 @@ export default async function DashboardRootPage() {
     }
 
     redirect('/dashboard/translator');
-  } catch {
-    // No valid session — middleware should have caught this, but fallback safely
-    redirect('/login');
+  } catch (err) {
+    // No valid session — middleware might have allowed entry because cookie exists.
+    // We redirect to login with an error flag to break the middleware loop.
+    redirect('/login?error=invalid_session');
   }
 }
