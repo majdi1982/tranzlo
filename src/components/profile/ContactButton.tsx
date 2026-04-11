@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { startConversation } from '@/app/actions/chat';
+import { createConversation } from '@/app/actions/chat';
 import { MessageSquare, Loader2 } from 'lucide-react';
 
 interface Props {
@@ -22,11 +22,11 @@ export function ContactButton({ translatorId, translatorName, currentUserId }: P
     }
 
     setLoading(true);
-    const convo = await startConversation([currentUserId, translatorId]);
-    if (convo) {
-      router.push(`/dashboard/chat/${convo.$id}`);
+    const res = await createConversation([currentUserId, translatorId]);
+    if (res.success && res.data) {
+      router.push(`/dashboard/chat/${res.data.$id}`);
     } else {
-      alert('Failed to start conversation');
+      alert('Failed to start conversation: ' + (res.error || 'Unknown error'));
       setLoading(false);
     }
   };

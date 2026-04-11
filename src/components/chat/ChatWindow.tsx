@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import client from '@/lib/appwrite';
-import { sendMessage, getMessageHistory, type ChatMessage } from '@/app/actions/chat';
+import { sendMessage, getMessages, type ChatMessage } from '@/app/actions/chat';
 import { Send, Loader2, User, Clock } from 'lucide-react';
 
 const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '69da165d00335f7a350e';
@@ -22,8 +22,8 @@ export function ChatWindow({ conversationId, currentUserId, otherUserName }: Pro
   // Initial History
   React.useEffect(() => {
     async function loadHistory() {
-      const history = await getMessageHistory(conversationId);
-      setMessages(history);
+      const history = await getMessages(conversationId);
+      setMessages(history as any); // Cast to any because of $createdAt vs createdAt nuances in types
       setLoading(false);
     }
     loadHistory();
@@ -71,7 +71,7 @@ export function ChatWindow({ conversationId, currentUserId, otherUserName }: Pro
       conversationId,
       senderId: currentUserId,
       senderName: 'You',
-      content,
+      text: content,
       $createdAt: new Date().toISOString()
     } as any;
 
@@ -137,7 +137,7 @@ export function ChatWindow({ conversationId, currentUserId, otherUserName }: Pro
                     : 'bg-[var(--bg-main)] text-[var(--text-primary)] border border-[var(--border)]'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{msg.content}</p>
+                  <p className="text-sm leading-relaxed">{msg.text}</p>
                   <div className={`flex items-center gap-1 mt-2 text-[10px] 
                     ${isMe ? 'text-white/70' : 'text-[var(--text-secondary)]/70'}`}
                   >

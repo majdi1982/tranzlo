@@ -6,6 +6,17 @@ import { ID, Query } from 'node-appwrite';
 const DB_ID = '69da165d00335f7a350e';
 const COLLECTION_ID = 'notifications';
 
+export interface Notification {
+  $id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: string;
+  read: boolean;
+  link?: string;
+  $createdAt: string;
+}
+
 export async function getNotifications(userId: string) {
   try {
     const { databases } = await createAdminClient();

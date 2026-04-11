@@ -61,7 +61,7 @@ export function NotificationBell({ userId }: Props) {
                 notifications.map((n) => (
                   <div 
                     key={n.$id} 
-                    className={`group relative flex gap-3 p-4 transition-colors hover:bg-[var(--bg-main)]/50 ${!n.isRead ? 'bg-[var(--accent)]/[0.03]' : ''}`}
+                    className={`group relative flex gap-3 p-4 transition-colors hover:bg-[var(--bg-main)]/50 ${!n.read ? 'bg-[var(--accent)]/[0.03]' : ''}`}
                   >
                     <div className="mt-0.5 shrink-0">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--bg-main)] border border-[var(--border)] shadow-sm">
@@ -69,7 +69,7 @@ export function NotificationBell({ userId }: Props) {
                       </div>
                     </div>
                     <div className="flex-1 min-w-0 pr-6">
-                      <p className={`text-sm font-semibold text-[var(--text-primary)] ${!n.isRead ? 'pr-2' : ''}`}>
+                      <p className={`text-sm font-semibold text-[var(--text-primary)] ${!n.read ? 'pr-2' : ''}`}>
                         {n.title}
                       </p>
                       <p className="mt-0.5 text-xs text-[var(--text-secondary)] line-clamp-2">
@@ -88,7 +88,7 @@ export function NotificationBell({ userId }: Props) {
                         </Link>
                       )}
                     </div>
-                    {!n.isRead && (
+                    {!n.read && (
                       <button 
                         onClick={() => readNotification(n.$id)}
                         className="absolute top-4 right-4 h-5 w-5 rounded-full flex items-center justify-center text-[var(--text-secondary)]/40 hover:text-emerald-500 hover:bg-emerald-50 transition-all opacity-0 group-hover:opacity-100"

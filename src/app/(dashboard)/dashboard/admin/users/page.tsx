@@ -69,7 +69,7 @@ export default async function AdminUsersPage() {
                         {(user.labels || ['user']).map((label: string) => (
                           <span key={label} className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset
                             ${label === 'admin' ? 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-900/30 dark:text-red-400' :
-                              label === 'verified_translator' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                              label === 'verified' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-400' :
                               'bg-[var(--bg-main)] text-[var(--text-secondary)] ring-[var(--border)]'}`}>
                             {label}
                           </span>
@@ -85,14 +85,14 @@ export default async function AdminUsersPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {/* Verify Translator */}
-                        {!user.labels?.includes('verified_translator') ? (
-                          <form action={async () => { await verifyTranslator(user.$id); }}>
+                        {!user.labels?.includes('verified') ? (
+                          <form action={async () => { "use server"; await verifyTranslator(user.$id); }}>
                             <button type="submit" title="Verify Translator" className="flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
                               <ShieldPlus className="h-3.5 w-3.5" /> Verify
                             </button>
                           </form>
                         ) : (
-                          <form action={async () => { await revokeTranslatorVerification(user.$id); }}>
+                          <form action={async () => { "use server"; await revokeTranslatorVerification(user.$id); }}>
                             <button type="submit" title="Revoke Verification" className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg-main)] px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-red-50 hover:text-red-600 transition-colors">
                               <ShieldOff className="h-3.5 w-3.5" /> Revoke
                             </button>

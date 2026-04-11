@@ -123,8 +123,8 @@ export default async function PublicProfilePage({ params }: Props) {
               </h2>
               
               <div className="flex flex-wrap gap-4">
-                {profile.sourceLanguages?.map(s => (
-                  profile.targetLanguages?.map(t => (
+                {profile.sourceLanguages?.map((s: string) => (
+                  profile.targetLanguages?.map((t: string) => (
                     <div key={`${s}-${t}`} className="flex items-center gap-3 rounded-2xl bg-[var(--bg-main)] border border-[var(--border)] px-4 py-3 shadow-sm hover:border-[var(--accent)] transition-colors">
                       <span className="text-sm font-bold text-[var(--text-primary)]">{s}</span>
                       <div className="h-0.5 w-4 bg-[var(--accent)]/40 rounded-full" />
@@ -140,7 +140,7 @@ export default async function PublicProfilePage({ params }: Props) {
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Specialties</h2>
               <div className="flex flex-wrap gap-2">
                 {profile.specialties?.length ? (
-                  profile.specialties.map(spec => (
+                  profile.specialties.map((spec: string) => (
                     <span key={spec} className="rounded-xl bg-[var(--bg-main)] border border-[var(--border)] px-4 py-2 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
                       {spec}
                     </span>

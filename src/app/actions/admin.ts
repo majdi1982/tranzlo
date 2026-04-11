@@ -28,7 +28,7 @@ export async function listAllUsers(limit = 25, offset = 0) {
   try {
     await getAdminUser(); // Guard
     const { users } = await createAdminClient();
-    return users.list([], `limit=${limit}&offset=${offset}`);
+    return await users.list([], `limit=${limit}&offset=${offset}`);
   } catch (error: any) {
     return { success: false, error: error.message };
   }
@@ -74,6 +74,19 @@ export async function verifyTranslator(userId: string) {
     const { users } = await createAdminClient();
     const user = await users.get(userId);
     const updatedLabels = Array.from(new Set([...(user.labels || []), 'verified']));
+    return await users.updateLabels(userId, updatedLabels);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Remove translator verification
+export async function revokeTranslatorVerification(userId: string) {
+  try {
+    await getAdminUser();
+    const { users } = await createAdminClient();
+    const user = await users.get(userId);
+    const updatedLabels = (user.labels || []).filter((l: string) => l !== 'verified');
     return await users.updateLabels(userId, updatedLabels);
   } catch (error: any) {
     return { success: false, error: error.message };

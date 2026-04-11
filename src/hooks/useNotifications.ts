@@ -17,10 +17,11 @@ export function useNotifications(userId?: string) {
     if (!userId) return;
 
     async function fetchInitial() {
-      const res = await getNotifications(15);
-      if (res.notifications) {
-        setNotifications(res.notifications);
-        setUnreadCount(res.notifications.filter(n => !n.isRead).length);
+      if (!userId) return;
+      const res = await getNotifications(userId);
+      if (res) {
+        setNotifications(res as any[]);
+        setUnreadCount((res as any[]).filter(n => !n.read).length);
       }
       setLoading(false);
     }
@@ -53,9 +54,9 @@ export function useNotifications(userId?: string) {
 
         if (response.events.includes('databases.*.collections.*.documents.*.update')) {
           setNotifications(prev => 
-            prev.map(n => n.$id === doc.$id ? { ...n, isRead: doc.isRead } : n)
+            prev.map(n => n.$id === doc.$id ? { ...n, read: doc.read } : n)
           );
-          if (doc.isRead) {
+          if (doc.read) {
             setUnreadCount(prev => Math.max(0, prev - 1));
           }
         }
@@ -68,7 +69,7 @@ export function useNotifications(userId?: string) {
   const readNotification = async (id: string) => {
     const success = await markAsRead(id);
     if (success) {
-      setNotifications(prev => prev.map(n => n.$id === id ? { ...n, isRead: true } : n));
+      setNotifications(prev => prev.map(n => n.$id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     }
   };

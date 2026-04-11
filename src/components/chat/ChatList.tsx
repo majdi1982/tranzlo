@@ -20,7 +20,7 @@ export function ChatList({ currentUserId }: Props) {
       
       // We need to fetch names of other participants
       const detailed = await Promise.all(convos.map(async (c) => {
-        const otherId = c.participants.find(p => p !== currentUserId);
+        const otherId = c.participants.find((p: string) => p !== currentUserId);
         const otherUser = otherId ? await getUserById(otherId) : null;
         return { ...c, otherUser };
       }));

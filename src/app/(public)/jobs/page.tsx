@@ -13,7 +13,7 @@ export default async function JobsListingPage() {
     const dbId = '69da165d00335f7a350e';
     // Using layout from spec
     const res = await databases.listDocuments(dbId, 'jobs');
-    jobs = res.documents;
+    jobs = res.documents as any[];
   } catch (err) {
     console.error('Could not fetch jobs', err);
   }

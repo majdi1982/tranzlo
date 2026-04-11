@@ -114,7 +114,7 @@ export default function ProfileEditor() {
               <div>
                 <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">Source Languages (From)</label>
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {profile.sourceLanguages?.map(lang => (
+                  {profile.sourceLanguages?.map((lang: string) => (
                     <span key={lang} className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
                       {lang}
                       <button type="button" onClick={() => updateArrayField('sourceLanguages', lang)}>×</button>
@@ -137,7 +137,7 @@ export default function ProfileEditor() {
               <div>
                 <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">Target Languages (To)</label>
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {profile.targetLanguages?.map(lang => (
+                  {profile.targetLanguages?.map((lang: string) => (
                     <span key={lang} className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                       {lang}
                       <button type="button" onClick={() => updateArrayField('targetLanguages', lang)}>×</button>
@@ -168,7 +168,7 @@ export default function ProfileEditor() {
             <h2 className="text-xl font-bold text-[var(--text-primary)]">Specialties</h2>
           </div>
           <div className="flex flex-wrap gap-2 mb-4">
-            {profile.specialties?.map(spec => (
+            {profile.specialties?.map((spec: string) => (
               <span key={spec} className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
                 {spec}
                 <button type="button" onClick={() => updateArrayField('specialties', spec)}>×</button>

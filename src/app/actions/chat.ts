@@ -5,6 +5,24 @@ import { ID, Query } from 'node-appwrite';
 
 const DB_ID = '69da165d00335f7a350e';
 
+export interface ChatMessage {
+  $id: string;
+  conversationId: string;
+  senderId: string;
+  text: string;
+  attachments?: string[];
+  $createdAt: string;
+}
+
+export interface Conversation {
+  $id: string;
+  participants: string[];
+  relatedJobId?: string;
+  lastMessage?: string;
+  $createdAt: string;
+  $updatedAt: string;
+}
+
 export async function createConversation(participantIds: string[], jobId?: string) {
   try {
     const { databases } = await createSessionClient();
@@ -45,6 +63,24 @@ export async function getMessages(conversationId: string) {
     return res.documents;
   } catch (error) {
     console.error('Failed to get messages', error);
+    return [];
+  }
+}
+
+export async function listConversations() {
+  try {
+    const { databases, account } = await createSessionClient();
+    const user = await account.get();
+    
+    // In Appwrite, we usually filter where participants array contains user ID
+    // Note: Query.contains is used for array attributes
+    const res = await databases.listDocuments(DB_ID, 'conversations', [
+      Query.contains('participants', [user.$id])
+    ]);
+    
+    return res.documents;
+  } catch (error) {
+    console.error('Failed to list conversations', error);
     return [];
   }
 }

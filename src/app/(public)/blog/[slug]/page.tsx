@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getBlogPostBySlug } from '@/app/actions/blog';
+import { getPostBySlug } from '@/app/actions/blog';
 import { 
   Calendar, User, ArrowLeft, Share2, 
   Clock, Tag, Globe, Sparkles 
@@ -13,7 +13,7 @@ interface Props {
 
 export default async function BlogArticlePage({ params }: Props) {
   const { slug } = await params;
-  const post = await getBlogPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();

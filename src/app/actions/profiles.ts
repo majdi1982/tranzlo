@@ -6,6 +6,20 @@ import { revalidatePath } from 'next/cache';
 
 const DB_ID = '69da165d00335f7a350e';
 
+export interface Profile {
+  $id: string;
+  userId: string;
+  fullName: string;
+  bio?: string;
+  nativeLanguage?: string;
+  languages?: string[];
+  skills?: string[];
+  rating?: number;
+  avatarUrl?: string;
+  title?: string;
+  [key: string]: any;
+}
+
 /**
  * Gets the profile for a specific user.
  */

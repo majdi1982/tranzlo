@@ -36,3 +36,17 @@ export async function applyToJob(formData: FormData) {
     return { success: false, error: error.message || 'Failed to submit application.' };
   }
 }
+
+export async function getApplication(appId: string) {
+  const dbId = '69da165d00335f7a350e';
+  const collectionId = 'job_applications';
+
+  try {
+    const { databases } = await createSessionClient();
+    const app = await databases.getDocument(dbId, collectionId, appId);
+    return app;
+  } catch (error: any) {
+    console.error('Failed to get application', error);
+    return null;
+  }
+}

@@ -1,4 +1,7 @@
 import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { createAdminClient } from '@/lib/server/appwrite';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 
 export default async function CompanyDashboardPage() {
   // In production, we fetch only jobs associated with the logged-in company user

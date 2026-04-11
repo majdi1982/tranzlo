@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import {
   Globe, Clock, ArrowLeft, CheckCircle,
-  Languages, Briefcase, BarChart3, Building2
+  Languages, Briefcase, BarChart3, Building2,
+  Hash, Coins
 } from 'lucide-react';
 import ApplyForm from './apply-form';
 
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props) {
   try {
     const { databases } = await createAdminClient();
     const dbId = '69da165d00335f7a350e';
-    const job = await databases.getDocument(
+    const job: any = await databases.getDocument(
       dbId,
       'jobs',
       id
@@ -159,7 +160,7 @@ export default async function JobDetailPage({ params }: Props) {
                   { icon: Coins, label: 'Budget', value: job.budgetAmount ? `${job.budgetAmount} ${job.budgetType === 'hourly' ? '/ hr' : '(Fixed)'}` : '—' },
                   { icon: Clock, label: 'Deadline', value: job.deadline ? new Date(job.deadline).toLocaleDateString() : 'No urgent deadline' },
                   { icon: Building2, label: 'Workspace', value: job.workMode || 'Remote' },
-                ].map(({ icon: Icon, label, value }) => (
+                ].map(({ icon: Icon, label, value }: { icon: any, label: string, value: any }) => (
                   <li key={label} className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2 text-[var(--text-secondary)]">
                       <Icon className="h-4 w-4" /> {label}

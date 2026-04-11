@@ -8,7 +8,7 @@ export default async function AdminJobsPage() {
 
   try {
     const { databases } = await createAdminClient();
-    const dbId = process.env.APPWRITE_DATABASE_ID!;
+    const dbId = '69da165d00335f7a350e';
     const res = await databases.listDocuments(dbId, 'jobs');
     jobs = res.documents;
     total = res.total;

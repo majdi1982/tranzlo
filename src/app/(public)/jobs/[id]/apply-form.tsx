@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { applyForJob } from '@/app/actions/applications';
+import { applyToJob } from '@/app/actions/applications';
 
 interface ApplyFormProps {
   jobId: string;
@@ -17,7 +17,7 @@ export default function ApplyForm({ jobId, jobTitle }: ApplyFormProps) {
     setIsPending(true);
     setError(null);
     formData.append('jobId', jobId);
-    const result = await applyForJob(formData);
+    const result = await applyToJob(formData);
     if (result?.error) {
       setError(result.error);
       setIsPending(false);
@@ -58,8 +58,8 @@ export default function ApplyForm({ jobId, jobTitle }: ApplyFormProps) {
           <span className="absolute inset-y-0 left-4 flex items-center text-[var(--text-secondary)] font-medium text-sm pointer-events-none">$</span>
           <input
             type="number"
-            id="proposedPrice"
-            name="proposedPrice"
+            id="proposedRateAmount"
+            name="proposedRateAmount"
             required
             min="1"
             step="0.01"
@@ -74,8 +74,8 @@ export default function ApplyForm({ jobId, jobTitle }: ApplyFormProps) {
           Cover Letter
         </label>
         <textarea
-          id="coverLetter"
-          name="coverLetter"
+          id="coverMessage"
+          name="coverMessage"
           required
           rows={5}
           placeholder="Introduce yourself and explain why you are the best fit for this project..."
