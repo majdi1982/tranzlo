@@ -1,76 +1,93 @@
 'use server';
 
-import { createAdminClient } from '@/lib/server/appwrite';
-import { createSessionClient } from '@/lib/server/appwrite';
+import { createAdminClient, createSessionClient } from '@/lib/server/appwrite';
+
+const DB_ID = '69da165d00335f7a350e';
 
 // Verify that the current session user has admin privileges
 export async function getAdminUser() {
-  const { account } = await createSessionClient();
-  const user = await account.get();
+  try {
+    const { account } = await createSessionClient();
+    const user = await account.get();
 
-  // Admins are identified by a custom label set in Appwrite
-  const isAdmin = user.labels?.includes('admin');
+    // Admins are identified by a custom label set in Appwrite
+    const isAdmin = user.labels?.includes('admin');
 
-  if (!isAdmin) {
-    throw new Error('UNAUTHORIZED: Admin access required');
+    if (!isAdmin) {
+      throw new Error('UNAUTHORIZED: Admin access required');
+    }
+
+    return user;
+  } catch (error) {
+    throw new Error('UNAUTHORIZED: Admin session invalid');
   }
-
-  return user;
 }
 
 // List all platform users (admin-only)
 export async function listAllUsers(limit = 25, offset = 0) {
-  await getAdminUser(); // Guard
-  const { users } = await createAdminClient();
-  return users.list([], `search=${''}&limit=${limit}&offset=${offset}`);
+  try {
+    await getAdminUser(); // Guard
+    const { users } = await createAdminClient();
+    return users.list([], `limit=${limit}&offset=${offset}`);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
 // Grant admin label to a user
 export async function makeUserAdmin(userId: string) {
-  await getAdminUser();
-  const { users } = await createAdminClient();
-  return users.updateLabels(userId, ['admin']);
+  try {
+    await getAdminUser();
+    const { users } = await createAdminClient();
+    return await users.updateLabels(userId, ['admin']);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
 // Ban a user from the platform
 export async function banUser(userId: string) {
-  await getAdminUser();
-  const { users } = await createAdminClient();
-  return users.updateStatus(userId, false);
+  try {
+    await getAdminUser();
+    const { users } = await createAdminClient();
+    return await users.updateStatus(userId, false);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
 // Unban a user
 export async function unbanUser(userId: string) {
-  await getAdminUser();
-  const { users } = await createAdminClient();
-  return users.updateStatus(userId, true);
+  try {
+    await getAdminUser();
+    const { users } = await createAdminClient();
+    return await users.updateStatus(userId, true);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
-// Verify a translator (sets a 'verified_translator' label)
+// Verify a translator
 export async function verifyTranslator(userId: string) {
-  await getAdminUser();
-  const { users } = await createAdminClient();
-  const user = await users.get(userId);
-  const updatedLabels = Array.from(new Set([...(user.labels || []), 'verified_translator']));
-  return users.updateLabels(userId, updatedLabels);
-}
-
-// Remove translator verification
-export async function revokeTranslatorVerification(userId: string) {
-  await getAdminUser();
-  const { users } = await createAdminClient();
-  const user = await users.get(userId);
-  const updatedLabels = (user.labels || []).filter((l: string) => l !== 'verified_translator');
-  return users.updateLabels(userId, updatedLabels);
+  try {
+    await getAdminUser();
+    const { users } = await createAdminClient();
+    const user = await users.get(userId);
+    const updatedLabels = Array.from(new Set([...(user.labels || []), 'verified']));
+    return await users.updateLabels(userId, updatedLabels);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
 // Delete a Job post (moderation)
 export async function deleteJob(jobId: string) {
-  await getAdminUser();
-  const { databases } = await createAdminClient();
-  return databases.deleteDocument(
-    process.env.APPWRITE_DATABASE_ID!,
-    'jobs',
-    jobId
-  );
+  try {
+    await getAdminUser();
+    const { databases } = await createAdminClient();
+    await databases.deleteDocument(DB_ID, 'jobs', jobId);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }

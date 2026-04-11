@@ -3,76 +3,51 @@
 import { createSessionClient, createAdminClient } from '@/lib/server/appwrite';
 import { ID, Query } from 'node-appwrite';
 
-const DB_ID = process.env.APPWRITE_DATABASE_ID!;
+const DB_ID = '69da165d00335f7a350e';
 const COLLECTION_ID = 'notifications';
 
-export interface Notification {
-  $id: string;
-  userId: string;
-  title: string;
-  message: string;
-  type: 'info' | 'job' | 'payment' | 'message';
-  isRead: boolean;
-  link?: string;
-  $createdAt: string;
-}
-
-/**
- * Fetches the most recent notifications for the logged-in user.
- */
-export async function getNotifications(limit = 10) {
+export async function getNotifications(userId: string) {
   try {
-    const { databases, account } = await createSessionClient();
-    const user = await account.get();
-
+    const { databases } = await createAdminClient();
     const response = await databases.listDocuments(DB_ID, COLLECTION_ID, [
-      Query.equal('userId', user.$id),
+      Query.equal('userId', userId),
       Query.orderDesc('$createdAt'),
-      Query.limit(limit)
+      Query.limit(20)
     ]);
-
-    return { notifications: response.documents as unknown as Notification[] };
+    return response.documents;
   } catch (error) {
-    console.error('Failed to fetch notifications:', error);
-    return { notifications: [], error: 'Failed to fetch notifications' };
+    console.error('Failed to get notifications:', error);
+    return [];
   }
 }
 
-/**
- * Marks a specific notification as read.
- */
 export async function markAsRead(notificationId: string) {
   try {
     const { databases } = await createSessionClient();
     await databases.updateDocument(DB_ID, COLLECTION_ID, notificationId, {
-      isRead: true
+      read: true
     });
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to mark notification as read:', error);
-    return { success: false };
+    return { success: false, error: error.message };
   }
 }
 
-/**
- * Internal helper to create a notification (Server-side only).
- */
-export async function createNotification(data: {
-  userId: string;
-  title: string;
-  message: string;
-  type: Notification['type'];
-  link?: string;
-}) {
+export async function createNotification(userId: string, title: string, message: string, type = 'info', link = '') {
   try {
     const { databases } = await createAdminClient();
     await databases.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
-      ...data,
-      isRead: false
+      userId,
+      title,
+      message,
+      type,
+      read: false,
+      link
     });
     return { success: true };
   } catch (error) {
-    console.error('Failed to create notification:', error);
+    console.error('Internal notification creation failed', error);
     return { success: false };
   }
 }

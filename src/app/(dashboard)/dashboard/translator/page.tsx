@@ -4,6 +4,8 @@ import { createAdminClient, createSessionClient } from '@/lib/server/appwrite';
 import { LayoutDashboard, FileText, Settings, Wallet, Bell } from 'lucide-react';
 import { Query } from 'node-appwrite';
 
+import { DashboardSidebar } from '@/components/DashboardSidebar';
+
 export default async function TranslatorDashboardPage() {
   let myApplications: any[] = [];
   let userName = "Translator";
@@ -14,38 +16,22 @@ export default async function TranslatorDashboardPage() {
     userName = user.name;
 
     const { databases } = await createAdminClient();
-    const dbId = process.env.APPWRITE_DATABASE_ID!;
+    const dbId = '69da165d00335f7a350e';
     
-    // In actual implementation we use the user id to fetch their applications
-    // const res = await databases.listDocuments(dbId, 'applications', [
-    //   Query.equal('translatorId', user.$id)
-    // ]);
-    // myApplications = res.documents;
+    const res = await databases.listDocuments(dbId, 'job_applications', [
+      Query.equal('translatorId', user.$id)
+    ]);
+    myApplications = res.documents;
   } catch (err) {
     console.error('Could not fetch translator data', err);
   }
 
   return (
     <div className="flex min-h-screen bg-[var(--bg-main)]">
-      {/* Sidebar Placeholder */}
-      <aside className="w-64 border-r border-[var(--border)] bg-[var(--bg-secondary)] p-6 flex flex-col space-y-4">
-        <h2 className="text-xl font-bold text-[var(--accent)] mb-8">Tranzlo.</h2>
-        <Link href="/dashboard/translator" className="flex items-center gap-3 text-[var(--text-primary)] font-medium p-3 rounded-xl bg-[var(--hover)]/10 text-[var(--accent)]">
-          <LayoutDashboard className="h-5 w-5" /> Dashboard
-        </Link>
-        <Link href="/jobs" className="flex items-center gap-3 text-[var(--text-secondary)] font-medium p-3 rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--text-primary)] transition-all">
-          <FileText className="h-5 w-5" /> Find Work
-        </Link>
-        <div className="flex items-center gap-3 text-[var(--text-secondary)] font-medium p-3 rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--text-primary)] transition-all">
-          <Wallet className="h-5 w-5" /> Earnings
-        </div>
-        <div className="flex items-center gap-3 text-[var(--text-secondary)] font-medium p-3 rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--text-primary)] transition-all mt-auto">
-          <Settings className="h-5 w-5" /> Settings
-        </div>
-      </aside>
+      <DashboardSidebar role="translator" />
 
       {/* Main Content */}
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-6 md:p-10 pb-32 md:pb-10">
         <div className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-[var(--text-primary)]">Welcome back, {userName}</h1>

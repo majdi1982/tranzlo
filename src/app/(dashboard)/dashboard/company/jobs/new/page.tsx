@@ -62,14 +62,62 @@ export default function NewJobPage() {
           </div>
         </div>
 
-        <div>
-          <label htmlFor="serviceType" className="block text-sm font-medium text-[var(--text-primary)]">Service Type</label>
-          <select id="serviceType" name="serviceType"
-            className="mt-2 block w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)] px-4 py-3 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] text-[var(--text-primary)]">
-            <option value="translation">Translation</option>
-            <option value="proofreading">Proofreading</option>
-            <option value="transcription">Transcription</option>
-          </select>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="serviceType" className="block text-sm font-medium text-[var(--text-primary)]">Service Type</label>
+            <select id="serviceType" name="serviceType"
+              className="mt-2 block w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)] px-4 py-3 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] text-[var(--text-primary)]">
+              <option value="translation">Translation</option>
+              <option value="proofreading">Proofreading</option>
+              <option value="transcription">Transcription</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="wordCount" className="block text-sm font-medium text-[var(--text-primary)]">Total Word Count</label>
+            <input 
+              type="number" id="wordCount" name="wordCount"
+              className="mt-2 block w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)] px-4 py-3 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none" 
+              placeholder="e.g. 2500" 
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="budgetType" className="block text-sm font-medium text-[var(--text-primary)]">Budget Type</label>
+            <select id="budgetType" name="budgetType"
+              className="mt-2 block w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)] px-4 py-3 text-sm focus:border-[var(--accent)] focus:outline-none text-[var(--text-primary)]">
+              <option value="fixed">Fixed Price</option>
+              <option value="hourly">Hourly Rate</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="budgetAmount" className="block text-sm font-medium text-[var(--text-primary)]">Budget Amount (USD)</label>
+            <input 
+              type="number" step="0.01" id="budgetAmount" name="budgetAmount" required
+              className="mt-2 block w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)] px-4 py-3 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none" 
+              placeholder="e.g. 150.00" 
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="workMode" className="block text-sm font-medium text-[var(--text-primary)]">Work Mode</label>
+            <select id="workMode" name="workMode"
+              className="mt-2 block w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)] px-4 py-3 text-sm focus:border-[var(--accent)] focus:outline-none text-[var(--text-primary)]">
+              <option value="remote">Remote</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="onsite">On-site</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="deadline" className="block text-sm font-medium text-[var(--text-primary)]">Deadline</label>
+            <input 
+              type="date" id="deadline" name="deadline"
+              className="mt-2 block w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)] px-4 py-3 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none" 
+            />
+          </div>
         </div>
 
         <div>

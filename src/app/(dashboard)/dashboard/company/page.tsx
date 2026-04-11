@@ -1,7 +1,4 @@
-import * as React from 'react';
-import Link from 'next/link';
-import { createAdminClient } from '@/lib/server/appwrite';
-import { Plus, LayoutDashboard, Briefcase, FileText } from 'lucide-react';
+import { DashboardSidebar } from '@/components/DashboardSidebar';
 
 export default async function CompanyDashboardPage() {
   // In production, we fetch only jobs associated with the logged-in company user
@@ -9,7 +6,7 @@ export default async function CompanyDashboardPage() {
   
   try {
     const { databases } = await createAdminClient();
-    const dbId = process.env.APPWRITE_DATABASE_ID!;
+    const dbId = '69da165d00335f7a350e';
     // Using layout from spec
     const res = await databases.listDocuments(dbId, 'jobs');
     myJobs = res.documents;
@@ -19,22 +16,10 @@ export default async function CompanyDashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-[var(--bg-main)]">
-      {/* Sidebar Placeholder */}
-      <aside className="w-64 border-r border-[var(--border)] bg-[var(--bg-secondary)] p-6 flex flex-col space-y-4">
-        <h2 className="text-xl font-bold text-[var(--accent)] mb-8">Tranzlo.</h2>
-        <Link href="/dashboard/company" className="flex items-center gap-3 text-[var(--text-primary)] font-medium p-3 rounded-xl bg-[var(--hover)]/10 text-[var(--accent)]">
-          <LayoutDashboard className="h-5 w-5" /> Dashboard
-        </Link>
-        <Link href="/dashboard/company/jobs/new" className="flex items-center gap-3 text-[var(--text-secondary)] font-medium p-3 rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--text-primary)] transition-all">
-          <Briefcase className="h-5 w-5" /> Post Job
-        </Link>
-        <div className="flex items-center gap-3 text-[var(--text-secondary)] font-medium p-3 rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--text-primary)] transition-all">
-          <FileText className="h-5 w-5" /> Applications
-        </div>
-      </aside>
+      <DashboardSidebar role="company" />
 
       {/* Main Content */}
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-6 md:p-10 pb-32 md:pb-10">
         <div className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-[var(--text-primary)]">Company Terminal</h1>

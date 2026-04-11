@@ -1,76 +1,38 @@
 'use server';
 
 import { createSessionClient } from '@/lib/server/appwrite';
-import { triggerN8NWorkflow } from '@/lib/server/n8n';
 import { ID } from 'node-appwrite';
 import { redirect } from 'next/navigation';
 
-export async function applyForJob(formData: FormData) {
-  const jobId = formData.get('jobId') as string;
-  const coverLetter = formData.get('coverLetter') as string;
-  const proposedPrice = formData.get('proposedPrice') as string;
+export async function applyToJob(formData: FormData) {
+  const dbId = '69da165d00335f7a350e';
+  const collectionId = 'job_applications';
 
   try {
     const { databases, account } = await createSessionClient();
     const user = await account.get();
-    
-    const dbId = process.env.APPWRITE_DATABASE_ID!;
-    const collectionId = 'applications';
 
-    // Fetch job to get companyId for notification
-    const jobDoc = await databases.getDocument(dbId, 'jobs', jobId);
-    const companyId = jobDoc.companyId || jobDoc.userId || ''; // Assuming one of these holds the creator ID
+    const payload = {
+      jobId: formData.get('jobId') as string,
+      translatorId: user.$id,
+      coverMessage: formData.get('coverMessage') as string,
+      proposedRateType: formData.get('proposedRateType') as string || 'fixed',
+      proposedRateAmount: parseFloat(formData.get('proposedRateAmount') as string) || 0,
+      currency: formData.get('currency') as string || 'USD',
+      estimatedDeliveryAt: formData.get('estimatedDeliveryAt') ? new Date(formData.get('estimatedDeliveryAt') as string).toISOString() : null,
+      status: 'submitted'
+    };
 
-    const applicationDoc = await databases.createDocument(
+    await databases.createDocument(
       dbId, 
       collectionId, 
       ID.unique(), 
-      {
-        jobId,
-        translatorId: user.$id,
-        translatorName: user.name,
-        coverLetter,
-        proposedPrice: parseFloat(proposedPrice),
-        status: 'pending',
-      }
+      payload
     );
 
-    // Create In-App Notification for the company
-    if (companyId) {
-      const { createNotification } = await import('./notifications');
-      await createNotification({
-        userId: companyId,
-        title: 'New Job Application',
-        message: `${user.name} applied for "${jobDoc.jobTitle}"`,
-        type: 'job',
-        link: `/dashboard/company/jobs/${jobId}/applications/${applicationDoc.$id}`
-      });
-    }
-
-    // Trigger n8n Automation workflow upon successful application
-    await triggerN8NWorkflow('new-application', {
-      jobId,
-      translatorId: user.$id,
-      translatorName: user.name,
-      proposedPrice,
-      applicationId: applicationDoc.$id
-    });
-
-    redirect(`/dashboard/translator`);
-  } catch (error) {
-    console.error('Job application failed', error);
-    return { error: 'Failed to submit application' };
+    return { success: true };
+  } catch (error: any) {
+    console.error('Application submission failed', error);
+    return { success: false, error: error.message || 'Failed to submit application.' };
   }
 }
-
-export async function getApplication(id: string) {
-  try {
-    const { databases } = await createSessionClient();
-    const dbId = process.env.APPWRITE_DATABASE_ID!;
-    return await databases.getDocument(dbId, 'applications', id);
-  } catch (error) {
-    console.error('Failed to get application:', error);
-    return null;
-  }
-}
-

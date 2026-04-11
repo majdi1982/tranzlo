@@ -15,8 +15,9 @@ export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   try {
     const { databases } = await createAdminClient();
+    const dbId = '69da165d00335f7a350e';
     const job = await databases.getDocument(
-      process.env.APPWRITE_DATABASE_ID!,
+      dbId,
       'jobs',
       id
     );
@@ -35,8 +36,9 @@ export default async function JobDetailPage({ params }: Props) {
 
   try {
     const { databases } = await createAdminClient();
+    const dbId = '69da165d00335f7a350e';
     job = await databases.getDocument(
-      process.env.APPWRITE_DATABASE_ID!,
+      dbId,
       'jobs',
       id
     );
@@ -153,8 +155,10 @@ export default async function JobDetailPage({ params }: Props) {
                   { icon: Briefcase, label: 'Service Type', value: job.serviceType },
                   { icon: Languages, label: 'Source Language', value: job.sourceLanguage || '—' },
                   { icon: Globe, label: 'Target Language', value: job.targetLanguages?.join(', ') || '—' },
-                  { icon: BarChart3, label: 'Experience', value: 'Intermediate+' },
-                  { icon: Building2, label: 'Workspace', value: 'Remote' },
+                  { icon: Hash, label: 'Word Count', value: job.wordCount ? `${job.wordCount.toLocaleString()} words` : '—' },
+                  { icon: Coins, label: 'Budget', value: job.budgetAmount ? `${job.budgetAmount} ${job.budgetType === 'hourly' ? '/ hr' : '(Fixed)'}` : '—' },
+                  { icon: Clock, label: 'Deadline', value: job.deadline ? new Date(job.deadline).toLocaleDateString() : 'No urgent deadline' },
+                  { icon: Building2, label: 'Workspace', value: job.workMode || 'Remote' },
                 ].map(({ icon: Icon, label, value }) => (
                   <li key={label} className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2 text-[var(--text-secondary)]">

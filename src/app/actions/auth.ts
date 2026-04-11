@@ -37,18 +37,52 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
   const role = formData.get('role') as string;
+  const plan = formData.get('plan') as string || 'free';
+
+  const DB_ID = '69da165d00335f7a350e';
+  const USERS_META_ID = 'users_meta';
 
   try {
     const { users, account } = await createAdminClient();
     
-    // Create Appwrite Auth User via Admin Users API (more reliable from server)
+    // Log configuration for debugging (don't log full key)
+    console.log('--- SIGNUP ATTEMPT ---');
+    console.log('Target Project:', process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+    console.log('Target Endpoint:', process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT);
     const user = await users.create(ID.unique(), email, undefined, password, name);
 
     // Assign role label
     const label = role === 'company' ? 'company' : 'translator';
     await users.updateLabels(user.$id, [label]);
+
+    // Create users_meta record
+    const { databases } = await createAdminClient();
+    await databases.createDocument(DB_ID, USERS_META_ID, user.$id, {
+      userId: user.$id,
+      role: label,
+      plan: plan,
+      agreedToTerms: true, // Captured at form level
+      profileCompletion: 0.1, // Basic completion
+      lastLogin: new Date().toISOString()
+    });
+
+    // Create role-specific profile document
+    if (label === 'translator') {
+      await databases.createDocument(DB_ID, 'translators', user.$id, {
+        userId: user.$id,
+        isVerified: false,
+        rating: 0,
+        totalJobs: 0
+      });
+    } else if (label === 'company') {
+      await databases.createDocument(DB_ID, 'companies', user.$id, {
+        userId: user.$id,
+        companyName: name, // Default to user's name
+        isVerified: false
+      });
+    }
     
-    console.log(`✅ Account created for ${email} with role ${label}`);
+    console.log(`✅ Account, V4 Meta, and ${label} profile created for ${email}`);
 
     // Auto-login (Create session for user)
     const session = await account.createEmailPasswordSession(email, password);
