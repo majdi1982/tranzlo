@@ -73,9 +73,9 @@ scp "%TEMP%\ecosystem.config.js" %VPS_USER%@%VPS_HOST%:%VPS_APP_DIR%/ecosystem.c
 if errorlevel 1 goto :error
 
 echo.
-echo [7.1/7] Upload .env to VPS
-scp ".env" %VPS_USER%@%VPS_HOST%:%VPS_APP_DIR%/.env.local
-if errorlevel 1 echo Warning: .env.local upload failed. Make sure .env.local exists.
+echo [7.1/7] Upload .env.local to VPS
+scp ".env.local" %VPS_USER%@%VPS_HOST%:%VPS_APP_DIR%/.env.local
+if errorlevel 1 echo Warning: .env.local upload failed. Make sure .env.local exists locally.
 
 ssh %VPS_USER%@%VPS_HOST% "set -e; cd %VPS_APP_DIR%; git fetch origin %GIT_BRANCH%; git reset --hard origin/%GIT_BRANCH%; npm install --legacy-peer-deps; npm run build; pm2 restart %APP_NAME% --update-env || pm2 start ecosystem.config.js --only %APP_NAME%; pm2 save"
 if errorlevel 1 goto :error
