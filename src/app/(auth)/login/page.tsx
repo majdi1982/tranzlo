@@ -4,9 +4,25 @@ import * as React from 'react';
 import Link from 'next/link';
 import { login } from '@/app/actions/auth';
 
-export default function LoginPage() {
+import { useSearchParams } from 'next/navigation';
+
+import { Suspense } from 'react';
+
+function LoginContent() {
+  const searchParams = useSearchParams();
   const [error, setError] = React.useState<string | null>(null);
   const [isPending, setIsPending] = React.useState(false);
+
+  React.useEffect(() => {
+    const errorCode = searchParams.get('error');
+    if (errorCode) {
+      if (errorCode === 'invalid_session') {
+        setError('Your session has expired or is invalid. Please log in again.');
+      } else {
+        setError(`System Error: ${errorCode}`);
+      }
+    }
+  }, [searchParams]);
 
   async function handleSubmit(formData: FormData) {
     setIsPending(true);
@@ -74,5 +90,13 @@ export default function LoginPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="h-96 w-full animate-pulse rounded-2xl bg-[var(--bg-secondary)]" />}>
+      <LoginContent />
+    </Suspense>
   );
 }

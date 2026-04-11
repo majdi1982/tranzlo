@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
   // Prevent logged-in users from seeing Auth pages
   if (pathname.startsWith('/login')) {
     const error = request.nextUrl.searchParams.get('error');
-    if (session?.value && error !== 'invalid_session') {
+    if (session?.value && !error) {
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
