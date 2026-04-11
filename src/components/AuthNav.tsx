@@ -12,9 +12,14 @@ export function AuthNav() {
 
   React.useEffect(() => {
     async function checkUser() {
-      const u = await getUser();
-      setUser(u);
-      setLoading(false);
+      try {
+        const u = await getUser();
+        setUser(u);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setLoading(false);
+      }
     }
     checkUser();
   }, []);
