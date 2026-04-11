@@ -5,29 +5,65 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center">
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-[var(--bg-main)] py-24 sm:py-32 flex flex-col items-center text-center">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-[var(--bg-main)] to-[var(--bg-main)]"></div>
-        <div className="container px-4 sm:px-6 lg:px-8 max-w-5xl">
-          <h1 className="text-4xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-6xl md:text-7xl mb-6">
-            The global <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">translation</span> marketplace
+      <section className="relative w-full overflow-hidden bg-[var(--bg-main)] py-24 sm:py-32 lg:pb-40 flex flex-col items-center text-center">
+        {/* Animated Background Blobs */}
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-float"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-teal-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-float" style={{ animationDelay: '4s' }}></div>
+
+        <div className="container relative z-10 px-4 sm:px-6 lg:px-8 max-w-5xl">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-secondary)]/50 backdrop-blur-sm px-4 py-1.5 text-xs font-bold text-[var(--text-secondary)] mb-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Join 2,500+ professionals globally
+          </div>
+          
+          <h1 className="text-5xl font-black tracking-tight text-[var(--text-primary)] sm:text-7xl md:text-8xl mb-8 leading-[1.1]">
+            Global <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600 bg-[length:200%_auto] animate-[gradient_8s_linear_infinite]">translation</span> <br className="hidden sm:block" /> marketplace
           </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-[var(--text-secondary)] sm:text-xl mb-10">
-            Connect directly with verified professional translators or find high-quality jobs from companies around the world. Secure, fast, and completely automated.
+          
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-[var(--text-secondary)] sm:text-xl md:text-2xl mb-12 font-medium leading-relaxed">
+            Direct connections. Verified talent. <span className="text-[var(--text-primary)] font-bold italic">Zero friction.</span> <br />
+            Experience the next generation of professional translation.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <Link 
               href="/signup?role=company" 
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-[var(--accent)] px-8 py-4 text-base font-semibold text-white shadow-lg shadow-blue-500/30 hover:bg-[var(--hover)] hover:-translate-y-0.5 transition-all duration-300"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl bg-[var(--accent)] px-10 py-5 text-lg font-bold text-white shadow-2xl shadow-blue-600/20 hover:bg-[var(--hover)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
             >
-              Hire Translators
+              Start Hiring
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
             <Link 
               href="/signup?role=translator" 
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-[var(--bg-secondary)] border border-[var(--border)] px-8 py-4 text-base font-semibold text-[var(--text-primary)] shadow-sm hover:border-[var(--accent)] hover:text-[var(--accent)] hover:-translate-y-0.5 transition-all duration-300"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl bg-[var(--bg-secondary)] border-2 border-[var(--border)] px-10 py-5 text-lg font-bold text-[var(--text-primary)] shadow-sm hover:border-[var(--accent)] hover:text-[var(--accent)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
             >
-              Join as Translator
+              Get Jobs
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Platform Stats Section */}
+      <section className="w-full bg-[var(--bg-main)] py-12 border-y border-[var(--border)] overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="flex flex-col items-center">
+              <span className="text-3xl sm:text-4xl font-black text-[var(--accent)] mb-1 font-outfit">$1.4M+</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">Paid to Translators</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] mb-1 font-outfit">85k+</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">Projects Completed</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] mb-1 font-outfit">180+</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">Language Pairs</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] mb-1 font-outfit">99.2%</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">Quality Score</span>
+            </div>
           </div>
         </div>
       </section>

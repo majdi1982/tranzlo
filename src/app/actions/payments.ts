@@ -26,7 +26,7 @@ export async function activatePayPalSubscription(subscriptionId: string) {
     // 1. Determine Plan and Duration
     const planId = subscription.plan_id;
     const isYearly = planId === process.env.PAYPAL_PLAN_ID_YEARLY;
-    const planName = planId === process.env.PAYPAL_PLAN_ID_MONTHLY ? 'translator_pro' : 'company_pro'; // Simple mapping for now
+    const planName = planId === process.env.PAYPAL_PLAN_ID_MONTHLY ? 'translator_pro' : 'company_pro';
     
     // 2. Record Subscription
     await databases.createDocument(dbId, 'subscriptions', ID.unique(), {

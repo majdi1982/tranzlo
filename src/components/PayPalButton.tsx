@@ -79,8 +79,10 @@ export default function PayPalButton({ planId, onSuccess, onError }: PayPalButto
           console.log('User cancelled');
         },
         onError: (err: any) => {
-          setError('PayPal Button Error');
-          if (onError) onError('PayPal Button Error');
+          console.error('PayPal SDK Button Error:', err);
+          const errorMsg = 'PayPal Button Error - Check console';
+          setError(errorMsg);
+          if (onError) onError(errorMsg);
         }
       }).render(buttonContainerRef.current);
       

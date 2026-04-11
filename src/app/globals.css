@@ -7,25 +7,44 @@
 
 @layer base {
   :root {
-    --bg-main: #f8fafc;
+    /* Premium Indigo/Blue Palette */
+    --bg-main: hsl(220, 33%, 98%);
     --bg-secondary: #ffffff;
-    --border: #e2e8f0;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --accent: #3b82f6;
-    --hover: #2563eb;
+    --border: hsl(214, 32%, 91%);
+    --text-primary: hsl(222, 47%, 11%);
+    --text-secondary: hsl(215, 16%, 47%);
+    --accent: hsl(221, 83%, 53%);
+    --accent-glow: hsla(221, 83%, 53%, 0.15);
+    --hover: hsl(226, 70%, 45%);
     
-    --radius: 0.75rem;
+    --radius: 1rem;
+    
+    /* Animation Tokens */
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --bg-main: #020617;
-    --bg-secondary: #0f172a;
-    --border: #1e293b;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --accent: #3b82f6;
-    --hover: #2563eb;
+    --bg-main: hsl(222, 47%, 4%);
+    --bg-secondary: hsl(222, 47%, 7%);
+    --border: hsl(217, 33%, 12%);
+    --text-primary: hsl(210, 40%, 98%);
+    --text-secondary: hsl(215, 20%, 65%);
+    --accent: hsl(217, 91%, 60%);
+    --accent-glow: hsla(217, 91%, 60%, 0.2);
+    --hover: hsl(224, 76%, 48%);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-md bg-white/70 dark:bg-black/40 border border-white/20 dark:border-white/10;
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
   }
 }
 
