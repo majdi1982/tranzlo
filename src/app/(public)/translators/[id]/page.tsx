@@ -30,6 +30,15 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const cvUrl = profile.cvFileId ? await getFileDownloadUrl(profile.cvFileId) : null;
 
+  let currentUserId = '';
+  try {
+    const { account } = await createSessionClient();
+    const currentUser = await account.get();
+    currentUserId = currentUser.$id;
+  } catch (err) {
+    // User is not logged in
+  }
+
   return (
     <div className="bg-[var(--bg-main)] min-h-screen pb-20">
       {/* Header Banner */}
@@ -88,7 +97,7 @@ export default async function PublicProfilePage({ params }: Props) {
               <ContactButton 
                 translatorId={id} 
                 translatorName={user.name} 
-                currentUserId={(await createSessionClient().then(({ account }) => account.get()).catch(() => ({}))).$id || ''} 
+                currentUserId={currentUserId} 
               />
             </div>
           </div>
