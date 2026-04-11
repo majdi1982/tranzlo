@@ -1,10 +1,14 @@
 import { Client, Account, Databases, Users, Storage } from "node-appwrite";
 import { cookies } from "next/headers";
 
+const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://appwrite.tranzlo.net/v1';
+const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69da16050031d6ff6ddd';
+const apiKey = process.env.APPWRITE_API_KEY_SERVER;
+
 export async function createSessionClient() {
   const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!);
+    .setEndpoint(endpoint)
+    .setProject(projectId);
 
   const session = (await cookies()).get("tranzlo-session");
   
@@ -29,9 +33,14 @@ export async function createSessionClient() {
 
 export async function createAdminClient() {
   const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
-    .setKey(process.env.APPWRITE_API_KEY_SERVER!);
+    .setEndpoint(endpoint)
+    .setProject(projectId);
+
+  if (apiKey) {
+    client.setKey(apiKey);
+  } else {
+    console.warn("⚠️ APPWRITE_API_KEY_SERVER is missing in Server Client initialization.");
+  }
 
   return {
     get account() {
@@ -48,3 +57,4 @@ export async function createAdminClient() {
     }
   };
 }
+
