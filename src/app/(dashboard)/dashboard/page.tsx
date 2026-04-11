@@ -23,6 +23,11 @@ export default async function DashboardRootPage() {
 
     redirect('/dashboard/translator');
   } catch (err: any) {
+    // If it's a Next.js redirect (e.g. from the try block), re-throw it
+    if (err?.digest?.startsWith('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') {
+      throw err;
+    }
+
     // Capture the specific error message to show the user why login failed
     const errorMessage = err?.message || 'invalid_session';
     redirect(`/login?error=${encodeURIComponent(errorMessage)}`);
