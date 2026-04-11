@@ -1,7 +1,7 @@
 import { Client, Account, Databases, Storage } from 'appwrite';
 
-const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
-const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
+const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT?.trim();
+const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID?.trim();
 
 if (!endpoint || !projectId) {
   console.warn('⚠️ Appwrite Environment Variables are missing! Check your .env.local file.');

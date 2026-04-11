@@ -1,9 +1,9 @@
 import { Client, Account, Databases, Users, Storage } from "node-appwrite";
 import { cookies } from "next/headers";
 
-const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://appwrite.tranzlo.net/v1';
-const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69da16050031d6ff6ddd';
-const apiKey = process.env.APPWRITE_API_KEY_SERVER;
+const endpoint = (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://appwrite.tranzlo.net/v1').trim();
+const projectId = (process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69da16050031d6ff6ddd').trim();
+const apiKey = process.env.APPWRITE_API_KEY_SERVER?.trim();
 
 export async function createSessionClient() {
   const client = new Client()
