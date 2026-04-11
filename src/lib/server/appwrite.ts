@@ -1,9 +1,14 @@
 import { Client, Account, Databases, Users, Storage } from "node-appwrite";
 import { cookies } from "next/headers";
 
-const endpoint = (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://appwrite.tranzlo.net/v1').trim();
-const projectId = (process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69da16050031d6ff6ddd').trim();
-const apiKey = process.env.APPWRITE_API_KEY_SERVER?.trim();
+let endpoint = (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://appwrite.tranzlo.net/v1').trim();
+let projectId = (process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69da16050031d6ff6ddd').trim();
+let apiKey = process.env.APPWRITE_API_KEY_SERVER?.trim();
+
+// Aggressive validation
+if (endpoint === 'undefined' || endpoint === 'null') endpoint = 'https://appwrite.tranzlo.net/v1';
+if (projectId === 'undefined' || projectId === 'null') projectId = '69da16050031d6ff6ddd';
+if (apiKey === 'undefined' || apiKey === 'null') apiKey = undefined;
 
 export async function createSessionClient() {
   const client = new Client()

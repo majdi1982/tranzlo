@@ -1,10 +1,14 @@
 import { Client, Account, Databases, Storage } from 'appwrite';
 
-const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT?.trim();
-const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID?.trim();
+let endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT?.trim();
+let projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID?.trim();
+
+// Aggressive validation: Treat "undefined" strings as missing
+if (endpoint === 'undefined' || endpoint === 'null') endpoint = undefined;
+if (projectId === 'undefined' || projectId === 'null') projectId = undefined;
 
 if (!endpoint || !projectId) {
-  console.warn('⚠️ Appwrite Environment Variables are missing! Check your .env.local file.');
+  console.warn('⚠️ Appwrite Environment Variables are missing or invalid! Using verified fallbacks.');
 }
 
 const client = new Client()
