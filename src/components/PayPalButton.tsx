@@ -18,7 +18,7 @@ export default function PayPalButton({ planId, onSuccess, onError }: PayPalButto
 
   React.useEffect(() => {
     let isMounted = true;
-    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'AXPRIo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5';
+    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5';
 
     const loadScript = () => {
       if (window.paypal) {
