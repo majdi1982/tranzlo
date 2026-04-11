@@ -39,16 +39,18 @@ export async function signup(formData: FormData) {
   const role = formData.get('role') as string;
 
   try {
-    const { account, users } = await createAdminClient();
+    const { users, account } = await createAdminClient();
     
-    // Create Appwrite Auth User
-    const user = await account.create(ID.unique(), email, password, name);
+    // Create Appwrite Auth User via Admin Users API (more reliable from server)
+    const user = await users.create(ID.unique(), email, undefined, password, name);
 
-    // Assign role label so the dashboard router can redirect correctly
+    // Assign role label
     const label = role === 'company' ? 'company' : 'translator';
     await users.updateLabels(user.$id, [label]);
     
-    // Auto-login
+    console.log(`✅ Account created for ${email} with role ${label}`);
+
+    // Auto-login (Create session for user)
     const session = await account.createEmailPasswordSession(email, password);
 
     const cookieStore = await cookies();
@@ -63,10 +65,17 @@ export async function signup(formData: FormData) {
     redirect('/dashboard');
   } catch (error: any) {
     if (error?.digest?.startsWith('NEXT_REDIRECT')) throw error;
-    console.error('Signup error', error);
-    return { error: error.message?.includes('already exists') ? 'An account with this email already exists.' : 'Failed to create account' };
+    console.error('Signup error details:', error);
+    
+    // Return specific error if possible
+    if (error.code === 409 || error.message?.includes('already exists')) {
+      return { error: 'An account with this email already exists.' };
+    }
+    
+    return { error: error.message || 'Failed to create account. Please check your credentials.' };
   }
 }
+
 
 export async function logout() {
   try {
