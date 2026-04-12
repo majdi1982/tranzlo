@@ -1,11 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { User, Shield, MapPin, Calendar, Star, Settings, LogOut } from 'lucide-react';
+import { User, Shield, MapPin, Calendar, Star, LogOut, Verified } from 'lucide-react';
 import Link from 'next/link';
+import { logout } from '@/app/actions/auth';
 
 interface HubSidebarLeftProps {
   user: {
+    id: string;
     name: string;
     role: string;
     location?: string;
@@ -16,14 +18,13 @@ interface HubSidebarLeftProps {
 }
 
 export default function HubSidebarLeft({ user }: HubSidebarLeftProps) {
+  const isCompany = user.role === 'company';
+  const publicProfileLink = isCompany ? `/companies/${user.id}` : `/translators/${user.id}`;
+
   return (
     <div className="flex flex-col gap-6">
       {/* Profile Card */}
       <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-3xl p-6 shadow-sm overflow-hidden relative group">
-        <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition-opacity">
-           <Link href="/dashboard/settings"><Settings className="h-4 w-4" /></Link>
-        </div>
-        
         <div className="flex flex-col items-center text-center">
           <div className="h-20 w-20 rounded-2xl bg-[var(--accent)]/10 border-2 border-[var(--accent)]/20 flex items-center justify-center mb-4 overflow-hidden shadow-lg group-hover:scale-105 transition-transform">
              {user.avatar ? (
@@ -57,15 +58,18 @@ export default function HubSidebarLeft({ user }: HubSidebarLeftProps) {
 
       {/* Quick Links */}
       <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-3xl p-4 overflow-hidden">
-         <Link href={`/dashboard/${user.role === 'company' ? 'company' : 'translator'}/profile`} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-[var(--bg-main)] transition-all text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--accent)]">
+         <Link href={publicProfileLink} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-[var(--bg-main)] transition-all text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--accent)]">
             <User className="h-4 w-4" />
             My Public Profile
          </Link>
-         <Link href="/dashboard/chat" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-[var(--bg-main)] transition-all text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--accent)]">
-            <Shield className="h-4 w-4" />
-            Security & Trust
+         <Link href="/dashboard/verification" className="flex items-center gap-3 p-3 rounded-2xl hover:bg-[var(--bg-main)] transition-all text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--accent)]">
+            <Verified className="h-4 w-4" />
+            Identity Verification
          </Link>
-         <button className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-rose-50 hover:text-rose-600 transition-all text-sm font-bold text-[var(--text-secondary)]">
+         <button 
+           onClick={() => logout()}
+           className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-rose-50 hover:text-rose-600 transition-all text-sm font-bold text-[var(--text-secondary)]"
+         >
             <LogOut className="h-4 w-4" />
             Log Out
          </button>

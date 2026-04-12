@@ -53,8 +53,8 @@ export function AuthNav() {
   const role = user.labels?.includes('company') ? 'company' : (user.labels?.includes('admin') ? 'admin' : 'translator');
 
   return (
-    <div className="flex items-center gap-2 sm:gap-4">
-      {/* New Message / Chat Quick Action */}
+    <div className="flex items-center gap-2 sm:gap-3">
+      {/* Chat */}
       <Link 
         href="/dashboard/chat" 
         className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all"
@@ -66,9 +66,18 @@ export function AuthNav() {
       {/* Notifications */}
       <NotificationBell userId={user.$id} />
 
+      {/* Theme Toggle */}
+      <button
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all"
+        aria-label="Toggle theme"
+      >
+        {mounted && theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+      </button>
+
       {/* User Menu / Profile Dropdown */}
       <div className="relative group ml-1">
-        <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[var(--accent)] to-indigo-600 text-white font-bold text-sm shadow-xl border-2 border-[var(--bg-secondary)] group-hover:scale-105 transition-all">
+        <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[var(--accent)] to-indigo-600 text-white font-bold text-sm shadow-xl border-2 border-[var(--bg-secondary)] group-hover:scale-105 transition-all outline-none">
           {user.name.charAt(0).toUpperCase()}
         </button>
         
@@ -94,11 +103,11 @@ export function AuthNav() {
                 className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
               >
                 <User className="h-4 w-4" />
-                My Public Profile
+                My Profile
               </Link>
 
               <Link 
-                href={`/dashboard/${role}/profile`} // Assuming edit is same page or similar
+                href={`/dashboard/${role}/profile`}
                 className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
               >
                 <Settings2 className="h-4 w-4" />
@@ -110,22 +119,8 @@ export function AuthNav() {
                 className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
               >
                 <Settings className="h-4 w-4" />
-                Account Settings
+                Settings
               </Link>
-
-              {/* Theme Toggle within Dropdown */}
-              <button
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
-              >
-                <div className="flex items-center gap-3">
-                   {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                   {mounted && theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                </div>
-                <div className={`h-4 w-8 rounded-full border border-[var(--border)] p-0.5 transition-colors ${mounted && theme === 'dark' ? 'bg-[var(--accent)] border-transparent' : 'bg-[var(--bg-main)]'}`}>
-                   <div className={`h-full w-3 rounded-full bg-white transition-transform ${mounted && theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
-                </div>
-              </button>
             </div>
 
             <button 

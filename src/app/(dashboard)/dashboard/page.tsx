@@ -1,4 +1,5 @@
 import { createSessionClient } from '@/lib/server/appwrite';
+import { getHubData } from '@/app/actions/hub';
 import { redirect } from 'next/navigation';
 import HubSidebarLeft from '@/components/dashboard/hub/HubSidebarLeft';
 import HubFeed from '@/components/dashboard/hub/HubFeed';
@@ -10,13 +11,18 @@ export default async function DashboardRootPage() {
     const user = await account.get();
 
     // Prepare profile data for sidebar
+    const role = user.labels?.includes('company') ? 'company' : (user.labels?.includes('admin') ? 'admin' : 'translator');
     const profileData = {
+      id: user.$id,
       name: user.name,
-      role: user.labels?.includes('company') ? 'company' : (user.labels?.includes('admin') ? 'admin' : 'translator'),
+      role: role,
       memberSince: new Date(user.$createdAt).getFullYear().toString(),
       rating: 4.8, // Fallback/Placeholder
       location: 'New York, USA', // Sample
     };
+
+    // Fetch Live Hub Data
+    const hubResult = await getHubData(user.$id, role);
 
     return (
       <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-10 mb-20">
@@ -29,7 +35,12 @@ export default async function DashboardRootPage() {
 
           {/* Central Feed - High Activity */}
           <div className="lg:col-span-2 flex flex-col gap-8">
-             <HubFeed userRole={profileData.role} />
+             <HubFeed 
+               userRole={profileData.role} 
+               initialJobs={hubResult.jobs}
+               initialMyJobs={hubResult.myJobs}
+               initialCommunity={hubResult.community}
+             />
           </div>
 
           {/* Sidebar Right - Widgets & Community */}
