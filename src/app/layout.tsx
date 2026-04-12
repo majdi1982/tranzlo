@@ -14,8 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tranzlo - Translation Marketplace",
-  description: "Tranzlo is a marketplace platform for translation jobs.",
+  title: "Tranzlo | Global Translation & Language Experts Marketplace",
+  description: "Tranzlo is the premier professional network for language experts. Hire verified translators, find high-paying jobs, and grow your global career.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

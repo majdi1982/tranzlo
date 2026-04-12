@@ -43,9 +43,11 @@ export function Navbar() {
         {/* 1. Brand Logo */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-xl group-hover:rotate-6 transition-all duration-500">
-              <Globe className="h-6.5 w-6.5 text-white" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Tranzlo Logo" 
+              className="h-11 w-11 object-contain group-hover:rotate-6 transition-all duration-500"
+            />
             <span className="text-2xl font-black tracking-tighter text-[var(--text-primary)] font-outfit uppercase">Tranzlo</span>
           </Link>
         </div>

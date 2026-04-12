@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { Globe } from 'lucide-react';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,9 +11,11 @@ export function Footer() {
           {/* Brand Col */}
           <div className="col-span-1 md:col-span-1 flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500">
-                <Globe className="h-5 w-5 text-white" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="Tranzlo Logo" 
+                className="h-8 w-8 object-contain"
+              />
               <span className="text-xl font-bold tracking-tight text-[var(--text-primary)]">Tranzlo</span>
             </Link>
             <p className="text-sm text-[var(--text-secondary)] mt-2 max-w-xs">
