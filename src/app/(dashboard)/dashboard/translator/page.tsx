@@ -4,7 +4,7 @@ import { createAdminClient, createSessionClient } from '@/lib/server/appwrite';
 import { LayoutDashboard, FileText, Settings, Wallet, Bell } from 'lucide-react';
 import { Query } from 'node-appwrite';
 
-import { Query } from 'node-appwrite';
+
 
 export default async function TranslatorDashboardPage() {
   let myApplications: any[] = [];
