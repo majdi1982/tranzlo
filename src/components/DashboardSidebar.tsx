@@ -55,7 +55,7 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
   return (
     <>
       {/* ─── Desktop Sidebar ────────────────────────── */}
-      <aside className="hidden md:flex w-64 flex-col fixed inset-y-0 border-r border-[var(--border)] bg-[var(--bg-secondary)] p-6 z-30 transition-all">
+      <aside className="hidden md:flex w-64 flex-col fixed top-16 bottom-0 left-0 border-r border-[var(--border)] bg-[var(--bg-secondary)] p-6 z-30 transition-all">
         <div className="flex items-center gap-2 mb-10 px-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white">
             <Zap className="h-5 w-5 fill-current" />

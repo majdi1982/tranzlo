@@ -47,8 +47,8 @@ export default function PricingPage() {
         description: 'Hire at scale.',
         features: ['Unlimited active jobs', 'Advanced candidate filter', 'Featured job boosts', 'Dedicated account routing'],
         planIds: {
-          monthly: process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID_COMPANY_MONTHLY || 'P-1FA07072XD6828721NHNGB6I', // Placeholder
-          yearly: process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID_COMPANY_YEARLY || 'P-1FA07072XD6828721NHNGB6I' // Placeholder
+          monthly: process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID_COMPANY_MONTHLY || 'P-3C891253S7401732CMWNHNAA',
+          yearly: process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID_COMPANY_YEARLY || 'P-9BK22164UR652150PMWNHNZI'
         }
       }
     }

@@ -27,15 +27,18 @@ export default function PayPalButton({ planId, onSuccess, onError }: PayPalButto
       }
 
       const script = document.createElement('script');
-      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&vault=true&intent=subscription`;
+      // Added currency=USD and components=buttons for better initialization
+      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&vault=true&intent=subscription&currency=USD&components=buttons`;
       script.async = true;
       script.onload = () => {
         if (isMounted) renderButton();
       };
       script.onerror = () => {
         if (isMounted) {
-          setError('Failed to load PayPal SDK');
+          const msg = 'Failed to load PayPal SDK. Please check your internet or ad-blocker.';
+          setError(msg);
           setLoading(false);
+          if (onError) onError(msg);
         }
       };
       document.body.appendChild(script);
@@ -55,6 +58,12 @@ export default function PayPalButton({ planId, onSuccess, onError }: PayPalButto
           label: 'subscribe'
         },
         createSubscription: (data: any, actions: any) => {
+          if (!planId) {
+            const err = 'PayPal Error: Plan ID is missing.';
+            setError(err);
+            console.error(err);
+            throw new Error(err);
+          }
           return actions.subscription.create({
             plan_id: planId
           });
@@ -80,9 +89,18 @@ export default function PayPalButton({ planId, onSuccess, onError }: PayPalButto
         },
         onError: (err: any) => {
           console.error('PayPal SDK Button Error:', err);
-          const errorMsg = 'PayPal Button Error - Check console';
-          setError(errorMsg);
-          if (onError) onError(errorMsg);
+          
+          // Attempt to extract a more descriptive error message
+          let detailedError = 'PayPal Button Error - Please verify your Plan ID and Environment.';
+          
+          if (typeof err === 'string') {
+            detailedError = err;
+          } else if (err?.message) {
+            detailedError = `PayPal Error: ${err.message}`;
+          }
+
+          setError(detailedError);
+          if (onError) onError(detailedError);
         }
       }).render(buttonContainerRef.current);
       
@@ -94,7 +112,7 @@ export default function PayPalButton({ planId, onSuccess, onError }: PayPalButto
     return () => {
       isMounted = false;
     };
-  }, [planId]);
+  }, [planId, onSuccess, onError]);
 
   return (
     <div className="w-full">

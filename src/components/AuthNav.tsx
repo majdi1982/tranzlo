@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { getUser, logout } from '@/app/actions/auth';
 import { NotificationBell } from './notifications/NotificationBell';
-import { LogOut, LayoutDashboard, User } from 'lucide-react';
+import { LogOut, LayoutDashboard, User, MessageSquarePlus } from 'lucide-react';
 
 export function AuthNav() {
   const [user, setUser] = React.useState<any>(null);
@@ -47,12 +47,21 @@ export function AuthNav() {
 
   return (
     <div className="flex items-center gap-3">
+      {/* New Message / Chat Quick Action */}
+      <Link 
+        href="/dashboard/chat" 
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-all"
+        title="New Message"
+      >
+        <MessageSquarePlus className="h-5 w-5" />
+      </Link>
+
       {/* Notifications */}
       <NotificationBell userId={user.$id} />
 
-      {/* User Menu / Dropdown Placeholder */}
-      <div className="relative group">
-        <button className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent)] text-white font-bold text-xs shadow-sm group-hover:shadow-md transition-all">
+      {/* User Menu / Profile */}
+      <div className="relative group ml-1">
+        <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[var(--accent)] to-indigo-600 text-white font-bold text-sm shadow-lg border-2 border-[var(--bg-secondary)] group-hover:scale-105 transition-all">
           {user.name.charAt(0).toUpperCase()}
         </button>
         

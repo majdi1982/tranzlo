@@ -4,7 +4,7 @@ import { createAdminClient, createSessionClient } from '@/lib/server/appwrite';
 import { LayoutDashboard, FileText, Settings, Wallet, Bell } from 'lucide-react';
 import { Query } from 'node-appwrite';
 
-import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { Query } from 'node-appwrite';
 
 export default async function TranslatorDashboardPage() {
   let myApplications: any[] = [];
@@ -27,11 +27,7 @@ export default async function TranslatorDashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--bg-main)]">
-      <DashboardSidebar role="translator" />
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 pb-32 md:pb-10">
+    <div className="p-6 md:p-10 pb-32 md:pb-10">
         <div className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-[var(--text-primary)]">Welcome back, {userName}</h1>
@@ -104,7 +100,6 @@ export default async function TranslatorDashboardPage() {
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 }

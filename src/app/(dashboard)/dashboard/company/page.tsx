@@ -1,4 +1,3 @@
-import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { createAdminClient } from '@/lib/server/appwrite';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
@@ -18,11 +17,7 @@ export default async function CompanyDashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--bg-main)]">
-      <DashboardSidebar role="company" />
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 pb-32 md:pb-10">
+    <div className="p-6 md:p-10 pb-32 md:pb-10">
         <div className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-[var(--text-primary)]">Company Terminal</h1>
@@ -87,7 +82,6 @@ export default async function CompanyDashboardPage() {
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 }
