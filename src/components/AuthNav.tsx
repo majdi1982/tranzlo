@@ -4,7 +4,6 @@ import * as React from 'react';
 import Link from 'next/link';
 import { getUser, logout } from '@/app/actions/auth';
 import { NotificationBell } from './notifications/NotificationBell';
-import { NotificationBell } from './notifications/NotificationBell';
 import { LogOut, LayoutDashboard, User, MessageSquarePlus, Settings, Settings2, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
