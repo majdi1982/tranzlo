@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Globe, ShieldCheck, MessageSquare, Zap } from 'lucide-react';
+import MarketplacePreview from '@/components/marketplace/MarketplacePreview';
+
 
 export default function Home() {
   return (
@@ -113,6 +115,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      {/* Marketplace Preview Section */}
+      <MarketplacePreview />
       
       {/* CTA Section */}
       <section className="w-full py-24 bg-[var(--bg-main)]">
