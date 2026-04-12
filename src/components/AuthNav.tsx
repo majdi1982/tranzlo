@@ -150,7 +150,10 @@ export function AuthNav() {
             {/* 3. Account Actions */}
             <div className="mt-1 pt-1 border-t border-[var(--border)]">
               <button 
-                onClick={() => logout()}
+                onClick={async () => {
+                   await logout();
+                   window.location.href = '/';
+                }}
                 className="w-full flex items-center gap-4 px-5 py-4 text-xs font-black text-rose-500 hover:bg-rose-500/10 transition-all rounded-2xl group/out"
               >
                 <LogOut className="h-4.5 w-4.5 group-hover/out:translate-x-1 transition-transform" />
