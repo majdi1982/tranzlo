@@ -4,13 +4,18 @@ import * as React from 'react';
 import Link from 'next/link';
 import { getUser, logout } from '@/app/actions/auth';
 import { NotificationBell } from './notifications/NotificationBell';
-import { LogOut, LayoutDashboard, User, MessageSquarePlus } from 'lucide-react';
+import { NotificationBell } from './notifications/NotificationBell';
+import { LogOut, LayoutDashboard, User, MessageSquarePlus, Settings, Settings2, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 export function AuthNav() {
   const [user, setUser] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
+  const [mounted, setMounted] = React.useState(false);
+  const { theme, setTheme } = useTheme();
 
   React.useEffect(() => {
+    setMounted(true);
     async function checkUser() {
       try {
         const u = await getUser();
@@ -45,54 +50,90 @@ export function AuthNav() {
     );
   }
 
+  // Determine role for dynamic links
+  const role = user.labels?.includes('company') ? 'company' : (user.labels?.includes('admin') ? 'admin' : 'translator');
+
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-4">
       {/* New Message / Chat Quick Action */}
       <Link 
         href="/dashboard/chat" 
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-all"
-        title="New Message"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all"
+        title="Chat"
       >
-        <MessageSquarePlus className="h-5 w-5" />
+        <MessageSquarePlus className="h-4.5 w-4.5" />
       </Link>
 
       {/* Notifications */}
       <NotificationBell userId={user.$id} />
 
-      {/* User Menu / Profile */}
+      {/* User Menu / Profile Dropdown */}
       <div className="relative group ml-1">
-        <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[var(--accent)] to-indigo-600 text-white font-bold text-sm shadow-lg border-2 border-[var(--bg-secondary)] group-hover:scale-105 transition-all">
+        <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[var(--accent)] to-indigo-600 text-white font-bold text-sm shadow-xl border-2 border-[var(--bg-secondary)] group-hover:scale-105 transition-all">
           {user.name.charAt(0).toUpperCase()}
         </button>
         
-        <div className="absolute right-0 mt-3 w-48 hidden group-hover:block animate-in fade-in slide-in-from-top-2 z-50">
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] py-2 shadow-xl overflow-hidden">
-            <div className="px-4 py-2 border-b border-[var(--border)] mb-1">
-              <p className="text-xs font-bold text-[var(--text-primary)] truncate">{user.name}</p>
-              <p className="text-[10px] text-[var(--text-secondary)] truncate">{user.email}</p>
+        <div className="absolute right-0 mt-3 w-56 hidden group-hover:block animate-in fade-in slide-in-from-top-2 z-50">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] py-2 shadow-2xl overflow-hidden backdrop-blur-xl">
+            {/* User Header */}
+            <div className="px-4 py-3 border-b border-[var(--border)] mb-1 bg-[var(--bg-main)]/50">
+              <p className="text-xs font-black text-[var(--text-primary)] truncate uppercase tracking-widest">{user.name}</p>
+              <p className="text-[10px] text-[var(--text-secondary)] truncate font-medium">{user.email}</p>
             </div>
             
-            <Link 
-              href="/dashboard"
-              className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-colors"
-            >
-              <LayoutDashboard className="h-3.5 w-3.5" />
-              My Dashboard
-            </Link>
-            
-            <Link 
-              href="/dashboard/translator/profile" // Dynamic based on role would be better but this is a shortcut
-              className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-colors"
-            >
-              <User className="h-3.5 w-3.5" />
-              My Profile
-            </Link>
+            <div className="p-1 space-y-0.5">
+              <Link 
+                href="/dashboard"
+                className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Community Hub
+              </Link>
+              
+              <Link 
+                href={`/dashboard/${role}/profile`}
+                className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
+              >
+                <User className="h-4 w-4" />
+                My Public Profile
+              </Link>
+
+              <Link 
+                href={`/dashboard/${role}/profile`} // Assuming edit is same page or similar
+                className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
+              >
+                <Settings2 className="h-4 w-4" />
+                Adjust Profile
+              </Link>
+
+              <Link 
+                href="/dashboard/settings"
+                className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
+              >
+                <Settings className="h-4 w-4" />
+                Account Settings
+              </Link>
+
+              {/* Theme Toggle within Dropdown */}
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-main)] hover:text-[var(--accent)] transition-all"
+              >
+                <div className="flex items-center gap-3">
+                   {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                   {mounted && theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </div>
+                <div className={`h-4 w-8 rounded-full border border-[var(--border)] p-0.5 transition-colors ${mounted && theme === 'dark' ? 'bg-[var(--accent)] border-transparent' : 'bg-[var(--bg-main)]'}`}>
+                   <div className={`h-full w-3 rounded-full bg-white transition-transform ${mounted && theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
+                </div>
+              </button>
+            </div>
 
             <button 
               onClick={() => logout()}
-              className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 transition-colors border-t border-[var(--border)] mt-1"
+              className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black text-rose-500 hover:bg-rose-50 transition-all border-t border-[var(--border)] mt-1 uppercase tracking-widest"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-4 w-4" />
               Sign out
             </button>
           </div>

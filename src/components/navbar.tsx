@@ -54,29 +54,13 @@ export function Navbar() {
         </nav>
 
         {/* Right Actions */}
-        <div className="hidden md:flex items-center gap-4">
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)]/10 transition-all mr-2"
-            aria-label="Toggle theme"
-          >
-            {mounted && theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
-          
+        <div className="flex items-center gap-2">
           <AuthNav />
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="flex md:hidden items-center gap-2">
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)]"
-          >
-            {mounted && theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
+          
+          {/* Mobile Menu Button - only visible on small screens */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-[var(--text-primary)] p-2"
+            className="md:hidden text-[var(--text-primary)] p-2 hover:bg-[var(--bg-main)] rounded-xl transition-all"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>

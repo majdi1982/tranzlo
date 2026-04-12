@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
-import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { createSessionClient } from "@/lib/server/appwrite";
 import { redirect } from "next/navigation";
 
@@ -28,7 +27,6 @@ export default async function DashboardLayout({
     <div className="relative flex min-h-screen flex-col">
       <Navbar />
       <div className="flex flex-1">
-        <DashboardSidebar role={role} />
         <main className="flex-1 bg-[var(--bg-main)]">
           {children}
         </main>
