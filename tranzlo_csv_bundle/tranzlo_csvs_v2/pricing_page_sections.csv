@@ -1,0 +1,8 @@
+﻿section_id,page_name,audience_type,section_order,section_name,component_type,is_required,notes
+1,pricing,shared,1,Audience Toggle,toggle,true,Top switch: Translator / Company
+2,pricing,translator,2,Translator Hero,hero,true,Shown only when audience_type=translator
+3,pricing,translator,3,Translator Plans Grid,plans_grid,true,Show translator plans only
+4,pricing,company,4,Company Hero,hero,true,Shown only when audience_type=company
+5,pricing,company,5,Company Plans Grid,plans_grid,true,Show company plans only
+6,pricing,shared,6,FAQ,faq,true,Shared section
+7,pricing,shared,7,Contact Sales,cta,true,Visible for enterprise / custom needs

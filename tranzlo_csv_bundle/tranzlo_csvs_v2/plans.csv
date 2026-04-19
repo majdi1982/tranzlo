@@ -1,0 +1,9 @@
+﻿plan_id,audience_type,plan_name,billing_period,price_usd,currency,trial_days,is_active,sort_order,badge_text,cta_label,visibility_rule,description
+translator_free,translator,Free,monthly,0,USD,30,true,1,,Start Free,show_when_user_type=translator,Starter plan for translators
+translator_pro_monthly,translator,Pro,monthly,19,USD,30,true,2,Most Popular,Start Free Trial,show_when_user_type=translator,Professional plan for active translators
+translator_pro_yearly,translator,Pro,yearly,190,USD,30,true,3,Save 17%,Start Free Trial,show_when_user_type=translator,Annual translator plan
+translator_premium_monthly,translator,Premium,monthly,39,USD,30,true,4,Best Visibility,Start Free Trial,show_when_user_type=translator,Advanced translator plan with premium exposure
+company_basic_monthly,company,Basic,monthly,49,USD,30,true,5,,Start Free Trial,show_when_user_type=company,Starter plan for companies posting jobs
+company_pro_monthly,company,Pro,monthly,99,USD,30,true,6,Most Popular,Start Free Trial,show_when_user_type=company,Professional company hiring plan
+company_pro_yearly,company,Pro,yearly,990,USD,30,true,7,Save 17%,Start Free Trial,show_when_user_type=company,Annual company plan
+company_enterprise,company,Enterprise,custom,0,USD,30,true,8,Custom,Contact Sales,show_when_user_type=company,Enterprise plan with custom limits and support

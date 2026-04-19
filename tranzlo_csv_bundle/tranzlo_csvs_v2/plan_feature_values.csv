@@ -1,0 +1,49 @@
+﻿row_id,plan_id,feature_code,feature_value,value_type,display_text
+1,translator_free,languages_limit,2,number,Up to 2 languages
+2,translator_free,services_limit,3,number,Up to 3 services
+3,translator_free,cv_upload,true,boolean,CV upload included
+4,translator_free,applications_per_month,10,number,10 applications / month
+5,translator_free,ranking_boost,0,number,Standard visibility
+6,translator_free,verified_badge,false,boolean,No verified badge
+7,translator_pro_monthly,languages_limit,4,number,Up to 4 languages
+8,translator_pro_monthly,services_limit,10,number,Up to 10 services
+9,translator_pro_monthly,cv_upload,true,boolean,CV upload included
+10,translator_pro_monthly,applications_per_month,100,number,100 applications / month
+11,translator_pro_monthly,ranking_boost,1,number,Higher search visibility
+12,translator_pro_monthly,verified_badge,true,boolean,Verified badge included
+13,translator_pro_yearly,languages_limit,4,number,Up to 4 languages
+14,translator_pro_yearly,services_limit,10,number,Up to 10 services
+15,translator_pro_yearly,cv_upload,true,boolean,CV upload included
+16,translator_pro_yearly,applications_per_month,100,number,100 applications / month
+17,translator_pro_yearly,ranking_boost,1,number,Higher search visibility
+18,translator_pro_yearly,verified_badge,true,boolean,Verified badge included
+19,translator_premium_monthly,languages_limit,8,number,Up to 8 languages
+20,translator_premium_monthly,services_limit,20,number,Up to 20 services
+21,translator_premium_monthly,cv_upload,true,boolean,CV upload included
+22,translator_premium_monthly,applications_per_month,9999,number,Unlimited applications
+23,translator_premium_monthly,ranking_boost,2,number,Top search visibility
+24,translator_premium_monthly,verified_badge,true,boolean,Verified badge included
+25,company_basic_monthly,active_job_posts,3,number,3 active job posts
+26,company_basic_monthly,team_members_limit,1,number,1 team member
+27,company_basic_monthly,advanced_filters,false,boolean,Basic filters
+28,company_basic_monthly,direct_messaging,true,boolean,Direct messaging included
+29,company_basic_monthly,verified_translators_access,true,boolean,Can contact verified translators
+30,company_basic_monthly,priority_support,false,boolean,Standard support
+31,company_pro_monthly,active_job_posts,15,number,15 active job posts
+32,company_pro_monthly,team_members_limit,5,number,Up to 5 team members
+33,company_pro_monthly,advanced_filters,true,boolean,Advanced filters included
+34,company_pro_monthly,direct_messaging,true,boolean,Direct messaging included
+35,company_pro_monthly,verified_translators_access,true,boolean,Can contact verified translators
+36,company_pro_monthly,priority_support,true,boolean,Priority support
+37,company_pro_yearly,active_job_posts,15,number,15 active job posts
+38,company_pro_yearly,team_members_limit,5,number,Up to 5 team members
+39,company_pro_yearly,advanced_filters,true,boolean,Advanced filters included
+40,company_pro_yearly,direct_messaging,true,boolean,Direct messaging included
+41,company_pro_yearly,verified_translators_access,true,boolean,Can contact verified translators
+42,company_pro_yearly,priority_support,true,boolean,Priority support
+43,company_enterprise,active_job_posts,9999,number,Unlimited job posts
+44,company_enterprise,team_members_limit,9999,number,Unlimited team members
+45,company_enterprise,advanced_filters,true,boolean,Advanced filters included
+46,company_enterprise,direct_messaging,true,boolean,Direct messaging included
+47,company_enterprise,verified_translators_access,true,boolean,Can contact verified translators
+48,company_enterprise,priority_support,true,boolean,Dedicated priority support

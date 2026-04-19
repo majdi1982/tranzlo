@@ -1,0 +1,8 @@
+﻿collection_name,recommended_document_id,key_fields,purpose
+plans,plan_id,"audience_type, plan_name, billing_period, price_usd, trial_days, is_active",Store subscription plans
+planFeatures,feature_id,"audience_type, feature_group, feature_name, feature_code",Store reusable plan features
+planFeatureValues,row_id,"plan_id, feature_code, feature_value, display_text",Store feature values per plan
+subscriptions,subscription_id,"user_id, audience_type, plan_id, status, trial_start_at, trial_end_at, provider_subscription_id",Store active and past subscriptions
+trialRules,rule_id,"audience_type, applies_to_plan_id, trial_days, eligibility_rule, action_after_trial",Store trial behavior
+paypalPlanMapping,mapping_id,"provider_plan_id, internal_plan_id, audience_type",Map PayPal to internal plans
+uiVisibilityRules,rule_id,"page_name, component_name, show_when",Drive UI logic if needed

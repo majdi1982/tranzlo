@@ -1,0 +1,7 @@
+﻿mapping_id,payment_provider,provider_plan_id,internal_plan_id,audience_type,billing_period,is_active,notes
+1,paypal,REPLACE_PAYPAL_TRANSLATOR_PRO_MONTHLY,translator_pro_monthly,translator,monthly,true,Replace with real PayPal plan ID
+2,paypal,REPLACE_PAYPAL_TRANSLATOR_PRO_YEARLY,translator_pro_yearly,translator,yearly,true,Replace with real PayPal plan ID
+3,paypal,REPLACE_PAYPAL_TRANSLATOR_PREMIUM_MONTHLY,translator_premium_monthly,translator,monthly,true,Replace with real PayPal plan ID
+4,paypal,REPLACE_PAYPAL_COMPANY_BASIC_MONTHLY,company_basic_monthly,company,monthly,true,Replace with real PayPal plan ID
+5,paypal,REPLACE_PAYPAL_COMPANY_PRO_MONTHLY,company_pro_monthly,company,monthly,true,Replace with real PayPal plan ID
+6,paypal,REPLACE_PAYPAL_COMPANY_PRO_YEARLY,company_pro_yearly,company,yearly,true,Replace with real PayPal plan ID

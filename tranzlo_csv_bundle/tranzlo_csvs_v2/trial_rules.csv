@@ -1,0 +1,3 @@
+﻿rule_id,audience_type,applies_to_plan_id,trial_days,eligibility_rule,action_after_trial,refund_window_days,notes
+1,translator,all_translator_paid_plans,30,new_user_only,require_payment_or_downgrade,7,Unlock selected paid plan during trial
+2,company,all_company_paid_plans,30,new_user_only,require_payment_or_downgrade,7,Unlock selected paid plan during trial

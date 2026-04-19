@@ -1,0 +1,11 @@
+﻿file_name,purpose
+plans.csv,Master list of plans split by audience type
+plan_features.csv,Reusable feature definitions for pricing comparison
+plan_feature_values.csv,Actual values shown per plan
+pricing_page_sections.csv,Pricing page content blocks and order
+subscriptions.csv,Subscription lifecycle sample structure
+trial_rules.csv,30-day trial logic and post-trial actions
+paypal_plan_mapping.csv,Map PayPal plans to internal plan IDs
+ui_visibility_rules.csv,Rules for what to show in the pricing UI
+work_breakdown.csv,Project task breakdown by phase and owner
+appwrite_collections_hint.csv,Suggested Appwrite collection mapping

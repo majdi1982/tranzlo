@@ -1,0 +1,18 @@
+﻿task_id,phase,module,task_name,owner_role,priority,depends_on,deliverable
+1,Phase 1,Data,Finalize separated plan structure for translator/company,Product + Dev,Critical,,Approved plan matrix
+2,Phase 1,Data,"Prepare CSVs for plans, features, subscriptions, trial rules",Dev,Critical,1,CSV package
+3,Phase 1,Frontend,Build pricing toggle: Translator / Company,Frontend Dev,Critical,1,Working audience toggle
+4,Phase 1,Frontend,Render only relevant plans based on selected audience,Frontend Dev,Critical,3,Separated plan grids
+5,Phase 1,Frontend,Preserve selected plan through signup flow,Frontend Dev,High,3,Query-param based signup flow
+6,Phase 1,Backend,Store user_type on account profile,Backend Dev,Critical,,User type available in DB
+7,Phase 1,Backend,Create subscriptions collection / table,Backend Dev,Critical,2,Subscriptions schema
+8,Phase 1,Backend,Implement 30-day trial for paid plans,Backend Dev,Critical,7,Trial logic working
+9,Phase 1,Backend,Implement downgrade / payment required after trial,Backend Dev,High,8,Post-trial status flow
+10,Phase 1,Payments,Map PayPal plan IDs to internal plans,Backend Dev,Critical,2,Plan mapping ready
+11,Phase 1,Payments,Handle PayPal webhook events for subscription lifecycle,Backend Dev,Critical,10,Webhook handler
+12,Phase 1,QA,Test translator signup -> plan -> trial -> subscription,QA,High,"3,8,11",Passing test scenario
+13,Phase 1,QA,Test company signup -> plan -> trial -> subscription,QA,High,"3,8,11",Passing test scenario
+14,Phase 2,Admin,Admin view for plans and active subscriptions,Backend + Frontend,Medium,7,Admin screen
+15,Phase 2,Automation,Trial ending reminders,n8n / Appwrite Function,Medium,8,Reminder workflow
+16,Phase 2,Automation,Payment failure reminders,n8n / Appwrite Function,Medium,11,Billing alert workflow
+17,Phase 2,UX,Add FAQ and enterprise contact flow,Frontend Dev,Medium,4,Final pricing page

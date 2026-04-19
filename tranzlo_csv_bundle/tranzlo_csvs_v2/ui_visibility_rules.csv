@@ -1,0 +1,6 @@
+﻿rule_id,page_name,component_name,show_when,fallback_action,notes
+1,pricing,translator_plans_grid,user_type=translator OR selected_toggle=translator,hide,Do not show company plans to translators
+2,pricing,company_plans_grid,user_type=company OR selected_toggle=company,hide,Do not show translator plans to companies
+3,pricing,signup_redirect,guest_user,redirect_to_signup_with_selected_plan,Preserve selected plan in query params
+4,pricing,checkout_redirect,logged_in_user,redirect_to_checkout,Skip signup for logged-in users
+5,pricing,trial_banner,plan_price_usd>0,show,Show 30-day free trial banner on paid plans

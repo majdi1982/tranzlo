@@ -1,0 +1,3 @@
+﻿subscription_id,user_id,audience_type,plan_id,status,billing_period,price_usd,trial_start_at,trial_end_at,subscription_start_at,subscription_end_at,payment_provider,provider_customer_id,provider_subscription_id,cancel_at_period_end
+sub_001,user_001,translator,translator_pro_monthly,trialing,monthly,19,2026-04-18,2026-05-18,,,paypal,cust_demo_001,pp_sub_demo_001,false
+sub_002,user_002,company,company_basic_monthly,active,monthly,49,2026-03-01,2026-03-31,2026-04-01,2026-05-01,paypal,cust_demo_002,pp_sub_demo_002,false

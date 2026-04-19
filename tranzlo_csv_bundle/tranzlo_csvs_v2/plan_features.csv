@@ -1,0 +1,13 @@
+﻿feature_id,audience_type,feature_group,feature_name,feature_code,applies_to_ui
+tf1,translator,profile,Languages limit,languages_limit,pricing_table
+tf2,translator,profile,Services limit,services_limit,pricing_table
+tf3,translator,profile,CV upload,cv_upload,pricing_table
+tf4,translator,jobs,Job applications per month,applications_per_month,pricing_table
+tf5,translator,visibility,Search ranking boost,ranking_boost,pricing_table
+tf6,translator,trust,Verified badge,verified_badge,pricing_table
+cf1,company,jobs,Active job posts,active_job_posts,pricing_table
+cf2,company,team,Company team members,team_members_limit,pricing_table
+cf3,company,search,Advanced filters,advanced_filters,pricing_table
+cf4,company,communication,Direct messaging,direct_messaging,pricing_table
+cf5,company,trust,Access to verified translators,verified_translators_access,pricing_table
+cf6,company,support,Priority support,priority_support,pricing_table
