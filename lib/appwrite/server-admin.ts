@@ -1,24 +1,21 @@
 import { Client, Databases } from "node-appwrite";
-import { appwriteConfig } from "./config";
+import { getAppwriteConfig } from "./config";
 
-export const appwriteDatabaseId = appwriteConfig.databaseId;
-export const appwriteSubscriptionsCollectionId =
-  appwriteConfig.collections.subscriptions;
-export const appwritePayPalEventsCollectionId = appwriteConfig.collections.paypalEvents;
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing env var: ${name}`);
-  }
-  return value;
-}
+export const appwriteDatabaseId = () => getAppwriteConfig().databaseId;
+export const appwriteSubscriptionsCollectionId = () => getAppwriteConfig().collections.subscriptions;
+export const appwritePayPalEventsCollectionId = () => getAppwriteConfig().collections.paypalEvents;
 
 export function createAdminDatabases() {
+  const config = getAppwriteConfig();
+  if (!config.endpoint || !config.projectId || !config.apiKey) {
+    throw new Error("Missing required Appwrite server env vars.");
+  }
+
   const client = new Client()
-    .setEndpoint(appwriteConfig.endpoint)
-    .setProject(appwriteConfig.projectId)
-    .setKey(requireEnv("APPWRITE_API_KEY"));
+    .setEndpoint(config.endpoint)
+    .setProject(config.projectId)
+    .setKey(config.apiKey);
 
   return new Databases(client);
 }
+

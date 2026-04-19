@@ -1,9 +1,12 @@
+export type PlanAudience = "translator" | "company";
+export type BillingPeriod = "monthly" | "yearly" | "custom";
+
 export const PAYPAL_PLAN_MAP: Record<
   string,
   {
     internalPlanId: string;
-    audienceType: "translator" | "company";
-    billingPeriod: "monthly" | "yearly" | "custom";
+    audienceType: PlanAudience;
+    billingPeriod: BillingPeriod;
   }
 > = {
   REPLACE_PAYPAL_TRANSLATOR_PRO_MONTHLY: {
@@ -37,3 +40,4 @@ export const PAYPAL_PLAN_MAP: Record<
     billingPeriod: "yearly",
   },
 };
+

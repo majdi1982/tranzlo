@@ -5,7 +5,7 @@ import {
   appwriteSubscriptionsCollectionId,
   createAdminDatabases,
 } from "@/lib/appwrite/server-admin";
-import { PAYPAL_PLAN_MAP } from "@/lib/paypal-plan-map";
+import { PAYPAL_PLAN_MAP } from "@/lib/billing/plan-map";
 import { verifyPayPalWebhook } from "@/lib/paypal";
 
 export const runtime = "nodejs";
@@ -35,8 +35,8 @@ function addDaysISO(dateInput: string | Date, days: number): string {
 async function alreadyProcessed(eventId: string): Promise<boolean> {
   const adminDatabases = createAdminDatabases();
   const result = await adminDatabases.listDocuments(
-    appwriteDatabaseId,
-    appwritePayPalEventsCollectionId,
+    appwriteDatabaseId(),
+    appwritePayPalEventsCollectionId(),
     [Query.equal("event_id", [eventId])]
   );
 
@@ -46,8 +46,8 @@ async function alreadyProcessed(eventId: string): Promise<boolean> {
 async function markProcessed(event: PayPalWebhookEvent): Promise<void> {
   const adminDatabases = createAdminDatabases();
   await adminDatabases.createDocument(
-    appwriteDatabaseId,
-    appwritePayPalEventsCollectionId,
+    appwriteDatabaseId(),
+    appwritePayPalEventsCollectionId(),
     ID.unique(),
     {
       event_id: event.id,
@@ -61,8 +61,8 @@ async function markProcessed(event: PayPalWebhookEvent): Promise<void> {
 async function findSubscriptionByProviderId(providerSubscriptionId: string) {
   const adminDatabases = createAdminDatabases();
   const result = await adminDatabases.listDocuments(
-    appwriteDatabaseId,
-    appwriteSubscriptionsCollectionId,
+    appwriteDatabaseId(),
+    appwriteSubscriptionsCollectionId(),
     [Query.equal("provider_subscription_id", [providerSubscriptionId])]
   );
 
@@ -86,8 +86,8 @@ async function createOrUpdateSubscriptionFromWebhook(
 
   if (existing) {
     await adminDatabases.updateDocument(
-      appwriteDatabaseId,
-      appwriteSubscriptionsCollectionId,
+      appwriteDatabaseId(),
+      appwriteSubscriptionsCollectionId(),
       existing.$id,
       {
         ...patch,
@@ -105,8 +105,8 @@ async function createOrUpdateSubscriptionFromWebhook(
   const isPaidPlan = Boolean(mappedPlan?.internalPlanId);
 
   await adminDatabases.createDocument(
-    appwriteDatabaseId,
-    appwriteSubscriptionsCollectionId,
+    appwriteDatabaseId(),
+    appwriteSubscriptionsCollectionId(),
     ID.unique(),
     {
       user_id: resource.custom_id ?? null,
@@ -178,8 +178,8 @@ async function handleSaleCompleted(event: PayPalWebhookEvent) {
   }
 
   await adminDatabases.updateDocument(
-    appwriteDatabaseId,
-    appwriteSubscriptionsCollectionId,
+    appwriteDatabaseId(),
+    appwriteSubscriptionsCollectionId(),
     existing.$id,
     {
       status: "active",

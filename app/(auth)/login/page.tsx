@@ -1,78 +1,47 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    // Auth logic will go here in Phase B
-    setTimeout(() => setLoading(false), 2000);
-  };
+    setTimeout(() => setLoading(false), 800);
+  }
 
   return (
-    <Card className="border-none shadow-xl">
+    <Card className="border-border/60 bg-background/95 shadow-xl">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
-        <p className="text-sm text-center text-muted-foreground">
-          Enter your email to sign in to your account
-        </p>
+        <CardTitle className="text-center text-2xl">Welcome back</CardTitle>
+        <p className="text-center text-sm text-muted-foreground">Sign in to continue to your Tranzlo workspace.</p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              className="w-full h-10 px-3 rounded-md border bg-muted/50 focus:outline-none focus:ring-1 focus:ring-primary"
-              required
-            />
+            <input id="email" type="email" className="h-11 w-full rounded-xl border bg-background px-3" placeholder="name@example.com" required />
           </div>
           <div className="space-y-2">
-            <div className="flex justify-between">
+            <div className="flex items-center justify-between">
               <label className="text-sm font-medium" htmlFor="password">Password</label>
-              <Link href="/forgot-password" size="sm" className="text-xs text-primary hover:underline">
-                Forgot password?
-              </Link>
+              <Link href="/forgot-password" className="text-xs font-medium text-primary">Forgot password?</Link>
             </div>
-            <input
-              id="password"
-              type="password"
-              className="w-full h-10 px-3 rounded-md border bg-muted/50 focus:outline-none focus:ring-1 focus:ring-primary"
-              required
-            />
+            <input id="password" type="password" className="h-11 w-full rounded-xl border bg-background px-3" required />
           </div>
-          <Button className="w-full h-11" type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
-          </Button>
+          <Button className="h-11 w-full" type="submit" disabled={loading}>{loading ? "Signing in..." : "Sign in"}</Button>
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col gap-4">
-        <div className="relative w-full">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-          </div>
-        </div>
-        <Button variant="outline" className="w-full h-11">
-          Google
-        </Button>
-        <p className="text-sm text-center text-muted-foreground">
-          Don't have an account?{" "}
-          <Link href="/register" className="text-primary hover:underline">
-            Register
-          </Link>
+      <CardFooter className="justify-center">
+        <p className="text-sm text-muted-foreground">
+          New here? <Link href="/register" className="font-medium text-primary">Create an account</Link>
         </p>
       </CardFooter>
     </Card>
   );
 }
+

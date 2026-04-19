@@ -1,15 +1,17 @@
-import { Client, Account, Databases, Users } from "node-appwrite";
-import { appwriteConfig } from "./config";
+import { Client, Account, Databases, Users, Storage } from "node-appwrite";
 import { cookies } from "next/headers";
+import { getAppwriteConfig } from "./config";
+
+function buildClient() {
+  const config = getAppwriteConfig();
+  return new Client().setEndpoint(config.endpoint).setProject(config.projectId);
+}
 
 export async function createSessionClient() {
-  const client = new Client()
-    .setEndpoint(appwriteConfig.endpoint)
-    .setProject(appwriteConfig.projectId);
-
+  const client = buildClient();
   const session = (await cookies()).get("session");
 
-  if (!session || !session.value) {
+  if (!session?.value) {
     throw new Error("No session");
   }
 
@@ -22,14 +24,15 @@ export async function createSessionClient() {
     get databases() {
       return new Databases(client);
     },
+    get storage() {
+      return new Storage(client);
+    },
   };
 }
 
 export async function createAdminClient() {
-  const client = new Client()
-    .setEndpoint(appwriteConfig.endpoint)
-    .setProject(appwriteConfig.projectId)
-    .setKey(appwriteConfig.apiKey);
+  const config = getAppwriteConfig();
+  const client = buildClient().setKey(config.apiKey);
 
   return {
     get account() {
@@ -41,5 +44,9 @@ export async function createAdminClient() {
     get users() {
       return new Users(client);
     },
+    get storage() {
+      return new Storage(client);
+    },
   };
 }
+
