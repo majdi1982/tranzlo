@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { LucideIcon } from "lucide-react";
 import { 
   LayoutDashboard, 
   Globe, 
@@ -14,7 +14,7 @@ import {
 export type NavItem = {
   name: string;
   href: string;
-  icon?: ComponentType<{ className?: string }>;
+  icon?: LucideIcon;
 };
 
 export const publicNav: NavItem[] = [
