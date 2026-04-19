@@ -2,7 +2,6 @@ import { ID, Query } from "appwrite";
 import { account, databases } from "@/lib/appwrite/client";
 import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
 import { cookies } from "next/headers";
-import { appwriteConfig } from "@/lib/appwrite/config";
 
 // This will be used in Server Actions
 export async function signUp({ email, password, name, role }: any) {
@@ -12,7 +11,7 @@ export async function signUp({ email, password, name, role }: any) {
   const newUser = await adminAccount.create(ID.unique(), email, password, name);
 
   // 2. Add role to preferences (or separate profile collection)
-  await adminAccount.updatePrefs(newUser.$id, { role });
+  await adminAccount.updatePrefs({ role });
 
   // 3. Create session (need to do this separately as admin client creates, doesn't sign in)
   // For security, we usually return success and ask user to login, 
