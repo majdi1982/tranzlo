@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import { translatorNav, companyNav, adminNav } from "@/config/nav";
 import { LogOut, Languages, PanelLeftClose } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
@@ -36,7 +37,7 @@ export function DashboardSidebar() {
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
-          const Icon = item.icon;
+          const Icon = item.icon as LucideIcon | undefined;
           const isActive = pathname === item.href;
           return (
             <Link
@@ -49,7 +50,7 @@ export function DashboardSidebar() {
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <Icon className="h-4 w-4" />
+              {Icon ? <Icon className="h-4 w-4" /> : null}
               {item.name}
             </Link>
           );
