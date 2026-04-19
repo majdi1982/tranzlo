@@ -30,37 +30,35 @@ function addDaysISO(dateInput: string | Date, days: number): string {
 }
 
 async function alreadyProcessed(eventId: string): Promise<boolean> {
-  const result = await adminDatabases.listDocuments({
-    databaseId: appwriteDatabaseId,
-    collectionId: appwritePayPalEventsCollectionId,
-    queries: [Query.equal("event_id", [eventId])],
-  });
+  const result = await adminDatabases.listDocuments(
+    appwriteDatabaseId,
+    appwritePayPalEventsCollectionId,
+    [Query.equal("event_id", [eventId])]
+  );
 
   return result.documents.length > 0;
 }
 
 async function markProcessed(event: PayPalWebhookEvent): Promise<void> {
-  await adminDatabases.createDocument({
-    databaseId: appwriteDatabaseId,
-    collectionId: appwritePayPalEventsCollectionId,
-    documentId: ID.unique(),
-    data: {
+  await adminDatabases.createDocument(
+    appwriteDatabaseId,
+    appwritePayPalEventsCollectionId,
+    ID.unique(),
+    {
       event_id: event.id,
       event_type: event.event_type,
       summary: event.summary ?? null,
       processed_at: new Date().toISOString(),
-    },
-  });
+    }
+  );
 }
 
 async function findSubscriptionByProviderId(providerSubscriptionId: string) {
-  const result = await adminDatabases.listDocuments({
-    databaseId: appwriteDatabaseId,
-    collectionId: appwriteSubscriptionsCollectionId,
-    queries: [
-      Query.equal("provider_subscription_id", [providerSubscriptionId]),
-    ],
-  });
+  const result = await adminDatabases.listDocuments(
+    appwriteDatabaseId,
+    appwriteSubscriptionsCollectionId,
+    [Query.equal("provider_subscription_id", [providerSubscriptionId])]
+  );
 
   return result.documents[0] ?? null;
 }
@@ -80,17 +78,17 @@ async function createOrUpdateSubscriptionFromWebhook(
   const existing = await findSubscriptionByProviderId(providerSubscriptionId);
 
   if (existing) {
-    await adminDatabases.updateDocument({
-      databaseId: appwriteDatabaseId,
-      collectionId: appwriteSubscriptionsCollectionId,
-      documentId: existing.$id,
-      data: {
+    await adminDatabases.updateDocument(
+      appwriteDatabaseId,
+      appwriteSubscriptionsCollectionId,
+      existing.$id,
+      {
         ...patch,
         last_event_id: event.id,
         last_event_type: event.event_type,
         last_event_at: event.create_time ?? new Date().toISOString(),
-      },
-    });
+      }
+    );
     return;
   }
 
@@ -99,11 +97,11 @@ async function createOrUpdateSubscriptionFromWebhook(
   const now = new Date().toISOString();
   const isPaidPlan = Boolean(mappedPlan?.internalPlanId);
 
-  await adminDatabases.createDocument({
-    databaseId: appwriteDatabaseId,
-    collectionId: appwriteSubscriptionsCollectionId,
-    documentId: ID.unique(),
-    data: {
+  await adminDatabases.createDocument(
+    appwriteDatabaseId,
+    appwriteSubscriptionsCollectionId,
+    ID.unique(),
+    {
       user_id: resource.custom_id ?? null,
       audience_type: mappedPlan?.audienceType ?? null,
       plan_id: mappedPlan?.internalPlanId ?? null,
@@ -124,8 +122,8 @@ async function createOrUpdateSubscriptionFromWebhook(
       last_event_id: event.id,
       last_event_type: event.event_type,
       last_event_at: event.create_time ?? now,
-    },
-  });
+    }
+  );
 }
 
 async function handleCreated(event: PayPalWebhookEvent) {
@@ -171,11 +169,11 @@ async function handleSaleCompleted(event: PayPalWebhookEvent) {
     return;
   }
 
-  await adminDatabases.updateDocument({
-    databaseId: appwriteDatabaseId,
-    collectionId: appwriteSubscriptionsCollectionId,
-    documentId: existing.$id,
-    data: {
+  await adminDatabases.updateDocument(
+    appwriteDatabaseId,
+    appwriteSubscriptionsCollectionId,
+    existing.$id,
+    {
       status: "active",
       last_payment_at: event.create_time ?? new Date().toISOString(),
       last_payment_amount: resource.amount?.total ?? resource.amount?.value ?? null,
@@ -184,8 +182,8 @@ async function handleSaleCompleted(event: PayPalWebhookEvent) {
       last_event_id: event.id,
       last_event_type: event.event_type,
       last_event_at: event.create_time ?? new Date().toISOString(),
-    },
-  });
+    }
+  );
 }
 
 export async function POST(req: Request): Promise<Response> {
