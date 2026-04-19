@@ -3,7 +3,6 @@
 import { ID } from "node-appwrite";
 import { cookies } from "next/headers";
 import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
-import { redirect } from "next/navigation";
 
 export const signIn = async ({ email, password }: any) => {
   try {
@@ -36,7 +35,7 @@ export const signUp = async ({ email, password, name, role }: any) => {
     );
 
     // Store role in preferences
-    await account.updatePrefs(newUserAccount.$id, { role });
+    await account.updatePrefs({ role });
 
     const session = await account.createEmailPasswordSession(email, password);
 
