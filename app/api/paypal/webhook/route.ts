@@ -3,10 +3,13 @@ import {
   appwriteDatabaseId,
   appwritePayPalEventsCollectionId,
   appwriteSubscriptionsCollectionId,
-  adminDatabases,
+  createAdminDatabases,
 } from "@/lib/appwrite/server-admin";
 import { PAYPAL_PLAN_MAP } from "@/lib/paypal-plan-map";
 import { verifyPayPalWebhook } from "@/lib/paypal";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type PayPalWebhookEvent = {
   id: string;
@@ -30,6 +33,7 @@ function addDaysISO(dateInput: string | Date, days: number): string {
 }
 
 async function alreadyProcessed(eventId: string): Promise<boolean> {
+  const adminDatabases = createAdminDatabases();
   const result = await adminDatabases.listDocuments(
     appwriteDatabaseId,
     appwritePayPalEventsCollectionId,
@@ -40,6 +44,7 @@ async function alreadyProcessed(eventId: string): Promise<boolean> {
 }
 
 async function markProcessed(event: PayPalWebhookEvent): Promise<void> {
+  const adminDatabases = createAdminDatabases();
   await adminDatabases.createDocument(
     appwriteDatabaseId,
     appwritePayPalEventsCollectionId,
@@ -54,6 +59,7 @@ async function markProcessed(event: PayPalWebhookEvent): Promise<void> {
 }
 
 async function findSubscriptionByProviderId(providerSubscriptionId: string) {
+  const adminDatabases = createAdminDatabases();
   const result = await adminDatabases.listDocuments(
     appwriteDatabaseId,
     appwriteSubscriptionsCollectionId,
@@ -67,6 +73,7 @@ async function createOrUpdateSubscriptionFromWebhook(
   event: PayPalWebhookEvent,
   patch: Record<string, any>
 ) {
+  const adminDatabases = createAdminDatabases();
   const resource = event.resource ?? {};
   const providerSubscriptionId =
     resource.id || resource.billing_agreement_id || resource.sale_id || null;
@@ -157,6 +164,7 @@ async function handlePaymentFailed(event: PayPalWebhookEvent) {
 }
 
 async function handleSaleCompleted(event: PayPalWebhookEvent) {
+  const adminDatabases = createAdminDatabases();
   const resource = event.resource ?? {};
   const subscriptionId = resource.billing_agreement_id || resource.id;
 

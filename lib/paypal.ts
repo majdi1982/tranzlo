@@ -1,27 +1,22 @@
 type PayPalEnv = "sandbox" | "live";
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing env var: ${name}`);
-  }
-  return value;
-}
-
-const PAYPAL_CLIENT_ID = requireEnv("PAYPAL_CLIENT_ID");
-const PAYPAL_CLIENT_SECRET = requireEnv("PAYPAL_CLIENT_SECRET");
-const PAYPAL_WEBHOOK_ID = requireEnv("PAYPAL_WEBHOOK_ID");
-const PAYPAL_ENV = (process.env.PAYPAL_ENV || "sandbox") as PayPalEnv;
-
 function getPayPalBaseUrl(): string {
-  return PAYPAL_ENV === "live"
+  const env = (process.env.PAYPAL_ENV || "sandbox") as PayPalEnv;
+  return env === "live"
     ? "https://api-m.paypal.com"
     : "https://api-m.sandbox.paypal.com";
 }
 
 export async function getPayPalAccessToken(): Promise<string> {
+  const paypalClientId = process.env.PAYPAL_CLIENT_ID;
+  const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
+
+  if (!paypalClientId || !paypalClientSecret) {
+    throw new Error("Missing env vars: PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET");
+  }
+
   const auth = Buffer.from(
-    `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`
+    `${paypalClientId}:${paypalClientSecret}`
   ).toString("base64");
 
   const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
@@ -48,6 +43,11 @@ export async function verifyPayPalWebhook(params: {
   headers: Headers;
   parsedEvent: unknown;
 }): Promise<boolean> {
+  const paypalWebhookId = process.env.PAYPAL_WEBHOOK_ID;
+  if (!paypalWebhookId) {
+    throw new Error("Missing env var: PAYPAL_WEBHOOK_ID");
+  }
+
   const accessToken = await getPayPalAccessToken();
   const transmissionId = params.headers.get("paypal-transmission-id");
   const transmissionTime = params.headers.get("paypal-transmission-time");
@@ -79,7 +79,7 @@ export async function verifyPayPalWebhook(params: {
         transmission_id: transmissionId,
         transmission_sig: transmissionSig,
         transmission_time: transmissionTime,
-        webhook_id: PAYPAL_WEBHOOK_ID,
+        webhook_id: paypalWebhookId,
         webhook_event: params.parsedEvent,
       }),
       cache: "no-store",
