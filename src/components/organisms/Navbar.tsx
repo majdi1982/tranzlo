@@ -28,8 +28,12 @@ export const Navbar = () => {
   }, [])
 
   const user = clientUser || serverUser
-  const isAuthenticated = clientAuth || !!serverUser
+  const isAuthenticated = !!user
   const loading = clientLoading && serverLoading
+
+  useEffect(() => {
+    console.log("Navbar Auth State:", { isAuthenticated, hasUser: !!user, loading });
+  }, [isAuthenticated, user, loading]);
 
   const handleLogout = async () => {
     await logout()
@@ -70,7 +74,7 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                <NotificationCenter />
+                <NotificationCenter user={user} />
                 <Link href="/dashboard" className="flex items-center gap-3 pl-2 border-l border-white/[0.05]">
                   <div className="w-8 h-8 rounded-full bg-premium-gradient flex items-center justify-center border border-white/10 overflow-hidden">
                     {(user?.prefs as any)?.avatar ? (

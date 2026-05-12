@@ -20,7 +20,7 @@ export async function login(formData: FormData) {
       path: "/",
       httpOnly: true,
       sameSite: "strict",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
     });
     
     return { success: true };

@@ -10,8 +10,9 @@ import { Notification } from "@/types"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
-export const NotificationCenter = () => {
-  const { user } = useAuth()
+export const NotificationCenter = ({ user: propUser }: { user?: any }) => {
+  const { user: authUser } = useAuth()
+  const user = propUser || authUser
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)

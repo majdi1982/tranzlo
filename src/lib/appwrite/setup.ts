@@ -176,8 +176,8 @@ async function setup() {
         ]
       },
       { 
-        id: "jobs", 
-        name: "Jobs", 
+        id: "projects", 
+        name: "Projects", 
         permissions: [Permission.read(Role.any()), Permission.create(Role.users())],
         attrs: [
           { name: "companyId", type: "string", size: 255 },
