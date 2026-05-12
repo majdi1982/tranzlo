@@ -43,9 +43,15 @@ export default function CreateProjectPage() {
     setLoading(true)
     
     const result = await createJob({
-      ...formData,
+      title: formData.title,
+      description: formData.description,
+      sourceLanguage: formData.sourceLanguage,
+      targetLanguage: formData.targetLanguage,
       budget: parseInt(formData.budget),
-      milestones: [] // Support for milestones can be added in UI later
+      deadline: new Date(formData.deadline).toISOString(),
+      jobType: formData.jobType,
+      isInviteOnly: formData.isInviteOnly,
+      milestones: [] 
     })
 
     if (result.success) {

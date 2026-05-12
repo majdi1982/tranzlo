@@ -8,6 +8,7 @@ import { Button } from "@/components/atoms/Button"
 import Link from "next/link"
 import { getCompanyProjects } from "@/services/jobs/actions"
 import { Job } from "@/types"
+import { cn } from "@/lib/utils"
 
 export default function CompanyProjectsPage() {
   const [projects, setProjects] = useState<Job[]>([])
@@ -160,4 +161,4 @@ export default function CompanyProjectsPage() {
   )
 }
 
-import { cn } from "@/lib/utils"
+
