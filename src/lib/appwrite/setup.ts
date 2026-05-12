@@ -38,7 +38,11 @@ async function setup() {
       { 
         id: "translators", 
         name: "Translators", 
-        permissions: [Permission.read(Role.any()), Permission.create(Role.users()), Permission.update(Role.users())],
+        permissions: [
+          Permission.read(Role.any()), 
+          Permission.create(Role.any()), 
+          Permission.update(Role.users())
+        ],
         attrs: [
           { name: "userId", type: "string", size: 255 },
           { name: "name", type: "string", size: 255 },
@@ -53,7 +57,11 @@ async function setup() {
       { 
         id: "companies", 
         name: "Companies", 
-        permissions: [Permission.read(Role.any()), Permission.create(Role.users()), Permission.update(Role.users())],
+        permissions: [
+          Permission.read(Role.any()), 
+          Permission.create(Role.any()), 
+          Permission.update(Role.users())
+        ],
         attrs: [
           { name: "userId", type: "string", size: 255 },
           { name: "companyName", type: "string", size: 255 },
