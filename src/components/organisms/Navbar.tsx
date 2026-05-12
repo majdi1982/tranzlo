@@ -31,6 +31,10 @@ export const Navbar = () => {
     window.location.href = "/"
   }
 
+  useEffect(() => {
+    console.log("Navbar State:", { isAuthenticated, loading, userId: user?.$id });
+  }, [isAuthenticated, loading, user]);
+
   const navLinks = [
     { name: "Marketplace", path: "/marketplace", live: true },
     { name: "Translators", path: "/translators", role: "company" },
