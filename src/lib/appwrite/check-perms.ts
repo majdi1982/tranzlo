@@ -18,8 +18,7 @@ async function checkPermissions() {
         try {
             const col = await databases.getCollection(dbId, id);
             console.log(`Collection: ${id}`);
-            console.log(`Permissions:`, JSON.stringify(col.permissions, null, 2));
-            console.log(`Document Security:`, col.documentSecurity);
+            console.log(JSON.stringify(col, null, 2));
             console.log("-------------------");
         } catch (e) {
             console.log(`Error getting collection ${id}:`, e);
