@@ -7,7 +7,8 @@ import { useParams, useRouter } from "next/navigation"
 import { 
   getJobWithBids, 
   updateJobStatus,
-  incrementJobViews
+  incrementJobViews,
+  hireTranslator
 } from "@/services/jobs/actions"
 import { 
   Briefcase, 
@@ -21,7 +22,8 @@ import {
   ShieldCheck,
   MessageSquare,
   ThumbsUp,
-  XCircle
+  XCircle,
+  Layers
 } from "lucide-react"
 import { Button } from "@/components/atoms/Button"
 import Link from "next/link"
@@ -72,7 +74,7 @@ export default function ProjectDetailsPage() {
   )
 
   const { project, bids } = data
-  const isInProgress = project.status === "In Progress"
+  const isInProgress = project.status === "in_progress"
 
   return (
     <DashboardLayout>
@@ -171,7 +173,7 @@ export default function ProjectDetailsPage() {
                                 <div className="text-[10px] text-muted-foreground uppercase font-bold">Proposal Price</div>
                               </div>
                               
-                              {project.status === "Open" && (
+                              {project.status === "active" && (
                                 <Button 
                                   onClick={() => handleHire(bid.translatorId, bid.$id)}
                                   disabled={!!hiringId}

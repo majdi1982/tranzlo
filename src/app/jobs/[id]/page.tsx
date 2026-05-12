@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { getJobById } from "@/services/jobs/actions"
-import { submitProposal } from "@/services/applications/actions"
+import { getJobById, applyToJob } from "@/services/jobs/actions"
 import { Job } from "@/types"
 import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input"
@@ -25,9 +24,10 @@ export default function JobDetailsPage() {
   }, [id])
 
   const onApply = async (data: any) => {
-    const result = await submitProposal({
-      ...data,
-      jobId: id,
+    const result = await applyToJob(id as string, {
+      proposalText: data.proposalText,
+      price: data.price,
+      deliveryTime: data.deliveryTime,
     })
     if (result.success) {
       alert("Application submitted!")
