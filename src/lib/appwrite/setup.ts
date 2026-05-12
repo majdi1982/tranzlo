@@ -8,9 +8,6 @@ const client = new Client()
     .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
     .setKey(process.env.NEXT_APPWRITE_KEY!);
 
-console.log("Appwrite Endpoint:", process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT);
-console.log("Appwrite Project ID:", process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
-
 const databases = new Databases(client);
 const storage = new Storage(client);
 
