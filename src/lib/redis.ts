@@ -4,7 +4,7 @@ const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
 
 export const redis = new Redis(redisUrl);
 
-export async function generateTrzId(type: "JOB" | "INV" | "USER" | "APP" | "CMP" | "TRN" | "PRJ" | "MLS" | "NTF" | "WLT" | "TRX" = "JOB"): Promise<string> {
+export async function generateTrzId(type: "JOB" | "INV" | "USER" | "APP" | "CMP" | "TRN" | "PRJ" | "MLS" | "NTF" | "WLT" | "TXN" = "JOB"): Promise<string> {
   const counterKey = `trz_${type.toLowerCase()}_counter`;
   const count = await redis.incr(counterKey);
   const paddedCount = String(count).padStart(6, "0");
