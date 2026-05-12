@@ -39,6 +39,8 @@ export const ProjectForm = () => {
   const onSubmit = async (data: ProjectFormValues) => {
     const result = await createJob({
       ...data,
+      jobType: "fixed",
+      isInviteOnly: false,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default 7 days
     });
 
