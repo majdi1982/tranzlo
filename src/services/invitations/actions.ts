@@ -5,7 +5,7 @@ import { APPWRITE_CONFIG } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
 import { Invitation } from "@/types";
 import { revalidatePath } from "next/cache";
-import { createNotification } from "@/services/notifications/actions";
+import { sendNotification } from "@/services/notifications/actions";
 
 export async function sendInvitation(jobId: string, translatorId: string, message?: string) {
   const { databases, account } = await createSessionClient();
@@ -27,12 +27,12 @@ export async function sendInvitation(jobId: string, translatorId: string, messag
     );
 
     // Notify translator
-    await createNotification(
-      translatorId,
-      "invitation",
-      `You have been invited to a new project.`,
-      `/dashboard/jobs/${jobId}`
-    );
+    await sendNotification({
+      userId: translatorId,
+      type: "info",
+      content: `You have been invited to a new project.`,
+      link: `/dashboard/jobs/${jobId}`
+    });
 
     return { success: true, data: invitation };
   } catch (error: any) {
@@ -58,12 +58,12 @@ export async function respondToInvitation(invitationId: string, status: "accepte
     );
 
     // Notify company
-    await createNotification(
-      invitation.companyId,
-      "invitation",
-      `A translator has ${status} your invitation.`,
-      `/dashboard/projects/${invitation.jobId}`
-    );
+    await sendNotification({
+      userId: invitation.companyId,
+      type: "info",
+      content: `A translator has ${status} your invitation.`,
+      link: `/dashboard/projects/${invitation.jobId}`
+    });
 
     revalidatePath("/dashboard");
     return { success: true };

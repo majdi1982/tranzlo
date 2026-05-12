@@ -251,3 +251,50 @@ export async function updateJobStatus(jobId: string, status: JobStatus) {
     return { error: error.message };
   }
 }
+
+export async function getCompanyProjects() {
+  const { databases, account } = await createSessionClient();
+  
+  try {
+    const user = await account.get();
+    const response = await databases.listDocuments(
+      APPWRITE_CONFIG.databaseId,
+      APPWRITE_CONFIG.jobsCollectionId,
+      [Query.equal("companyId", user.$id), Query.orderDesc("createdAt")]
+    );
+    return { success: true, data: response.documents as unknown as Job[] };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function getJobById(jobId: string) {
+  const { databases } = await createAdminClient();
+  
+  try {
+    const job = await databases.getDocument(
+      APPWRITE_CONFIG.databaseId,
+      APPWRITE_CONFIG.jobsCollectionId,
+      jobId
+    );
+    return { success: true, data: job as unknown as Job };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function getMyApplications() {
+  const { databases, account } = await createSessionClient();
+  
+  try {
+    const user = await account.get();
+    const response = await databases.listDocuments(
+      APPWRITE_CONFIG.databaseId,
+      APPWRITE_CONFIG.jobApplicationsCollectionId,
+      [Query.equal("translatorId", user.$id), Query.orderDesc("createdAt")]
+    );
+    return { success: true, data: response.documents };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

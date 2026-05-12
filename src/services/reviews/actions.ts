@@ -5,7 +5,7 @@ import { APPWRITE_CONFIG } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
 import { Review } from "@/types";
 import { revalidatePath } from "next/cache";
-import { createNotification } from "@/services/notifications/actions";
+import { sendNotification } from "@/services/notifications/actions";
 
 export async function submitReview(jobId: string, revieweeId: string, rating: number, comment?: string) {
   const { databases, account } = await createSessionClient();
@@ -43,12 +43,12 @@ export async function submitReview(jobId: string, revieweeId: string, rating: nu
     );
 
     // Notify reviewee
-    await createNotification(
-      revieweeId,
-      "review",
-      `You have received a new review: ${rating} stars.`,
-      `/profile/${revieweeId}`
-    );
+    await sendNotification({
+      userId: revieweeId,
+      type: "success",
+      content: `You have received a new review: ${rating} stars.`,
+      link: `/profile/${revieweeId}`
+    });
 
     revalidatePath(`/dashboard/jobs/${jobId}`);
     return { success: true, data: review };

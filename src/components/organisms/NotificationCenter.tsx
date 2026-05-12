@@ -4,50 +4,55 @@ import React, { useState, useEffect } from "react"
 import { Bell, Check, Info, MessageSquare, Briefcase, Star, UserPlus } from "lucide-react"
 import { Button } from "@/components/atoms/Button"
 import { motion, AnimatePresence } from "framer-motion"
-import { getNotifications, markNotificationAsRead } from "@/services/notifications/actions"
+import { getMyNotifications, markAsRead } from "@/services/notifications/actions"
+import { useAuth } from "@/hooks/use-auth"
 import { Notification } from "@/types"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
 export const NotificationCenter = () => {
+  const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchNotifications = async () => {
-    const res = await getNotifications()
+    if (!user?.$id) return;
+    const res = await getMyNotifications(user.$id)
     if (res.success && res.data) {
-      setNotifications(res.data)
+      setNotifications(res.data as any)
     }
     setLoading(false)
   }
 
   useEffect(() => {
-    fetchNotifications()
+    if (user?.$id) {
+      fetchNotifications()
 
-    const { client, APPWRITE_CONFIG } = require("@/lib/appwrite/config")
-    
-    const unsubscribe = client.subscribe(
-      `databases.${APPWRITE_CONFIG.databaseId}.collections.${APPWRITE_CONFIG.notificationsCollectionId}.documents`,
-      (response: any) => {
-        if (response.events.includes("databases.*.collections.*.documents.*.create")) {
-          setNotifications((prev) => [response.payload as Notification, ...prev])
+      const { client, APPWRITE_CONFIG } = require("@/lib/appwrite/config")
+      
+      const unsubscribe = client.subscribe(
+        `databases.${APPWRITE_CONFIG.databaseId}.collections.${APPWRITE_CONFIG.notificationsCollectionId}.documents`,
+        (response: any) => {
+          if (response.events.includes("databases.*.collections.*.documents.*.create")) {
+            setNotifications((prev) => [response.payload as Notification, ...prev])
+          }
+          if (response.events.includes("databases.*.collections.*.documents.*.update")) {
+            setNotifications((prev) => 
+              prev.map(n => n.$id === response.payload.$id ? response.payload as Notification : n)
+            )
+          }
         }
-        if (response.events.includes("databases.*.collections.*.documents.*.update")) {
-          setNotifications((prev) => 
-            prev.map(n => n.$id === response.payload.$id ? response.payload as Notification : n)
-          )
-        }
-      }
-    )
+      )
 
-    return () => unsubscribe()
-  }, [])
+      return () => unsubscribe()
+    }
+  }, [user?.$id])
 
   const unreadCount = notifications.filter(n => !n.read).length
 
   const handleMarkAsRead = async (id: string) => {
-    await markNotificationAsRead(id)
+    await markAsRead(id)
     setNotifications(notifications.map(n => n.$id === id ? { ...n, read: true } : n))
   }
 
