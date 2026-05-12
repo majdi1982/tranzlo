@@ -89,12 +89,24 @@ export async function uploadProfileImage(formData: FormData) {
       updateData
     );
 
-    await account.updatePrefs({
-        ...(user.prefs as any),
+    // Update main users collection as well
+    await databases.updateDocument(
+        APPWRITE_CONFIG.databaseId,
+        APPWRITE_CONFIG.usersCollectionId,
+        user.$id,
+        { avatarUrl: fileUrl, updatedAt: new Date().toISOString() }
+    );
+
+    // Use Admin Client to update prefs to avoid session sync issues
+    const { users } = await createAdminClient();
+    const currentPrefs = user.prefs as any;
+    await users.updatePrefs(user.$id, {
+        ...currentPrefs,
         avatar: fileUrl
     });
 
     revalidatePath("/dashboard/profile");
+    revalidatePath("/");
     return { success: true, url: fileUrl };
   } catch (error: any) {
     return { success: false, error: error.message };

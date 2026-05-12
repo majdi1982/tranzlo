@@ -232,7 +232,8 @@ async function setup() {
         attrs: [
           { name: "userId", type: "string", size: 255 },
           { name: "role", type: "string", size: 50 },
-          { name: "onboarded", type: "boolean" }
+          { name: "onboarded", type: "boolean" },
+          { name: "avatarUrl", type: "string", size: 500 }
         ]
       },
       { 
