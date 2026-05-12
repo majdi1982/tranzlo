@@ -47,6 +47,7 @@ async function setup() {
         attrs: [
           { name: "userId", type: "string", size: 255 },
           { name: "name", type: "string", size: 255 },
+          { name: "email", type: "string", size: 255 },
           { name: "bio", type: "string", size: 2000 },
           { name: "languages", type: "string", size: 255, array: true },
           { name: "skills", type: "string", size: 255, array: true },
@@ -66,6 +67,8 @@ async function setup() {
         attrs: [
           { name: "userId", type: "string", size: 255 },
           { name: "companyName", type: "string", size: 255 },
+          { name: "contactName", type: "string", size: 255 },
+          { name: "email", type: "string", size: 255 },
           { name: "website", type: "string", size: 500 },
           { name: "industry", type: "string", size: 100 },
           { name: "logoUrl", type: "string", size: 500 },
