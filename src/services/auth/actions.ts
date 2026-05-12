@@ -45,6 +45,8 @@ export async function signup(formData: FormData) {
   try {
     const user = await account.create(ID.unique(), email, password, name);
     
+    const publicId = `TRZ-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+
     // 1. Central Profile (All users)
     await databases.createDocument(
       APPWRITE_CONFIG.databaseId,
@@ -54,16 +56,21 @@ export async function signup(formData: FormData) {
         role, 
         name, 
         email, 
+        publicId,
+        entityType: "user",
+        status: "active",
+        visibility: "public",
         country: formData.get("country") as string,
-        createdAt: new Date().toISOString() 
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
     );
 
     // 2. Role-specific collection
     const targetCollection = role === "company" ? APPWRITE_CONFIG.companiesCollectionId : APPWRITE_CONFIG.translatorsCollectionId;
     const roleData = role === "company" 
-      ? { userId: user.$id, companyName: name, contactName: name, email, country: formData.get("country"), createdAt: new Date().toISOString() }
-      : { userId: user.$id, name, email, languages: [], country: formData.get("country"), createdAt: new Date().toISOString() };
+      ? { userId: user.$id, companyName: name, contactName: name, email, country: formData.get("country"), publicId, entityType: "company", status: "active", visibility: "public", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+      : { userId: user.$id, name, email, languages: [], country: formData.get("country"), publicId, entityType: "translator", status: "active", visibility: "public", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
 
     await databases.createDocument(APPWRITE_CONFIG.databaseId, targetCollection, user.$id, roleData);
 
