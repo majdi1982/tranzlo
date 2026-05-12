@@ -72,11 +72,133 @@ async function setup() {
           { name: "adminLevel", type: "string", size: 50 },
           { name: "department", type: "string", size: 100 }
         ]
+      },
+      { 
+        id: "wallets", 
+        name: "Wallets", 
+        permissions: [Permission.read(Role.users()), Permission.update(Role.team("admins"))],
+        attrs: [
+          { name: "userId", type: "string", size: 255 },
+          { name: "balance", type: "float", required: true },
+          { name: "currency", type: "string", size: 10, required: true },
+          { name: "lastTransactionAt", type: "string", size: 100 }
+        ]
+      },
+      { 
+        id: "transactions", 
+        name: "Transactions", 
+        permissions: [Permission.read(Role.users())],
+        attrs: [
+          { name: "walletId", type: "string", size: 255 },
+          { name: "amount", type: "float", required: true },
+          { name: "type", type: "string", size: 50 }, // credit, debit
+          { name: "description", type: "string", size: 500 },
+          { name: "referenceId", type: "string", size: 255 }
+        ]
+      },
+      { 
+        id: "milestones", 
+        name: "Milestones", 
+        permissions: [Permission.read(Role.users()), Permission.update(Role.users())],
+        attrs: [
+          { name: "jobId", type: "string", size: 255 },
+          { name: "title", type: "string", size: 255 },
+          { name: "amount", type: "float" },
+          { name: "dueDate", type: "string", size: 100 },
+          { name: "releaseStatus", type: "string", size: 50 } // pending, released, disputed
+        ]
+      },
+      { 
+        id: "chatRooms", 
+        name: "Chat Rooms", 
+        permissions: [Permission.read(Role.users())],
+        attrs: [
+          { name: "jobId", type: "string", size: 255 },
+          { name: "participants", type: "string", size: 255, array: true }
+        ]
+      },
+      { 
+        id: "messages", 
+        name: "Messages", 
+        permissions: [Permission.read(Role.users()), Permission.create(Role.users())],
+        attrs: [
+          { name: "roomId", type: "string", size: 255 },
+          { name: "senderId", type: "string", size: 255 },
+          { name: "content", type: "string", size: 5000 },
+          { name: "type", type: "string", size: 50 } // text, system, file
+        ]
+      },
+      { 
+        id: "notifications", 
+        name: "Notifications", 
+        permissions: [Permission.read(Role.users()), Permission.update(Role.users())],
+        attrs: [
+          { name: "userId", type: "string", size: 255 },
+          { name: "type", type: "string", size: 50 },
+          { name: "content", type: "string", size: 1000 },
+          { name: "link", type: "string", size: 500 },
+          { name: "read", type: "boolean" }
+        ]
+      },
+      { 
+        id: "disputes", 
+        name: "Disputes", 
+        permissions: [Permission.read(Role.users()), Permission.create(Role.users())],
+        attrs: [
+          { name: "jobId", type: "string", size: 255 },
+          { name: "openedBy", type: "string", size: 255 },
+          { name: "reason", type: "string", size: 1000 },
+          { name: "evidenceUrl", type: "string", size: 500 }
+        ]
+      },
+      { 
+        id: "auditLogs", 
+        name: "Audit Logs", 
+        permissions: [Permission.read(Role.team("admins"))],
+        attrs: [
+          { name: "userId", type: "string", size: 255 },
+          { name: "action", type: "string", size: 50 },
+          { name: "targetType", type: "string", size: 50 },
+          { name: "targetId", type: "string", size: 255 },
+          { name: "changes", type: "string", size: 5000 }
+        ]
+      },
+      { 
+        id: "jobs", 
+        name: "Jobs", 
+        permissions: [Permission.read(Role.any()), Permission.create(Role.users())],
+        attrs: [
+          { name: "companyId", type: "string", size: 255 },
+          { name: "title", type: "string", size: 255 },
+          { name: "description", type: "string", size: 5000 },
+          { name: "sourceLanguage", type: "string", size: 100 },
+          { name: "targetLanguage", type: "string", size: 100 },
+          { name: "budget", type: "float" },
+          { name: "deadline", type: "string", size: 100 },
+          { name: "jobType", type: "string", size: 50 },
+          { name: "isInviteOnly", type: "boolean" },
+          { name: "hiredTranslatorId", type: "string", size: 255 },
+          { name: "applicationCount", type: "integer" },
+          { name: "viewCount", type: "integer" },
+          { name: "milestones", type: "string", size: 5000 }
+        ]
+      },
+      { 
+        id: "jobApplications", 
+        name: "Job Applications", 
+        permissions: [Permission.read(Role.users()), Permission.create(Role.users())],
+        attrs: [
+          { name: "jobId", type: "string", size: 255 },
+          { name: "translatorId", type: "string", size: 255 },
+          { name: "proposalText", type: "string", size: 5000 },
+          { name: "price", type: "float" },
+          { name: "deliveryTime", type: "string", size: 100 }
+        ]
       }
     ];
 
     for (const col of collections) {
-      console.log(`Ensuring Profile Collection: ${col.name}...`);
+      console.log(`Ensuring Collection: ${col.name}...`);
       try {
         await databases.getCollection(dbId, col.id);
         await databases.updateCollection(dbId, col.id, col.name, col.permissions);
@@ -101,9 +223,9 @@ async function setup() {
       }
     }
 
-    console.log("Profile Ecosystem Updated Successfully!");
+    console.log("Enterprise Ecosystem Updated Successfully!");
   } catch (error) {
-    console.error("Profile Setup Error:", error);
+    console.error("Setup Error:", error);
   }
 }
 
