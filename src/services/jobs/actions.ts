@@ -298,3 +298,54 @@ export async function getMyApplications() {
     return { error: error.message };
   }
 }
+
+export async function hireTranslator(jobId: string, translatorId: string, applicationId: string) {
+  const { databases, account } = await createSessionClient();
+  const user = await account.get();
+  const now = new Date().toISOString();
+
+  try {
+    // 1. Update Job Status and Hired Translator
+    await databases.updateDocument(
+      APPWRITE_CONFIG.databaseId,
+      APPWRITE_CONFIG.jobsCollectionId,
+      jobId,
+      {
+        status: "in_progress",
+        hiredTranslatorId: translatorId,
+        updatedAt: now,
+        updatedBy: user.$id
+      }
+    );
+
+    // 2. Update Application Status
+    await databases.updateDocument(
+      APPWRITE_CONFIG.databaseId,
+      APPWRITE_CONFIG.jobApplicationsCollectionId,
+      applicationId,
+      {
+        status: "accepted",
+        updatedAt: now,
+        updatedBy: user.$id
+      }
+    );
+
+    // 3. Notify Translator
+    await sendNotification({
+      userId: translatorId,
+      type: "success",
+      content: `Congratulations! You have been hired for the job: ${jobId}`,
+      link: `/dashboard/jobs/${jobId}`
+    });
+
+    // 4. Audit Log
+    await logAudit(user.$id, "hire", "job", jobId, { translatorId, applicationId });
+
+    revalidatePath(`/dashboard/jobs/${jobId}`);
+    revalidatePath("/dashboard/projects");
+    
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
