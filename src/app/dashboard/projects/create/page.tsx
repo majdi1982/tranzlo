@@ -18,7 +18,8 @@ import {
 import { Button } from "@/components/atoms/Button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createProject } from "@/services/projects/actions"
+import { createJob } from "@/services/jobs/actions"
+import { JobType } from "@/types"
 
 export default function CreateProjectPage() {
   const router = useRouter()
@@ -32,17 +33,19 @@ export default function CreateProjectPage() {
     sourceLanguage: "Arabic",
     targetLanguage: "English",
     budget: "",
-    deadline: ""
+    deadline: "",
+    jobType: "fixed" as JobType,
+    isInviteOnly: false
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     
-    const result = await createProject({
+    const result = await createJob({
       ...formData,
       budget: parseInt(formData.budget),
-      status: "open"
+      milestones: [] // Support for milestones can be added in UI later
     })
 
     if (result.success) {
@@ -54,7 +57,11 @@ export default function CreateProjectPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value, type } = e.target;
+    setFormData({ 
+      ...formData, 
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value 
+    })
   }
 
   return (
@@ -100,6 +107,35 @@ export default function CreateProjectPage() {
                   placeholder="Describe your project requirements in detail..."
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Job Type</label>
+                  <select 
+                    name="jobType"
+                    value={formData.jobType}
+                    onChange={handleChange}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="fixed">Fixed Price</option>
+                    <option value="hourly">Hourly Rate</option>
+                    <option value="milestone">Milestone Based</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Visibility</label>
+                  <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <input 
+                      type="checkbox"
+                      name="isInviteOnly"
+                      checked={formData.isInviteOnly}
+                      onChange={handleChange}
+                      className="w-5 h-5 accent-primary"
+                    />
+                    <span className="text-sm">Invite-Only (Private)</span>
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

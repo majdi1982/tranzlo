@@ -5,11 +5,10 @@ import DashboardLayout from "@/components/templates/DashboardLayout"
 import { motion, AnimatePresence } from "framer-motion"
 import { useParams, useRouter } from "next/navigation"
 import { 
-  getProjectWithBids, 
-  hireTranslator,
-  completeProject,
-  respondToInvitation
-} from "@/services/projects/actions"
+  getJobWithBids, 
+  updateJobStatus,
+  incrementJobViews
+} from "@/services/jobs/actions"
 import { 
   Briefcase, 
   Clock, 
@@ -41,9 +40,11 @@ export default function ProjectDetailsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await getProjectWithBids(id as string)
+      const res = await getJobWithBids(id as string)
       setData(res)
       setLoading(false)
+      // Increment view counter
+      incrementJobViews(id as string)
     }
     fetchData()
   }, [id])
@@ -96,13 +97,19 @@ export default function ProjectDetailsPage() {
                 <span className="text-muted-foreground text-sm">Posted on {new Date(project.createdAt).toLocaleDateString()}</span>
               </div>
               
-              <h1 className="text-3xl font-bold mb-6">{project.title}</h1>
+              <div className="flex flex-col gap-2 mb-6">
+                <span className="text-[10px] font-mono text-primary bg-primary/10 w-fit px-2 py-0.5 rounded border border-primary/20">
+                  {project.trzId}
+                </span>
+                <h1 className="text-3xl font-bold">{project.title}</h1>
+              </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 py-6 border-y border-white/5">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8 py-6 border-y border-white/5">
                 <InfoItem icon={<Globe className="w-4 h-4" />} label="Langs" value={`${project.sourceLanguage} → ${project.targetLanguage}`} />
+                <InfoItem icon={<Layers className="w-4 h-4" />} label="Type" value={project.jobType} />
                 <InfoItem icon={<DollarSign className="w-4 h-4" />} label="Budget" value={`$${project.budget}`} />
-                <InfoItem icon={<Clock className="w-4 h-4" />} label="Deadline" value={new Date(project.deadline).toLocaleDateString()} />
-                <InfoItem icon={<Users className="w-4 h-4" />} label="Applications" value={bids.length} />
+                <InfoItem icon={<Users className="w-4 h-4" />} label="Applications" value={project.applicationCount || 0} />
+                <InfoItem icon={<Star className="w-4 h-4" />} label="Views" value={project.viewCount || 0} />
               </div>
 
               {!isInProgress && (

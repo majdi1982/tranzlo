@@ -1,22 +1,35 @@
 export type UserRole = "translator" | "company" | "agency" | "admin";
 
-export type JobStatus = "draft" | "published" | "in_progress" | "completed" | "cancelled";
-export type ApplicationStatus = "applied" | "shortlisted" | "rejected" | "hired";
+export type JobStatus = "active" | "inactive" | "pending" | "reviewing" | "completed" | "archived" | "cancelled" | "suspended";
+export type JobType = "fixed" | "hourly" | "milestone";
+export type ApplicationStatus = "pending" | "reviewing" | "completed" | "cancelled" | "active";
+export type AuditAction = "create" | "update" | "delete" | "status_change" | "hire" | "apply" | "login" | "payment";
 
-export interface UserProfile {
+export interface GlobalFields {
+  publicId: string;
+  entityType: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+  updatedBy?: string;
+  status: string;
+  visibility: "public" | "private" | "internal";
+  metadata?: string; // JSON string
+}
+
+export interface UserProfile extends GlobalFields {
   $id: string;
   email: string;
   name: string;
   role: UserRole;
   avatarUrl?: string;
   bio?: string;
-  languages?: string[]; // e.g. ["en", "ar"]
+  languages?: string[];
   rating?: number;
   verified?: boolean;
-  createdAt: string;
 }
 
-export interface Job {
+export interface Job extends GlobalFields {
   $id: string;
   companyId: string;
   title: string;
@@ -25,20 +38,30 @@ export interface Job {
   targetLanguage: string;
   budget: number;
   deadline: string;
-  status: JobStatus;
+  jobType: JobType;
+  isInviteOnly: boolean;
+  applicationCount?: number;
+  viewCount?: number;
+  milestones?: string; // JSON string
   hiredTranslatorId?: string;
-  createdAt: string;
 }
 
-export interface Application {
+export interface Application extends GlobalFields {
   $id: string;
   jobId: string;
   translatorId: string;
   proposalText: string;
   price: number;
-  deliveryTime: string; // e.g. "5 days"
-  status: ApplicationStatus;
-  createdAt: string;
+  deliveryTime: string;
+}
+
+export interface AuditLog extends GlobalFields {
+  $id: string;
+  userId: string;
+  action: AuditAction;
+  targetType: string;
+  targetId: string;
+  changes?: string; // JSON string
 }
 
 export interface ChatRoom {

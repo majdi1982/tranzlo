@@ -11,9 +11,11 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",
+    "@types/ioredis": "^4.28.10",
     "appwrite": "^25.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
+    "ioredis": "^5.10.1",
     "lucide-react": "^1.14.0",
     "next": "16.2.6",
     "node-appwrite": "^24.1.0",

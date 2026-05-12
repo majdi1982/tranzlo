@@ -1,0 +1,299 @@
+رسمة هيكل المشروع (Folder Structure)
+
+ /root/
+ └── tranzlo-project/                  ← المجلد الرئيسي لكل المشروع
+      ├── appwrite/                    ← Appwrite (مستقل تماماً)
+      │    ├── docker-compose.yml
+      │    ├── .env
+      │    └── volumes/ (data, logs...)
+      │
+      ├── frontend/                    ← Next.js (React 19 + Tailwind)
+      │    ├── Dockerfile
+      │    ├── next.config.js
+      │    ├── package.json
+      │    └── src/
+      │
+      ├── n8n/                         ← n8n (Automation + Workflows)
+      │    ├── docker-compose.yml
+      │    └── data/ (workflows, credentials)
+      │
+      ├── redis/                       ← Redis (Caching + Queues)
+      │    └── data/
+      │
+      ├── workers/                     ← Background Jobs (AI, Email, OCR...)
+      │
+      ├── docker-compose.yml           ← الملف الرئيسي (يشغل frontend + n8n + redis)
+      ├── .env                         ← كل المتغيرات السرية
+      ├── logs/                        ← لوجز كل الخدمات
+      └── nginx/                       ← (اختياري - configs فقط)
+رسمة الـ Architecture (كيف يشتغل كل شيء)
+
+Internet
+   ↓ (HTTPS)
+Nginx Reverse Proxy (SSL + Routing)
+   ├── https://tranzlo.net          → Frontend (Next.js) على بورت 3000
+   ├── https://www.tranzlo.net      → نفس الـ Frontend
+   ├── https://appwrite.tranzlo.net → Appwrite (Traefik → 8080)
+   └── https://n8n.tranzlo.net      → n8n (بورت 5678 + WebSocket)
+
+كل الخدمات داخل Docker:
+- Appwrite          (مستقل)
+- Next.js Frontend
+- n8n
+- Redis
+- Workers (مستقبلاً)
+
+
+Docker Compose:
+  - frontend (Next.js)
+  - appwrite
+  - n8n
+  - nginx
+same last time
+domain tranzlo.net
+VPS Ip : 187.124.179.33
+1- install updates +Nginx + swap for all apps requirements + docker
+1.5- install Apprwite Automatic installer latest docker behind 8080/4433 port instaaler
+2- Install Nginx
+3 Publish SSL
+no Cloudflare and
+tranzlo.net and www.tranzlo.net → frontend
+appwrite.tranzlo.net → Appwrite
+n8n.tranzlo.net → n8n
+5 Install N8n
+6 Publish SSL all domains Can you send me commands
+Here my Vps detais
+pwd
+ls -la
+df -h
+free -h
+docker ps -a
+systemctl status nginx --no-pager
+/root
+total 28
+drwx------ 5 root root 4096 Apr 16 14:21 .
+drwxr-xr-x 22 root root 4096 Apr 16 13:47 ..
+-rw-r--r-- 1 root root 3106 Apr 22 2024 .bashrc
+drwx------ 2 root root 4096 Apr 16 14:21 .cache
+drwx------ 3 root root 4096 Apr 16 13:44 .config
+-rw-r--r-- 1 root root 161 Apr 22 2024 .profile
+drwx------ 2 root root 4096 Apr 7 07:41 .ssh
+Filesystem Size Used Avail Use% Mounted on
+tmpfs 795M 1012K 794M 1% /run
+/dev/sda1 96G 2.2G 94G 3% /
+tmpfs 3.9G 0 3.9G 0% /dev/shm
+tmpfs 5.0M 0 5.0M 0% /run/lock
+/dev/sda16 881M 117M 703M 15% /boot
+/dev/sda15 105M 6.2M 99M 6% /boot/efi
+tmpfs 795M 12K 795M 1% /run/user/0
+               total used free shared buff/cache available
+Mem: 7.8Gi 496Mi 6.8Gi 1.0Mi 704Mi 7.3Gi
+Swap: 0B 0B 0B
+Command 'docker' not found, but can be installed with:
+apt install docker.io # version 29.1.3-0ubuntu3~24.04.1, or
+apt install podman-docker # version 4.9.3+ds1-1ubuntu0.2
+Unit nginx.service could not be found.
+Core Services
+1. Frontend Container
+Technology
+Next.js
+React 19
+Tailwind
+Purpose
+website
+dashboard
+SEO pages
+translator/company panels
+Container
+frontend:
+  build: ./frontend
+  restart: unless-stopped
+2. Appwrite Container
+Technology
+Appwrite
+Purpose
+Auth
+Database
+Storage
+Realtime
+Functions
+Messaging
+Important
+لا تشغل Appwrite داخل نفس container للتطبيق.
+اجعله service مستقل.
+3. Redis
+Technology
+Redis
+Purpose
+مهم جدًا مستقبلًا لـ:
+queues
+caching
+sessions
+realtime optimization
+notifications
+rate limiting
+4. n8n Automation
+Technology
+n8n
+Purpose
+PayPal webhooks
+emails
+automation
+notifications
+workflows
+moderation
+scheduled jobs
+5. Worker Containers
+Purpose
+خدمات منفصلة لـ:
+email processing
+AI tasks
+file conversion
+OCR
+background jobs
+6. Nginx Reverse Proxy
+Technology
+Nginx
+Purpose
+SSL
+reverse proxy
+routing
+websocket support
+caching
+
+
+
+ have successfully deployed the fixed code to your VPS.
+
+The platform is now LIVE and the submitRating error has been completely resolved in the production environment.
+
+What I did:
+Code Synchronization: I synchronized your VPS with the latest GitHub commits (where I had already removed the problematic submitRating import).
+Environment Setup: I ensured that the .env.local file was correctly placed in the build context so that the Next.js production build could proceed without errors.
+Production Rebuild: I executed a fresh Docker build on the VPS, which passed all TypeScript checks and static page generation.
+Service Restart: I updated the docker-compose.yml with the correct Appwrite project ID and restarted the frontend service.
+Verification:
+Build Status: Successful (Exit code: 0)
+Container Status: tranzlo-frontend is Started and Running.
+Endpoint: You can now access the platform at https://tranzlo.net.
+The Tranzlo marketplace infrastructure is now stable and fully operational in production.
+
+
+لقد قمت بتنفيذ فصل قاعدة البيانات (Database Schema) إلى مجموعات (Collections) منفصلة لكل دور وظيفي لضمان تنظيم البيانات واحترافية النظام:
+
+ما تم تنفيذه في الهيكلية الجديدة:
+مجموعات منفصلة (Separate Collections):
+تم إنشاء مجموعة خاصة بـ المترجمين (translators): تحتوي على اللغات، النبذة الشخصية، والتقييمات.
+تم إنشاء مجموعة خاصة بـ الشركات (companies): تحتوي على اسم الشركة، المجال الصناعي، وبيانات التواصل الرسمية.
+تم إنشاء مجموعة خاصة بـ المديرين (admins): تحتوي على مستويات الصلاحيات (Admin Level).
+تم إنشاء مجموعة خاصة بـ الموظفين (employees): تحتوي على المنصب الوظيفي والقسم.
+تزامن البيانات الذكي:
+عند قيام أي مستخدم بالتسجيل، يتم حفظ بياناته الأساسية في مجموعة مركزية (users) لغايات تسجيل الدخول.
+في نفس اللحظة، يتم إنشاء سجل كامل ومفصل له في المجموعة المخصصة لدوره (مثلاً إذا سجل كمترجم، يتم إنشاء ملفه فوراً في مجموعة translators).
+تحديث الإعدادات (Provisioning):
+قمت بتشغيل سكربت التجهيز التلقائي الذي قام ببناء هذه المجموعات وإضافة كافة الحقول (Attributes) المطلوبة لكل منها في مشروع Appwrite الخاص بك.
+لماذا هذا التصميم أفضل؟
+هذا الفصل يتيح لك مستقبلاً إضافة مميزات خاصة بكل فئة دون التأثير على الفئات الأخرى، كما يسهل عملية البحث والفلترة (مثلاً: البحث فقط في المترجمين الذين يتحدثون "الألمانية" دون المرور ببيانات الشركات).
+
+النظام الآن يعمل بهذه الهيكلية المنفصلة والمتكاملة في آن واحد. هل تود البدء في بناء واجهة مخصصة للموظفين (Employees)؟_
+
+
+ تحديث الشريط العلوي (Navbar):
+إخفاء أزرار الدخول: الآن عند تسجيل الدخول، تختفي أزرار "Log in" و "Get Started" تلقائياً.
+إظهار جرس التنبيهات والـ Avatar: تم استبدال الأزرار بـ جرس التنبيهات (Notification Bell) مع نقطة إشعار حية، وصورة المستخدم (Avatar) بجانبه، تماماً كما أشرت بالسهم.
+2. تحويل "Ahmed" إلى اسم ديناميكي عالمي:
+تم استبدال النص الثابت "Welcome back, Ahmed!" بكود برمي لجلب اسم المستخدم الحقيقي المسجل في الحساب.
+إذا لم يتوفر اسم، سيظهر "Welcome back, there!" لضمان الطابع العالمي.
+3. تحسينات تقنية:
+الـ Avatar الآن يسحب الصورة تلقائياً من حساب Google أو LinkedIn إذا تم استخدامهما في التسجيل.
+تم فحص النظام والتأكد من نجاح الـ Build لضمان استقرار الواجهة.
+المنصة الآن تعكس حالة المستخدم الحقيقية وتعطيه شعوراً بأنه داخل لوحة تحكم عالمية وخاصة به. هل هناك أي جزء آخر تود تعديله؟_
+
+أنا اريد 4 حاجات 
+1- نظام نشر للوظائف و وضع فورم متكامل للوظئف
+2-نظام مراسلات متكامل للمشاريع و الدعوات
+2- امكانية عمل فرق
+3- اتقدم للمشارع والوظائف المقترحة
+4- نظام تذاكر و نزاعات
+5- نظام حجز المدفوعات
+6- نظام النشر و اضافة تعليق في المجتمع 
+7- اضافة تعليق على المدونة
+
+نظام الفرق (Teams):
+
+
+تطوير زر "New Ticket": تحويله إلى قائمة منسدلة (Dropdown) تحتوي على:
+Support Ticket: للاستفسارات العامة.
+Open Dispute: لحل المشاكل المالية والمشاريع.
+بناء نموذج النزاع (Dispute Form):
+قائمة لاختيار المشاريع المنجزة (Completed) المرتبطة بالمستخدم.
+نظام رفع ملفات (صور/مستندات).
+حقل تفصيلي لكتابة الشكوى.
+تحديث قاعدة البيانات: لضمان ربط كل نزاع بـ projectId محدد
+
+
+شو راح تحدث انت كمان راح اتضيف عداد للوظائف لانة معظم الشغل عليها و id للشركات و id للمترجمين و id لل admins و id للempoyees
+لقد قمت بتحديث النظام بالكامل ليتوافق مع رؤيتك المتقدمة، مع إضافة لمسات احترافية تجعل المنصة تبدو كبيئة عمل متكاملة وآمنة.
+
+🛠 ما تم تنفيذه في هذا التحديث:
+تطوير نظام الدعم والنزاعات (Advanced Support & Dispute):
+
+تم تحويل زر "New" إلى Dropdown يخير المستخدم بين "تذكرة دعم" أو "نظام نزاع قانوني".
+نموذج النزاع (Dispute Form): أصبح يسحب آلياً قائمة "المشاريع المنجزة" الخاصة بالمستخدم ليتم ربط النزاع برقم المشروع (Project ID) بشكل دقيق.
+إضافة حقل لرفع الملفات والصور كإثباتات (Evidence) ومساحة واسعة لشرح الشكوى.
+نظام التعريف الموحد (Unique ID System):
+
+كل مشروع الآن يحمل كود فريد مثل TRZ-PROJ-6F2A1B.
+كل تذكرة دعم تحمل كود فريد مثل TRZ-TKT-8E3C2D.
+هذا النظام يربط الشركة بالمترجم والـ Admin بشكل قانوني ويسهل تتبع العمليات.
+عداد الوظائف الحي (Live Jobs Counter):
+
+تم إضافة عداد وظائف نشط في صفحة Marketplace يظهر عدد المشاريع المتاحة حالياً مع نبض (Pulse) يعطي طابعاً حياً للموقع.
+إضافة علامة "Live" في القائمة العلوية بجانب رابط Marketplace للتنبيه بوجود فرص عمل جديدة.
+تطوير الهوية البصرية:
+
+استخدام ألوان مميزة للنزاعات (الأحمر للتحذير) وللدعم (الأزرق للثقة).
+تحسين تجربة اختيار المشاريع داخل النماذج لضمان السرعة والدقة.
+💡 رؤيتي للنظام بعد هذه الإضافات:
+الآن أصبحت Tranzlo منصة "موثوقة" (Trusted)؛ فالمترجم يطمئن لوجود نظام نزاعات يحمي حقه، والشركة تضمن الاحترافية بوجود أرقام مرجعية لكل خطوة. هذا الربط بين الـ IDs هو العمود الفقري لأي منصة Free-lancing عالمية ناجحة.
+
+هل تود أن أقوم ببرمجة نظام "الإشعارات التلقائية" ليرسل تنبيهاً فور فتح نزاع جديد؟
+
+هل تريد أن أقوم ببناء "واجهة الأدمن المصغرة" لإرسال هذه الإشعارات الجماعية الآن؟
+سأقوم بـ:
+
+إنشاء صفحة /dashboard/admin/broadcast.
+إضافة خيارات (العنوان، الرسالة، الفئة المستهدفة).
+برمجة المحرك الذي يوزع الإشعارات فوراً لجميع المستهدفين.
+هذا سيعطيك تحكماً كاملاً في المنصة دون الحاجة لأي أدوات خارجية. هل نبدأ؟
+
+7:00 PM, 5/10/2026
+اريدها لل admin فقط و موسعه تحتوي على محرح text و html
+لقد انتهيت من بناء "مركز البث الاحترافي" (Broadcast Center) المخصص للأدمن فقط، وهو أداة قوية تمنحك تحكماً كاملاً في تواصلك مع مستخدمي المنصة.
+
+✨ ميزات مركز البث الجديد:
+محرر نصوص متطور (HTML Editor):
+
+يدعم كتابة النصوص وتنسيقها باستخدام الـ HTML بشكل مباشر.
+وضع المعاينة (Preview Mode): يمكنك رؤية كيف سيظهر الإشعار للمستخدمين قبل إرساله فعلياً للتأكد من التنسيق.
+استهداف ذكي للفئات:
+
+يمكنك الإرسال إلى الجميع.
+أو استهداف المترجمين فقط.
+أو استهداف الشركات فقط.
+أمن وحماية (Admin Only):
+
+النظام مبرمج ليفحص رتبة المستخدم (role === "admin") قبل السماح بالوصول للصفحة أو تنفيذ عملية الإرسال.
+نظام إشعارات فوري:
+
+بمجرد الإرسال، يتم إنشاء إشعارات فردية لكل المستخدمين في الفئة المستهدفة فوراً داخل قاعدة البيانات.
+🔗 كيفية الوصول إليه:
+يمكنك الدخول إلى مركز البث عبر الرابط: /dashboard/admin/broadcast.
+
+بهذا، أصبح لديك "قوة إعلامية" داخل المنصة للتواصل مع آلاف المستخدمين بضغطة زر واحدة، وبشكل منسق وجذاب. هل ترغب في إضافة أي خيارات أخرى لمسؤول المنصة؟_
+
+
+
+اهم شيء ان عند انشاء حساب يعطى id مهما كان نوعة
+انشاء job يعطى ال job id  
+و انت اكمل
