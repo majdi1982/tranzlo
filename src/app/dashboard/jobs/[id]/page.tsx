@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import DashboardLayout from "@/components/templates/DashboardLayout"
-import { getJobById, updateJobStatus } from "@/services/jobs/actions"
+import { getJobById, updateJobStatus, hireTranslator } from "@/services/jobs/actions"
 import { getChatRoom, sendMessage, getMessages } from "@/services/chat/actions"
 import { getJobFiles, uploadFileMetadata } from "@/services/files/actions"
 import { openDispute } from "@/services/disputes/actions"
