@@ -227,9 +227,11 @@ async function setup() {
       console.log(`Ensuring Collection: ${col.name}...`);
       try {
         await databases.getCollection(dbId, col.id);
-        await databases.updateCollection(dbId, col.id, col.name, col.permissions);
+        console.log(`Updating Collection: ${col.name}...`);
+        await databases.updateCollection(dbId, col.id, col.name, col.permissions, true, true);
       } catch (e) {
-        await databases.createCollection(dbId, col.id, col.name, col.permissions);
+        console.log(`Creating Collection: ${col.name}...`);
+        await databases.createCollection(dbId, col.id, col.name, col.permissions, true, true);
       }
 
       const allAttrs = [...col.attrs, ...globalFields];
