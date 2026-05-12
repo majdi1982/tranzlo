@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/atoms/Button"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, Globe, Bell, User as UserIcon, LogOut } from "lucide-react"
+import { Menu, X, Globe, Bell, User as UserIcon, LogOut, Building2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { logout } from "@/services/auth/actions"
 import { getDashboardData } from "@/services/dashboard/actions"
@@ -75,22 +75,45 @@ export const Navbar = () => {
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <NotificationCenter user={user} />
-                <Link href="/dashboard" className="flex items-center gap-3 pl-2 border-l border-white/[0.05]">
-                  <div className="w-8 h-8 rounded-full bg-premium-gradient flex items-center justify-center border border-white/10 overflow-hidden">
-                    {(user?.prefs as any)?.avatar ? (
-                      <img src={(user?.prefs as any).avatar} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <UserIcon className="w-4 h-4 text-white" />
-                    )}
+                <div className="relative group">
+                  <button className="flex items-center gap-3 pl-2 border-l border-white/[0.05]">
+                    <div className="w-8 h-8 rounded-full bg-premium-gradient flex items-center justify-center border border-white/10 overflow-hidden group-hover:ring-2 ring-primary/50 transition-all">
+                      {(user?.prefs as any)?.avatar ? (
+                        <img src={(user?.prefs as any).avatar} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <UserIcon className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                  </button>
+
+                  <div className="absolute right-0 mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                    <div className="glass-card p-2 bg-secondary/90 backdrop-blur-xl border-white/[0.05] shadow-2xl">
+                      <div className="px-4 py-3 border-b border-white/[0.05] mb-2">
+                        <p className="text-sm font-bold truncate">{(user?.prefs as any)?.companyName || user?.name}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{user?.role || (user?.prefs as any)?.role || "Translator"}</p>
+                      </div>
+                      
+                      <Link href="/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.03] rounded-lg transition-all">
+                        <Building2 className="w-4 h-4" /> Dashboard
+                      </Link>
+                      <Link href="/dashboard/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.03] rounded-lg transition-all">
+                        <UserIcon className="w-4 h-4" /> Public Profile
+                      </Link>
+                      <Link href="/dashboard/settings" className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.03] rounded-lg transition-all">
+                        <Globe className="w-4 h-4" /> Settings
+                      </Link>
+                      
+                      <div className="h-px bg-white/[0.05] my-2" />
+                      
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-500/5 rounded-lg transition-all text-left"
+                      >
+                        <LogOut className="w-4 h-4" /> Log out
+                      </button>
+                    </div>
                   </div>
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="p-2 text-red-400 hover:bg-red-500/5 rounded-lg transition-all"
-                  title="Log out"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
+                </div>
               </div>
             ) : (
               <>

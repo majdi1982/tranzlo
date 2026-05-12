@@ -8,20 +8,20 @@ export const useAuth = () => {
   const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const session = await account.get()
-        setUser(session)
-      } catch (error) {
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
+  const checkSession = async () => {
+    try {
+      const session = await account.get()
+      setUser(session)
+    } catch (error) {
+      setUser(null)
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     checkSession()
   }, [])
 
-  return { user, loading, isAuthenticated: !!user }
+  return { user, loading, isAuthenticated: !!user, refresh: checkSession }
 }

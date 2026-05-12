@@ -22,6 +22,32 @@ async function setup() {
       await databases.create(dbId, "Tranzlo Main Database");
     }
 
+    // Ensure Bucket
+    const bucketId = "tranzlo_assets";
+    console.log("Ensuring Storage Bucket...");
+    try {
+      await storage.getBucket(bucketId);
+    } catch (e) {
+      console.log("Creating Storage Bucket...");
+      await storage.createBucket(
+        bucketId,
+        "Tranzlo Assets",
+        [
+          Permission.read(Role.any()),
+          Permission.create(Role.users()),
+          Permission.update(Role.users()),
+          Permission.delete(Role.users()),
+        ],
+        false, // fileSecurity
+        true,  // enabled
+        undefined, // maximumFileSize
+        ["jpg", "jpeg", "png", "gif", "pdf", "docx"], // allowedFileExtensions
+        undefined, // compression
+        true, // encryption
+        true  // antivirus
+      );
+    }
+
     const globalFields = [
       { name: "publicId", type: "string", size: 50, required: true },
       { name: "entityType", type: "string", size: 50, required: true },
