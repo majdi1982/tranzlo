@@ -114,7 +114,7 @@ export const Navbar = () => {
                               <div className="px-4 py-3 border-b border-white/[0.05] mb-2">
                                 <p className="text-sm font-bold truncate text-white">{(user?.prefs as any)?.companyName || user?.name}</p>
                                 <p className="text-[10px] text-primary uppercase tracking-widest font-bold mt-0.5">
-                                  {user?.role === "company" ? "Company Account" : "Translator"}
+                                  {(user?.prefs as any)?.role === "company" ? "Company Account" : "Translator"}
                                 </p>
                               </div>
                               

@@ -11,27 +11,8 @@ export const useAuth = () => {
   const checkSession = async () => {
     try {
       const session = await account.get()
-      
-      // Fetch role and avatar from DB as truth
-      try {
-        console.log("useAuth: Fetching user doc for", session.$id);
-        const userDoc = await databases.getDocument(
-            APPWRITE_CONFIG.databaseId,
-            APPWRITE_CONFIG.usersCollectionId,
-            session.$id
-        )
-        console.log("useAuth: DB User found", userDoc.role);
-        setUser({ 
-            ...session, 
-            role: (userDoc as any).role, 
-            avatarUrl: (userDoc as any).avatarUrl 
-        })
-      } catch (dbError: any) {
-        console.warn("useAuth: DB Fetch failed, falling back to session", dbError.message);
-        setUser(session)
-      }
-    } catch (error: any) {
-      console.error("useAuth: Session check failed", error.message);
+      setUser(session)
+    } catch (error) {
       setUser(null)
     } finally {
       setLoading(false)
