@@ -192,9 +192,27 @@ async function setup() {
         ]
       },
       { 
+        id: "users", 
+        name: "Users", 
+        permissions: [
+          Permission.read(Role.any()), 
+          Permission.create(Role.any()), 
+          Permission.update(Role.users())
+        ],
+        attrs: [
+          { name: "userId", type: "string", size: 255 },
+          { name: "role", type: "string", size: 50 },
+          { name: "onboarded", type: "boolean" }
+        ]
+      },
+      { 
         id: "jobApplications", 
         name: "Job Applications", 
-        permissions: [Permission.read(Role.users()), Permission.create(Role.users())],
+        permissions: [
+          Permission.read(Role.any()), 
+          Permission.create(Role.any()), 
+          Permission.update(Role.users())
+        ],
         attrs: [
           { name: "jobId", type: "string", size: 255 },
           { name: "translatorId", type: "string", size: 255 },
