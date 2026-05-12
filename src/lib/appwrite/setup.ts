@@ -30,6 +30,7 @@ async function setup() {
       { name: "updatedBy", type: "string", size: 255, required: false },
       { name: "status", type: "string", size: 50, required: true },
       { name: "visibility", type: "string", size: 50, required: true },
+      { name: "country", type: "string", size: 100 },
       { name: "metadata", type: "string", size: 5000, required: false },
       { name: "createdAt", type: "string", size: 100, required: true }
     ];
