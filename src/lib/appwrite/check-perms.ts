@@ -12,7 +12,7 @@ const databases = new Databases(client);
 
 async function checkPermissions() {
     const dbId = "main";
-    const collectionIds = ["translators", "companies", "users"];
+    const collectionIds = ["translators", "companies"];
     
     for (const id of collectionIds) {
         try {
