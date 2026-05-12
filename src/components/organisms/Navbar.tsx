@@ -8,6 +8,7 @@ import { Menu, X, Globe, Bell, User as UserIcon, LogOut } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { logout } from "@/services/auth/actions"
 import { getDashboardData } from "@/services/dashboard/actions"
+import { NotificationCenter } from "@/components/organisms/NotificationCenter"
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -51,6 +52,11 @@ export const Navbar = () => {
               Marketplace
               <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full border border-primary/20">Live</span>
             </Link>
+            {user?.role === "company" && (
+              <Link href="/translators" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Find Translators
+              </Link>
+            )}
             <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Pricing
             </Link>
@@ -64,10 +70,7 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                <button className="p-2 text-muted-foreground hover:text-foreground transition-colors relative">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background"></span>
-                </button>
+                <NotificationCenter />
                 <Link href="/dashboard" className="flex items-center gap-3 pl-2 border-l border-white/[0.05]">
                   <div className="w-8 h-8 rounded-full bg-premium-gradient flex items-center justify-center border border-white/10 overflow-hidden">
                     {(user?.prefs as any)?.avatar ? (
@@ -122,6 +125,9 @@ export const Navbar = () => {
           >
             <div className="px-6 py-8 flex flex-col gap-6">
               <Link href="/marketplace" className="text-lg font-medium" onClick={() => setIsOpen(false)}>Marketplace</Link>
+              {user?.role === "company" && (
+                <Link href="/translators" className="text-lg font-medium" onClick={() => setIsOpen(false)}>Find Translators</Link>
+              )}
               <Link href="/pricing" className="text-lg font-medium" onClick={() => setIsOpen(false)}>Pricing</Link>
               <Link href="/features" className="text-lg font-medium" onClick={() => setIsOpen(false)}>Features</Link>
               <hr className="border-white/[0.05]" />

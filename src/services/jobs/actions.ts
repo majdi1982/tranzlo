@@ -50,6 +50,24 @@ export async function getJobs(queries: string[] = []) {
   }
 }
 
+export async function getCompanyProjects() {
+  const { databases, account } = await createSessionClient();
+  try {
+    const user = await account.get();
+    const jobs = await databases.listDocuments(
+      APPWRITE_CONFIG.databaseId,
+      APPWRITE_CONFIG.projectsCollectionId,
+      [
+        Query.equal("companyId", user.$id),
+        Query.orderDesc("createdAt")
+      ]
+    );
+    return { success: true, data: jobs.documents as unknown as Job[] };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
 export async function getJobById(jobId: string) {
   const { databases } = await createAdminClient();
 

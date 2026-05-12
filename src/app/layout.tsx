@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/templates/LayoutWrapper";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -39,6 +40,18 @@ export default function RootLayout({
         <LayoutWrapper>
           {children}
         </LayoutWrapper>
+        <Toaster 
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#0b0c14',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '12px',
+              fontSize: '14px',
+            },
+          }}
+        />
       </body>
     </html>
   );

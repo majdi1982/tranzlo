@@ -8,8 +8,7 @@ import {
   getProjectWithBids, 
   hireTranslator,
   completeProject,
-  respondToInvitation,
-  submitRating
+  respondToInvitation
 } from "@/services/projects/actions"
 import { 
   Briefcase, 

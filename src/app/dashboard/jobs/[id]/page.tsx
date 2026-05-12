@@ -10,7 +10,10 @@ import { openDispute } from "@/services/disputes/actions"
 import { Job, Message, FileMetadata, ChatRoom } from "@/types"
 import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input"
-import { MessageSquare, FileText, AlertCircle, Send, Download } from "lucide-react"
+import { MessageSquare, FileText, AlertCircle, Send, Download, CheckCircle } from "lucide-react"
+import { getDashboardData } from "@/services/dashboard/actions"
+import { ReviewModal } from "@/components/organisms/ReviewModal"
+import { toast } from "react-hot-toast"
 
 export default function JobWorkspacePage() {
   const { id } = useParams()
@@ -20,14 +23,21 @@ export default function JobWorkspacePage() {
   const [files, setFiles] = useState<FileMetadata[]>([])
   const [loading, setLoading] = useState(true)
   const [newMessage, setNewMessage] = useState("")
+  const [user, setUser] = useState<any>(null)
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
 
   useEffect(() => {
     async function loadWorkspace() {
-      const jobRes = await getJobById(id as string)
-      const roomRes = await getChatRoom(id as string)
-      const filesRes = await getJobFiles(id as string)
+      const [jobRes, roomRes, filesRes, dashRes] = await Promise.all([
+        getJobById(id as string),
+        getChatRoom(id as string),
+        getJobFiles(id as string),
+        getDashboardData()
+      ])
       
       if (jobRes.success) setJob(jobRes.data || null)
+      if (dashRes.user) setUser(dashRes.user)
+      
       if (roomRes.success && roomRes.data) {
         setRoom(roomRes.data)
         const msgRes = await getMessages(roomRes.data.$id)
@@ -39,6 +49,8 @@ export default function JobWorkspacePage() {
     }
     loadWorkspace()
   }, [id])
+
+  const isCompany = user?.role === "company"
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,13 +78,25 @@ export default function JobWorkspacePage() {
             <Button variant="outline" size="sm" onClick={() => openDispute(job.$id, "Project issue")}>
               <AlertCircle className="w-4 h-4 mr-2" /> Dispute
             </Button>
-            {job.status === "in_progress" && (
-              <Button variant="primary" size="sm" onClick={() => updateJobStatus(job.$id, "completed")}>
-                Complete Project
+            {job.status === "in_progress" && isCompany && (
+              <Button variant="primary" size="sm" onClick={() => setIsReviewModalOpen(true)}>
+                <CheckCircle className="w-4 h-4 mr-2" /> Complete Project
               </Button>
+            )}
+            {job.status === "completed" && (
+              <div className="px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full border border-green-500/20 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" /> Completed
+              </div>
             )}
           </div>
         </div>
+
+        <ReviewModal 
+          isOpen={isReviewModalOpen} 
+          onClose={() => setIsReviewModalOpen(false)} 
+          jobId={job.$id} 
+          revieweeId={job.hiredTranslatorId || ""} 
+        />
 
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
           {/* Chat Panel */}

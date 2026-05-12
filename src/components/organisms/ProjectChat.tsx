@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion"
 interface Message {
   $id: string
   senderId: string
+  projectId: string
   text: string
   createdAt: string
   type: "text" | "file"

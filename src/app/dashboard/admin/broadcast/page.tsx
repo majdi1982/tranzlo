@@ -209,10 +209,12 @@ function TargetOption({ active, onClick, icon, label, description }: any) {
   )
 }
 
-function EditorToolbarIcon({ icon }: { icon: React.ReactNode }) {
+function EditorToolbarIcon({ icon }: { icon: React.ReactElement }) {
   return (
     <button className="p-1.5 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-      {React.cloneElement(icon as React.ReactElement, { className: "w-4 h-4" })}
+      {React.cloneElement(icon, { 
+        className: "w-4 h-4" 
+      } as React.ComponentProps<"svg">)}
     </button>
   )
 }

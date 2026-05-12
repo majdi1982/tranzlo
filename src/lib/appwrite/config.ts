@@ -18,6 +18,9 @@ export const APPWRITE_CONFIG = {
   disputesCollectionId: "disputes",
   teamsCollectionId: "teams",
   teamMembersCollectionId: "team_members",
+  invitationsCollectionId: "invitations",
+  reviewsCollectionId: "reviews",
+  kycCollectionId: "kyc",
   bucketId: "tranzlo_assets"
 };
 

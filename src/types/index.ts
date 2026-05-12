@@ -67,11 +67,43 @@ export interface FileMetadata {
   createdAt: string;
 }
 
+export interface Invitation {
+  $id: string;
+  jobId: string;
+  companyId: string;
+  translatorId: string;
+  message?: string;
+  status: "pending" | "accepted" | "declined";
+  createdAt: string;
+}
+
+export interface Review {
+  $id: string;
+  jobId: string;
+  reviewerId: string;
+  revieweeId: string;
+  rating: number; // 1-5
+  comment?: string;
+  createdAt: string;
+}
+
+export interface KYCData {
+  $id: string;
+  userId: string;
+  documentType: "passport" | "id_card" | "driver_license";
+  documentUrl: string;
+  status: "pending" | "verified" | "rejected";
+  rejectionReason?: string;
+  submittedAt: string;
+  updatedAt: string;
+}
+
 export interface Notification {
   $id: string;
   userId: string;
-  type: "message" | "file" | "status" | "hired";
+  type: "message" | "file" | "status" | "hired" | "invitation" | "review";
   content: string;
+  link?: string;
   read: boolean;
   createdAt: string;
 }

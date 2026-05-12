@@ -1,4 +1,4 @@
-import { Client, Databases, Storage, ID, Permission, Role } from "node-appwrite";
+import { Client, Databases, Storage, ID, Permission, Role, DatabasesIndexType } from "node-appwrite";
 import * as dotenv from "dotenv";
 
 dotenv.config({ path: ".env.local" });
@@ -37,6 +37,8 @@ async function setup() {
           { name: "email", type: "string", size: 255, required: true },
           { name: "role", type: "string", size: 50, required: true },
           { name: "country", type: "string", size: 100, required: false },
+          { name: "rating", type: "float", required: false },
+          { name: "verified", type: "boolean", required: false },
           { name: "createdAt", type: "string", size: 100, required: true }
         ]
       },
@@ -46,11 +48,95 @@ async function setup() {
         attributes: [
           { name: "title", type: "string", size: 255, required: true },
           { name: "description", type: "string", size: 5000, required: true },
+          { name: "sourceLanguage", type: "string", size: 50, required: false },
+          { name: "targetLanguage", type: "string", size: 50, required: false },
+          { name: "budget", type: "integer", required: true },
+          { name: "deadline", type: "string", size: 100, required: false },
           { name: "status", type: "string", size: 50, required: true },
-          { name: "ownerId", type: "string", size: 255, required: true },
+          { name: "companyId", type: "string", size: 255, required: true },
           { name: "hiredTranslatorId", type: "string", size: 255, required: false },
-          { name: "invitedTranslatorId", type: "string", size: 255, required: false },
-          { name: "acceptedBidId", type: "string", size: 255, required: false },
+          { name: "createdAt", type: "string", size: 100, required: true }
+        ]
+      },
+      {
+        id: "bids",
+        name: "Bids",
+        attributes: [
+          { name: "jobId", type: "string", size: 255, required: true },
+          { name: "translatorId", type: "string", size: 255, required: true },
+          { name: "proposalText", type: "string", size: 5000, required: true },
+          { name: "price", type: "integer", required: true },
+          { name: "deliveryTime", type: "string", size: 100, required: false },
+          { name: "status", type: "string", size: 50, required: true },
+          { name: "createdAt", type: "string", size: 100, required: true }
+        ]
+      },
+      {
+        id: "invitations",
+        name: "Invitations",
+        attributes: [
+          { name: "jobId", type: "string", size: 255, required: true },
+          { name: "companyId", type: "string", size: 255, required: true },
+          { name: "translatorId", type: "string", size: 255, required: true },
+          { name: "message", type: "string", size: 1000, required: false },
+          { name: "status", type: "string", size: 50, required: true },
+          { name: "createdAt", type: "string", size: 100, required: true }
+        ]
+      },
+      {
+        id: "reviews",
+        name: "Reviews",
+        attributes: [
+          { name: "jobId", type: "string", size: 255, required: true },
+          { name: "reviewerId", type: "string", size: 255, required: true },
+          { name: "revieweeId", type: "string", size: 255, required: true },
+          { name: "rating", type: "integer", required: true },
+          { name: "comment", type: "string", size: 1000, required: false },
+          { name: "createdAt", type: "string", size: 100, required: true }
+        ]
+      },
+      {
+        id: "kyc",
+        name: "KYC Data",
+        attributes: [
+          { name: "userId", type: "string", size: 255, required: true },
+          { name: "documentType", type: "string", size: 50, required: true },
+          { name: "documentUrl", type: "string", size: 500, required: true },
+          { name: "status", type: "string", size: 50, required: true },
+          { name: "rejectionReason", type: "string", size: 1000, required: false },
+          { name: "submittedAt", type: "string", size: 100, required: true },
+          { name: "updatedAt", type: "string", size: 100, required: true }
+        ]
+      },
+      {
+        id: "notifications",
+        name: "Notifications",
+        attributes: [
+          { name: "userId", type: "string", size: 255, required: true },
+          { name: "type", type: "string", size: 50, required: true },
+          { name: "content", type: "string", size: 1000, required: true },
+          { name: "link", type: "string", size: 500, required: false },
+          { name: "read", type: "boolean", required: true },
+          { name: "createdAt", type: "string", size: 100, required: true }
+        ]
+      },
+      {
+        id: "chat_rooms",
+        name: "Chat Rooms",
+        attributes: [
+          { name: "jobId", type: "string", size: 255, required: true },
+          { name: "participants", type: "string", size: 255, required: true, array: true },
+          { name: "createdAt", type: "string", size: 100, required: true }
+        ]
+      },
+      {
+        id: "messages",
+        name: "Project Messages",
+        attributes: [
+          { name: "projectId", type: "string", size: 255, required: true },
+          { name: "senderId", type: "string", size: 255, required: true },
+          { name: "text", type: "string", size: 5000, required: true },
+          { name: "type", type: "string", size: 50, required: true },
           { name: "createdAt", type: "string", size: 100, required: true }
         ]
       },
@@ -60,101 +146,21 @@ async function setup() {
         attributes: [
           { name: "userId", type: "string", size: 255, required: true },
           { name: "companyName", type: "string", size: 255, required: true },
-          { name: "verificationStatus", type: "string", size: 50, required: false },
-          { name: "taxId", type: "string", size: 100, required: false },
-          { name: "registrationNumber", type: "string", size: 100, required: false }
-        ]
-      }
-    ];
-      {
-        id: "bids",
-        name: "Bids",
-        attributes: [
-          { name: "projectId", type: "string", size: 255, required: true },
-          { name: "translatorId", type: "string", size: 255, required: true },
-          { name: "proposal", type: "string", size: 5000, required: true },
-          { name: "amount", type: "integer", required: true },
-          { name: "deliveryTime", type: "string", size: 100, required: false },
-          { name: "status", type: "string", size: 50, required: true },
+          { name: "contactName", type: "string", size: 255, required: true },
+          { name: "email", type: "string", size: 255, required: true },
+          { name: "country", type: "string", size: 100, required: false },
           { name: "createdAt", type: "string", size: 100, required: true }
         ]
       },
       {
-        id: "tickets",
-        name: "Support Tickets",
+        id: "translators",
+        name: "Translators",
         attributes: [
           { name: "userId", type: "string", size: 255, required: true },
-          { name: "subject", type: "string", size: 255, required: true },
-          { name: "description", type: "string", size: 5000, required: true },
-          { name: "status", type: "string", size: 50, required: true },
-          { name: "priority", type: "string", size: 50, required: true },
-          { name: "createdAt", type: "string", size: 100, required: true }
-        ]
-      },
-      {
-        id: "posts",
-        name: "Community Posts",
-        attributes: [
-          { name: "authorId", type: "string", size: 255, required: true },
-          { name: "title", type: "string", size: 255, required: true },
-          { name: "content", type: "string", size: 5000, required: true },
-          { name: "tags", type: "string", size: 255, required: false, array: true },
-          { name: "createdAt", type: "string", size: 100, required: true }
-        ]
-      },
-      {
-        id: "comments",
-        name: "Comments",
-        attributes: [
-          { name: "parentId", type: "string", size: 255, required: true }, // Post or Blog ID
-          { name: "authorId", type: "string", size: 255, required: true },
-          { name: "content", type: "string", size: 2000, required: true },
-          { name: "createdAt", type: "string", size: 100, required: true }
-        ]
-      },
-      {
-        id: "teams",
-        name: "Teams",
-        attributes: [
           { name: "name", type: "string", size: 255, required: true },
-          { name: "ownerId", type: "string", size: 255, required: true },
-          { name: "description", type: "string", size: 500, required: false },
-          { name: "createdAt", type: "string", size: 100, required: true }
-        ]
-      },
-      {
-        id: "notifications",
-        name: "Notifications",
-        attributes: [
-          { name: "userId", type: "string", size: 255, required: true },
-          { name: "title", type: "string", size: 255, required: true },
-          { name: "message", type: "string", size: 1000, required: true },
-          { name: "type", type: "string", size: 50, required: true },
-          { name: "link", type: "string", size: 500, required: false },
-          { name: "read", type: "boolean", required: true },
-          { name: "createdAt", type: "string", size: 100, required: true }
-        ]
-      },
-      {
-        id: "disputes",
-        name: "Disputes",
-        attributes: [
-          { name: "projectId", type: "string", size: 255, required: true },
-          { name: "complainantId", type: "string", size: 255, required: true },
-          { name: "reason", type: "string", size: 2000, required: true },
-          { name: "status", type: "string", size: 50, required: true },
-          { name: "createdAt", type: "string", size: 100, required: true }
-        ]
-      },
-      {
-        id: "ratings",
-        name: "Ratings",
-        attributes: [
-          { name: "projectId", type: "string", size: 255, required: true },
-          { name: "fromId", type: "string", size: 255, required: true },
-          { name: "toId", type: "string", size: 255, required: true },
-          { name: "score", type: "integer", required: true },
-          { name: "comment", type: "string", size: 1000, required: false },
+          { name: "email", type: "string", size: 255, required: true },
+          { name: "languages", type: "string", size: 255, required: false, array: true },
+          { name: "country", type: "string", size: 100, required: false },
           { name: "createdAt", type: "string", size: 100, required: true }
         ]
       }
@@ -172,8 +178,37 @@ async function setup() {
             await databases.createStringAttribute(dbId, col.id, attr.name, attr.size!, attr.required, undefined, (attr as any).array);
           } else if (attr.type === "integer") {
             await databases.createIntegerAttribute(dbId, col.id, attr.name, attr.required);
+          } else if (attr.type === "boolean") {
+            await databases.createBooleanAttribute(dbId, col.id, attr.name, attr.required);
+          } else if (attr.type === "float") {
+            await databases.createFloatAttribute(dbId, col.id, attr.name, attr.required);
           }
           await new Promise(r => setTimeout(r, 500));
+        }
+
+        // Add default indexes for filtering
+        const indexMap: Record<string, string[]> = {
+          "projects": ["companyId", "status", "createdAt"],
+          "bids": ["jobId", "status", "translatorId"],
+          "invitations": ["jobId", "companyId", "translatorId", "status"],
+          "reviews": ["jobId", "reviewerId", "revieweeId"],
+          "kyc": ["userId", "status"],
+          "notifications": ["userId", "read", "createdAt"],
+          "users": ["role", "email"],
+          "chat_rooms": ["jobId"],
+          "messages": ["projectId", "createdAt"],
+          "companies": ["userId", "email"],
+          "translators": ["userId", "email"]
+        };
+
+        if (indexMap[col.id]) {
+          for (const key of indexMap[col.id]) {
+            console.log(`Creating index for ${col.id}: ${key}...`);
+            try {
+              await databases.createIndex(dbId, col.id, `idx_${key}`, DatabasesIndexType.Key, [key]);
+              await new Promise(r => setTimeout(r, 1000));
+            } catch (err) {}
+          }
         }
       }
     }

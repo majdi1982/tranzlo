@@ -130,11 +130,31 @@ export async function updatePassword(newPassword: string, oldPassword?: string) 
 }
 
 export async function deleteAccount() {
+  const { account: sessionAccount } = await createSessionClient();
+  const { users, databases } = await createAdminClient();
+
   try {
-    const { account } = await createSessionClient();
-    await account.deleteSession("current");
-    // Optionally delete the user from DB too if desired
-    redirect("/login");
+    const user = await sessionAccount.get();
+    const role = (user.prefs as any)?.role;
+
+    // 1. Delete from role-specific collection
+    const targetCollection = role === "company" ? APPWRITE_CONFIG.companiesCollectionId : APPWRITE_CONFIG.translatorsCollectionId;
+    try {
+      await databases.deleteDocument(APPWRITE_CONFIG.databaseId, targetCollection, user.$id);
+    } catch (e) {}
+
+    // 2. Delete from main users collection
+    try {
+      await databases.deleteDocument(APPWRITE_CONFIG.databaseId, APPWRITE_CONFIG.usersCollectionId, user.$id);
+    } catch (e) {}
+
+    // 3. Delete Auth Account
+    await users.delete(user.$id);
+
+    // 4. Clear Cookies
+    (await cookies()).delete("appwrite-session");
+    
+    return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
