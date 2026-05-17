@@ -1,291 +1,162 @@
-import { Client, Databases, Storage, ID, Permission, Role, DatabasesIndexType } from "node-appwrite";
-import * as dotenv from "dotenv";
+import { Client, Databases, Permission, Role } from 'node-appwrite';
+import * as dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config({ path: ".env.local" });
+// Load environment variables
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
-    .setKey(process.env.NEXT_APPWRITE_KEY!);
+    .setEndpoint(process.env.VITE_APPWRITE_ENDPOINT!)
+    .setProject(process.env.VITE_APPWRITE_PROJECT_ID!)
+    .setKey(process.env.VITE_APPWRITE_KEY!);
 
 const databases = new Databases(client);
-const storage = new Storage(client);
+const databaseId = 'main';
 
-async function setup() {
-  const dbId = "main";
-  
-  try {
-    console.log("Checking for existing database...");
+async function setupSchema() {
+    console.log('🚀 Starting Unified Appwrite Schema Setup (Legal Compliance)...');
+
+    // Ensure Database exists
     try {
-      await databases.get(dbId);
+        await databases.get(databaseId);
+        console.log('Database already exists.');
     } catch (e) {
-      await databases.create(dbId, "Tranzlo Main Database");
+        console.log('Creating database...');
+        await databases.create(databaseId, 'Tranzlo Core');
     }
 
-    // Ensure Bucket
-    const bucketId = "tranzlo_assets";
-    console.log("Ensuring Storage Bucket...");
-    try {
-      await storage.getBucket(bucketId);
-    } catch (e) {
-      console.log("Creating Storage Bucket...");
-      await storage.createBucket(
-        bucketId,
-        "Tranzlo Assets",
-        [
-          Permission.read(Role.any()),
-          Permission.create(Role.users()),
-          Permission.update(Role.users()),
-          Permission.delete(Role.users()),
-        ],
-        false, // fileSecurity
-        true,  // enabled
-        undefined, // maximumFileSize
-        ["jpg", "jpeg", "png", "gif", "pdf", "docx"], // allowedFileExtensions
-        undefined, // compression
-        true, // encryption
-        true  // antivirus
-      );
-    }
+    const globalAttributes = [
+        { name: 'publicId', size: 36, required: true },
+        { name: 'entityType', size: 20, required: true },
+        { name: 'createdAt', size: 30, required: true },
+        { name: 'updatedAt', size: 30, required: true },
+        { name: 'createdBy', size: 36, required: true },
+        { name: 'updatedBy', size: 36, required: false },
+        { name: 'status', size: 20, required: false, default: 'active' },
+        { name: 'visibility', size: 20, required: false, default: 'public' },
+    ];
 
-    const globalFields = [
-      { name: "publicId", type: "string", size: 50, required: true },
-      { name: "entityType", type: "string", size: 50, required: true },
-      { name: "updatedAt", type: "string", size: 100, required: true },
-      { name: "createdBy", type: "string", size: 255, required: false },
-      { name: "updatedBy", type: "string", size: 255, required: false },
-      { name: "status", type: "string", size: 50, required: true },
-      { name: "visibility", type: "string", size: 50, required: true },
-      { name: "country", type: "string", size: 100 },
-      { name: "metadata", type: "string", size: 5000, required: false },
-      { name: "createdAt", type: "string", size: 100, required: true }
+    const ownershipAttributes = [
+        { name: 'organizationId', size: 36, required: false },
+        { name: 'workspaceId', size: 36, required: false },
+        { name: 'teamId', size: 36, required: false },
+        { name: 'projectId', size: 36, required: false },
+        { name: 'jobId', size: 36, required: false },
+        { name: 'userId', size: 36, required: false }
     ];
 
     const collections = [
-      { 
-        id: "translators", 
-        name: "Translators", 
-        permissions: [
-          Permission.read(Role.any()), 
-          Permission.create(Role.any()), 
-          Permission.update(Role.users())
-        ],
-        attrs: [
-          { name: "userId", type: "string", size: 255 },
-          { name: "name", type: "string", size: 255 },
-          { name: "email", type: "string", size: 255 },
-          { name: "bio", type: "string", size: 2000 },
-          { name: "languages", type: "string", size: 255, array: true },
-          { name: "skills", type: "string", size: 255, array: true },
-          { name: "hourlyRate", type: "float" },
-          { name: "portfolioUrl", type: "string", size: 500 },
-          { name: "avatarUrl", type: "string", size: 500 }
-        ]
-      },
-      { 
-        id: "companies", 
-        name: "Companies", 
-        permissions: [
-          Permission.read(Role.any()), 
-          Permission.create(Role.any()), 
-          Permission.update(Role.users())
-        ],
-        attrs: [
-          { name: "userId", type: "string", size: 255 },
-          { name: "companyName", type: "string", size: 255 },
-          { name: "contactName", type: "string", size: 255 },
-          { name: "email", type: "string", size: 255 },
-          { name: "website", type: "string", size: 500 },
-          { name: "industry", type: "string", size: 100 },
-          { name: "logoUrl", type: "string", size: 500 },
-          { name: "taxId", type: "string", size: 100 }
-        ]
-      },
-      { 
-        id: "admins", 
-        name: "Admins", 
-        permissions: [Permission.read(Role.team("admins")), Permission.update(Role.team("admins"))],
-        attrs: [
-          { name: "userId", type: "string", size: 255 },
-          { name: "adminLevel", type: "string", size: 50 },
-          { name: "department", type: "string", size: 100 }
-        ]
-      },
-      { 
-        id: "wallets", 
-        name: "Wallets", 
-        permissions: [Permission.read(Role.users()), Permission.update(Role.team("admins"))],
-        attrs: [
-          { name: "userId", type: "string", size: 255 },
-          { name: "balance", type: "float", required: true },
-          { name: "currency", type: "string", size: 10, required: true },
-          { name: "lastTransactionAt", type: "string", size: 100 }
-        ]
-      },
-      { 
-        id: "transactions", 
-        name: "Transactions", 
-        permissions: [Permission.read(Role.users())],
-        attrs: [
-          { name: "walletId", type: "string", size: 255 },
-          { name: "amount", type: "float", required: true },
-          { name: "type", type: "string", size: 50 }, // credit, debit
-          { name: "description", type: "string", size: 500 },
-          { name: "referenceId", type: "string", size: 255 }
-        ]
-      },
-      { 
-        id: "milestones", 
-        name: "Milestones", 
-        permissions: [Permission.read(Role.users()), Permission.update(Role.users())],
-        attrs: [
-          { name: "jobId", type: "string", size: 255 },
-          { name: "title", type: "string", size: 255 },
-          { name: "amount", type: "float" },
-          { name: "dueDate", type: "string", size: 100 },
-          { name: "releaseStatus", type: "string", size: 50 } // pending, released, disputed
-        ]
-      },
-      { 
-        id: "chatRooms", 
-        name: "Chat Rooms", 
-        permissions: [Permission.read(Role.users())],
-        attrs: [
-          { name: "jobId", type: "string", size: 255 },
-          { name: "participants", type: "string", size: 255, array: true }
-        ]
-      },
-      { 
-        id: "messages", 
-        name: "Messages", 
-        permissions: [Permission.read(Role.users()), Permission.create(Role.users())],
-        attrs: [
-          { name: "roomId", type: "string", size: 255 },
-          { name: "senderId", type: "string", size: 255 },
-          { name: "content", type: "string", size: 5000 },
-          { name: "type", type: "string", size: 50 } // text, system, file
-        ]
-      },
-      { 
-        id: "notifications", 
-        name: "Notifications", 
-        permissions: [Permission.read(Role.users()), Permission.update(Role.users())],
-        attrs: [
-          { name: "userId", type: "string", size: 255 },
-          { name: "type", type: "string", size: 50 },
-          { name: "content", type: "string", size: 1000 },
-          { name: "link", type: "string", size: 500 },
-          { name: "read", type: "boolean" }
-        ]
-      },
-      { 
-        id: "disputes", 
-        name: "Disputes", 
-        permissions: [Permission.read(Role.users()), Permission.create(Role.users())],
-        attrs: [
-          { name: "jobId", type: "string", size: 255 },
-          { name: "openedBy", type: "string", size: 255 },
-          { name: "reason", type: "string", size: 1000 },
-          { name: "evidenceUrl", type: "string", size: 500 }
-        ]
-      },
-      { 
-        id: "auditLogs", 
-        name: "Audit Logs", 
-        permissions: [Permission.read(Role.team("admins"))],
-        attrs: [
-          { name: "userId", type: "string", size: 255 },
-          { name: "action", type: "string", size: 50 },
-          { name: "targetType", type: "string", size: 50 },
-          { name: "targetId", type: "string", size: 255 },
-          { name: "changes", type: "string", size: 5000 }
-        ]
-      },
-      { 
-        id: "projects", 
-        name: "Projects", 
-        permissions: [Permission.read(Role.any()), Permission.create(Role.users())],
-        attrs: [
-          { name: "companyId", type: "string", size: 255 },
-          { name: "title", type: "string", size: 255 },
-          { name: "description", type: "string", size: 5000 },
-          { name: "sourceLanguage", type: "string", size: 100 },
-          { name: "targetLanguage", type: "string", size: 100 },
-          { name: "budget", type: "float" },
-          { name: "deadline", type: "string", size: 100 },
-          { name: "jobType", type: "string", size: 50 },
-          { name: "isInviteOnly", type: "boolean" },
-          { name: "hiredTranslatorId", type: "string", size: 255 },
-          { name: "applicationCount", type: "integer" },
-          { name: "viewCount", type: "integer" },
-          { name: "milestones", type: "string", size: 5000 }
-        ]
-      },
-      { 
-        id: "users", 
-        name: "Users", 
-        permissions: [
-          Permission.read(Role.any()), 
-          Permission.create(Role.any()), 
-          Permission.update(Role.users())
-        ],
-        attrs: [
-          { name: "userId", type: "string", size: 255 },
-          { name: "role", type: "string", size: 50 },
-          { name: "onboarded", type: "boolean" },
-          { name: "avatarUrl", type: "string", size: 500 }
-        ]
-      },
-      { 
-        id: "jobApplications", 
-        name: "Job Applications", 
-        permissions: [
-          Permission.read(Role.any()), 
-          Permission.create(Role.any()), 
-          Permission.update(Role.users())
-        ],
-        attrs: [
-          { name: "jobId", type: "string", size: 255 },
-          { name: "translatorId", type: "string", size: 255 },
-          { name: "proposalText", type: "string", size: 5000 },
-          { name: "price", type: "float" },
-          { name: "deliveryTime", type: "string", size: 100 }
-        ]
-      }
+        { id: 'jobs', name: 'Jobs' },
+        { id: 'jobApplications', name: 'Job Applications' },
+        { id: 'auditLogs', name: 'Audit Logs' },
+        { id: 'translators', name: 'Translators' },
+        { id: 'companies', name: 'Companies' },
+        { id: 'notifications', name: 'Notifications' }
     ];
 
-    for (const col of collections) {
-      console.log(`Ensuring Collection: ${col.name}...`);
-      try {
-        await databases.getCollection(dbId, col.id);
-        console.log(`Updating Collection: ${col.name}...`);
-        await databases.updateCollection(dbId, col.id, col.name, col.permissions, true, true);
-      } catch (e) {
-        console.log(`Creating Collection: ${col.name}...`);
-        await databases.createCollection(dbId, col.id, col.name, col.permissions, true, true);
-      }
-
-      const allAttrs = [...col.attrs, ...globalFields];
-      for (const attr of allAttrs) {
+    for (const coll of collections) {
+        console.log(`Setting up collection: ${coll.name}...`);
         try {
-          if (attr.type === "string") {
-            await databases.createStringAttribute(dbId, col.id, attr.name, (attr as any).size || 255, (attr as any).required || false, undefined, (attr as any).array);
-          } else if (attr.type === "integer") {
-            await databases.createIntegerAttribute(dbId, col.id, attr.name, (attr as any).required || false);
-          } else if (attr.type === "float") {
-            await databases.createFloatAttribute(dbId, col.id, attr.name, (attr as any).required || false);
-          } else if (attr.type === "boolean") {
-            await databases.createBooleanAttribute(dbId, col.id, attr.name, (attr as any).required || false);
-          }
-          await new Promise(r => setTimeout(r, 400));
-        } catch (attrErr) {}
-      }
+            await databases.getCollection(databaseId, coll.id);
+            console.log(`Collection ${coll.id} already exists.`);
+        } catch (e) {
+            await databases.createCollection(databaseId, coll.id, coll.name);
+        }
+
+        try {
+            // Apply standard collection permissions (compliance with client-side B2B operations)
+            await databases.updateCollection(
+                databaseId,
+                coll.id,
+                coll.name,
+                [
+                    Permission.read(Role.any()),
+                    Permission.create(Role.users()),
+                    Permission.update(Role.users()),
+                    Permission.delete(Role.users())
+                ],
+                false
+            );
+            console.log(`Permissions synchronized successfully for: ${coll.id}`);
+        } catch (permErr: any) {
+            console.log(`Permissions update failed for: ${coll.id}:`, permErr.message);
+        }
+
+        // Apply Global Fields
+        for (const attr of globalAttributes) {
+            try {
+                await databases.createStringAttribute(databaseId, coll.id, attr.name, attr.size, attr.required, attr.default);
+            } catch (e: any) {
+                if (!e.message?.includes('already exists')) {
+                    console.log(`Failed to create global attribute ${attr.name} for ${coll.id}:`, e.message);
+                }
+            }
+        }
+        // Apply Ownership Fields
+        for (const attr of ownershipAttributes) {
+            try {
+                await databases.createStringAttribute(databaseId, coll.id, attr.name, attr.size, attr.required);
+            } catch (e: any) {
+                if (!e.message?.includes('already exists')) {
+                    console.log(`Failed to create ownership attribute ${attr.name} for ${coll.id}:`, e.message);
+                }
+            }
+        }
     }
 
-    console.log("Enterprise Ecosystem Updated Successfully!");
-  } catch (error) {
-    console.error("Setup Error:", error);
-  }
+    // Role-specific fields for Jobs
+    try {
+        await databases.createStringAttribute(databaseId, 'jobs', 'title', 200, true);
+        await databases.createStringAttribute(databaseId, 'jobs', 'description', 5000, true);
+        await databases.createStringAttribute(databaseId, 'jobs', 'paymentType', 20, true); // fixed, hourly, milestones
+        await databases.createIntegerAttribute(databaseId, 'jobs', 'budget', true);
+        await databases.createStringAttribute(databaseId, 'jobs', 'currency', 3, false, 'USD');
+        await databases.createStringAttribute(databaseId, 'jobs', 'fromLanguage', 10, true);
+        await databases.createStringAttribute(databaseId, 'jobs', 'toLanguage', 10, true);
+        await databases.createBooleanAttribute(databaseId, 'jobs', 'isInviteOnly', false, false);
+    } catch (e: any) {
+        console.log('Job specific fields error:', e.message);
+    }
+
+    // Role-specific fields for Notifications
+    try {
+        await databases.createStringAttribute(databaseId, 'notifications', 'title', 200, true);
+        await databases.createStringAttribute(databaseId, 'notifications', 'message', 1000, true);
+        await databases.createStringAttribute(databaseId, 'notifications', 'type', 50, true);
+        await databases.createBooleanAttribute(databaseId, 'notifications', 'read', false, false);
+    } catch (e: any) {
+        console.log('Notification specific fields error:', e.message);
+    }
+
+    // Role-specific fields for Job Applications
+    try {
+        await databases.createStringAttribute(databaseId, 'jobApplications', 'proposal', 5000, true);
+        await databases.createIntegerAttribute(databaseId, 'jobApplications', 'bidAmount', true);
+        await databases.createIntegerAttribute(databaseId, 'jobApplications', 'deliveryDays', true);
+    } catch (e: any) {
+        console.log('Job Application specific fields error:', e.message);
+    }
+
+    // Role-specific fields for Translators
+    try {
+        await databases.createStringAttribute(databaseId, 'translators', 'name', 100, true);
+        await databases.createStringAttribute(databaseId, 'translators', 'email', 100, true);
+        await databases.createStringAttribute(databaseId, 'translators', 'role', 20, true);
+    } catch (e: any) {
+        console.log('Translator specific fields error:', e.message);
+    }
+
+    // Role-specific fields for Companies
+    try {
+        await databases.createStringAttribute(databaseId, 'companies', 'name', 100, true);
+        await databases.createStringAttribute(databaseId, 'companies', 'email', 100, true);
+        await databases.createStringAttribute(databaseId, 'companies', 'role', 20, true);
+        await databases.createStringAttribute(databaseId, 'companies', 'companyName', 100, false);
+    } catch (e: any) {
+        console.log('Company specific fields error:', e.message);
+    }
+
+    console.log('✅ Legal Schema Setup Completed!');
 }
 
-setup();
+setupSchema();

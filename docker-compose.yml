@@ -1,0 +1,47 @@
+services:
+  frontend:
+    build: .
+    container_name: trz-frontend
+    restart: unless-stopped
+    networks:
+      - trz-network
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: trz-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - trz-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx Reverse Proxy (As required by DOCKER_PRODUCTION_RULES)
+  nginx:
+    image: nginx:stable-alpine
+    container_name: trz-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - trz-network
+    depends_on:
+      - frontend
+
+networks:
+  trz-network:
+    driver: bridge
+
+volumes:
+  redis_data:
