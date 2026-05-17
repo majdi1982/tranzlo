@@ -317,9 +317,9 @@ const Projects = () => {
             {/* Premium Tab Navigation */}
             <div className="flex border-b border-slate-200 dark:border-white/5 pb-0 mb-6 gap-4 overflow-x-auto scrollbar-none">
               {[
-                { id: 'all', label: 'All Projects / كل المشاريع', count: jobs.length },
-                { id: 'in_progress', label: 'In Progress / تحت العمل', count: jobs.filter(j => j.status === 'in_progress').length },
-                { id: 'completed', label: 'Completed / المكتملة', count: jobs.filter(j => j.status === 'completed').length },
+                { id: 'all', label: 'All Projects', count: jobs.length },
+                { id: 'in_progress', label: 'In Progress', count: jobs.filter(j => j.status === 'in_progress').length },
+                { id: 'completed', label: 'Completed', count: jobs.filter(j => j.status === 'completed').length },
               ].map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
