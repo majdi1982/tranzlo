@@ -38,6 +38,7 @@ const Dashboard = () => {
       />
       <Route path="post-job" element={<PostJob />} />
       <Route path="projects" element={<Projects />} />
+      <Route path="proposals" element={<Projects />} />
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
   );
