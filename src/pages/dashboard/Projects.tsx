@@ -455,42 +455,84 @@ const Projects = () => {
                             No translators have bid on this job yet. Check back soon!
                           </div>
                         ) : job.status === 'in_progress' && acceptedApp ? (
-                          // Contract in progress view (Approved translator card highlighted)
-                          <div className="p-6 bg-emerald-500/5 dark:bg-emerald-500/2 border-2 border-emerald-500/20 rounded-3xl relative">
-                            <div className="flex flex-col sm:flex-row justify-between gap-6 sm:items-center">
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-10 h-10 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center">
-                                    <User className="w-5 h-5" />
+                          // Contract in progress view (Approved translator card active + other bids shaded/declined)
+                          <div className="space-y-6">
+                            {/* Hired active translator card */}
+                            <div className="p-6 bg-emerald-500/5 dark:bg-emerald-500/2 border-2 border-emerald-500/25 rounded-3xl relative">
+                              <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[9px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/20">
+                                Active Partner / نشط
+                              </div>
+                              <div className="flex flex-col sm:flex-row justify-between gap-6 sm:items-center">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-10 h-10 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center">
+                                      <User className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                      <h4 className="font-bold text-slate-800 dark:text-white text-base">
+                                        {acceptedApp.translator.name}
+                                      </h4>
+                                      <p className="text-[10px] text-slate-400 dark:text-slate-500">{acceptedApp.translator.email}</p>
+                                    </div>
+                                  </div>
+                                  <div className="p-4 bg-white dark:bg-slate-900/50 rounded-2xl border border-emerald-500/10">
+                                    <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Contract Cover Letter</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed italic">
+                                      "{acceptedApp.proposal}"
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="shrink-0 flex sm:flex-col sm:items-end justify-between sm:justify-start gap-4 pt-4 sm:pt-0">
+                                  <div>
+                                    <p className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold mb-0.5">Agreed Budget</p>
+                                    <h4 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">${acceptedApp.bidAmount}</h4>
                                   </div>
                                   <div>
-                                    <h4 className="font-bold text-slate-800 dark:text-white text-base">
-                                      {acceptedApp.translator.name}
-                                    </h4>
-                                    <p className="text-[10px] text-slate-400 dark:text-slate-500">{acceptedApp.translator.email}</p>
+                                    <p className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold mb-0.5">Target Delivery</p>
+                                    <span className="text-xs font-bold text-slate-700 dark:text-white bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/5">
+                                      {acceptedApp.deliveryDays} Days
+                                    </span>
                                   </div>
-                                </div>
-                                <div className="p-4 bg-white dark:bg-slate-900/50 rounded-2xl border border-emerald-500/10">
-                                  <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Contract Cover Letter</p>
-                                  <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed italic">
-                                    "{acceptedApp.proposal}"
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="shrink-0 flex sm:flex-col sm:items-end justify-between sm:justify-start gap-4">
-                                <div>
-                                  <p className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold mb-0.5">Agreed Budget</p>
-                                  <h4 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">${acceptedApp.bidAmount}</h4>
-                                </div>
-                                <div>
-                                  <p className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold mb-0.5">Target Delivery</p>
-                                  <span className="text-xs font-bold text-slate-700 dark:text-white bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/5">
-                                    {acceptedApp.deliveryDays} Days
-                                  </span>
                                 </div>
                               </div>
                             </div>
+
+                            {/* Other participating bids (Shaded/Declined) */}
+                            {jobApps.filter(app => app.$id !== acceptedApp.$id).length > 0 && (
+                              <div className="space-y-3 pt-2">
+                                <h5 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-2">
+                                  Other Bidders (Blocked/Shaded) / عروض محجوبة
+                                </h5>
+                                <div className="grid grid-cols-1 gap-3">
+                                  {jobApps.filter(app => app.$id !== acceptedApp.$id).map((app) => (
+                                    <div 
+                                      key={app.$id}
+                                      className="p-4 bg-slate-50/50 dark:bg-slate-900/10 border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 opacity-40 filter grayscale transition-all hover:opacity-50"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-400">
+                                          <User className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                          <h5 className="font-bold text-slate-700 dark:text-slate-300 text-xs">{app.translator?.name || 'Expert Translator'}</h5>
+                                          <p className="text-[9px] text-slate-400 dark:text-slate-500">{app.translator?.email || ''}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-4 items-center shrink-0 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-0 border-slate-100 dark:border-white/5 pt-3 sm:pt-0">
+                                        <div className="sm:text-right">
+                                          <p className="text-[8px] text-slate-400 uppercase tracking-wider font-semibold">Bid Amount</p>
+                                          <h5 className="text-sm font-bold text-slate-500">${app.bidAmount}</h5>
+                                        </div>
+                                        <span className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-200/50 uppercase tracking-wider">
+                                          Blocked / محجوب
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           // List of pending proposals for bidding open stage

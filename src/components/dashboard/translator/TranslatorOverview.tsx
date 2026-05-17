@@ -92,6 +92,7 @@ const TranslatorOverview = () => {
       deliveryDays: parseInt(bidForm.deliveryDays),
       jobId: selectedJob.$id,
       userId: user.$id,
+      organizationId: selectedJob.organizationId || selectedJob.createdBy || null,
     };
 
     try {
