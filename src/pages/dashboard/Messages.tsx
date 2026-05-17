@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { databases, APPWRITE_CONFIG, ID, Query } from '../../lib/appwrite';
 import client from '../../lib/appwrite';
@@ -43,6 +44,7 @@ interface MessageDoc {
 
 const Messages = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const { showToast } = useNotifications();
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
@@ -53,6 +55,17 @@ const Messages = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const isTranslator = user?.role === 'translator';
+  const stateJobId = location.state?.jobId;
+
+  // Auto-activate room from navigation state
+  useEffect(() => {
+    if (stateJobId && chatRooms.length > 0) {
+      const room = chatRooms.find(r => r.jobId === stateJobId);
+      if (room) {
+        setActiveRoom(room);
+      }
+    }
+  }, [stateJobId, chatRooms]);
 
   // 1. Fetch Chat Rooms based on active contracts (in_progress)
   useEffect(() => {

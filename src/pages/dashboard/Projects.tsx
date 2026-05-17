@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
@@ -17,11 +18,13 @@ import {
   Globe, 
   User, 
   FileText,
-  HelpCircle
+  HelpCircle,
+  MessageSquare
 } from 'lucide-react';
 
 const Projects = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { showToast } = useNotifications();
   const [jobs, setJobs] = useState<any[]>([]);
   const [applications, setApplications] = useState<{ [jobId: string]: any[] }>({});
@@ -494,6 +497,13 @@ const Projects = () => {
                                       {acceptedApp.deliveryDays} Days
                                     </span>
                                   </div>
+                                  <button
+                                    onClick={() => navigate('/dashboard/messages', { state: { jobId: job.$id } })}
+                                    className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-md shadow-emerald-600/10 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] mt-2 sm:mt-4"
+                                  >
+                                    <MessageSquare className="w-4 h-4" />
+                                    Workspace Chat / محادثة العمل
+                                  </button>
                                 </div>
                               </div>
                             </div>
