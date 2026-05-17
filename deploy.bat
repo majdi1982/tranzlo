@@ -43,10 +43,11 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [4/4] Uploading .env.local and deploying on VPS...
-scp "%LOCAL_ENV%" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/.env.local
+echo [4/4] Uploading deploy.sh, .env.local and deploying on VPS...
+scp "deploy.sh" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/deploy.sh
+scp "%LOCAL_ENV%" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/frontend/.env.local
 
-ssh %VPS_USER%@%VPS_HOST% "cd %PROJECT_DIR% && ./deploy.sh"
+ssh %VPS_USER%@%VPS_HOST% "chmod +x %PROJECT_DIR%/deploy.sh && %PROJECT_DIR%/deploy.sh"
 
 echo.
 echo ==========================================
