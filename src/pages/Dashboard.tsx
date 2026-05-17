@@ -5,6 +5,7 @@ import TranslatorOverview from '../components/dashboard/translator/TranslatorOve
 import PostJob from './dashboard/PostJob';
 import Projects from './dashboard/Projects';
 import Messages from './dashboard/Messages';
+import Team from './dashboard/Team';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
@@ -41,6 +42,7 @@ const Dashboard = () => {
       <Route path="projects" element={<Projects />} />
       <Route path="proposals" element={<Projects />} />
       <Route path="messages" element={<Messages />} />
+      <Route path="team" element={<Team />} />
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
   );

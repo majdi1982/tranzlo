@@ -52,7 +52,9 @@ async function setupSchema() {
         { id: 'translators', name: 'Translators' },
         { id: 'companies', name: 'Companies' },
         { id: 'notifications', name: 'Notifications' },
-        { id: 'messages', name: 'Messages' }
+        { id: 'messages', name: 'Messages' },
+        { id: 'teamMembers', name: 'Team Members' },
+        { id: 'teamInvitations', name: 'Team Invitations' }
     ];
 
     for (const coll of collections) {
@@ -164,6 +166,24 @@ async function setupSchema() {
         await databases.createStringAttribute(databaseId, 'messages', 'recipientId', 36, true);
     } catch (e: any) {
         console.log('Messages specific fields error:', e.message);
+    }
+
+    // Role-specific fields for Team Members
+    try {
+        await databases.createStringAttribute(databaseId, 'teamMembers', 'name', 100, true);
+        await databases.createStringAttribute(databaseId, 'teamMembers', 'email', 100, true);
+        await databases.createStringAttribute(databaseId, 'teamMembers', 'role', 50, true);
+    } catch (e: any) {
+        console.log('Team Members specific fields error:', e.message);
+    }
+
+    // Role-specific fields for Team Invitations
+    try {
+        await databases.createStringAttribute(databaseId, 'teamInvitations', 'name', 100, true);
+        await databases.createStringAttribute(databaseId, 'teamInvitations', 'email', 100, true);
+        await databases.createStringAttribute(databaseId, 'teamInvitations', 'role', 50, true);
+    } catch (e: any) {
+        console.log('Team Invitations specific fields error:', e.message);
     }
 
     console.log('✅ Legal Schema Setup Completed!');

@@ -13,6 +13,8 @@ export const APPWRITE_CONFIG = {
     jobApplications: 'jobApplications',
     auditLogs: 'auditLogs',
     messages: 'messages',
+    teamMembers: 'teamMembers',
+    teamInvitations: 'teamInvitations',
   }
 };
 
