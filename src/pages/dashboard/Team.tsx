@@ -165,6 +165,28 @@ const Team = () => {
         inviteData
       );
 
+      // 📡 Trigger N8N Webhook to send out the invitation email
+      const n8nWebhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://n8n.tranzlo.net/webhook/team-invite';
+      try {
+        await fetch(n8nWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            invitationId: res.$id,
+            publicId: inviteData.publicId,
+            name: inviteForm.name.trim(),
+            email: inviteForm.email.trim(),
+            role: inviteForm.role,
+            organizationId: orgId,
+            companyName: user.name || 'Your Company Partner',
+            signupUrl: `https://tranzlo.net/signup?invite=${res.$id}&email=${encodeURIComponent(inviteForm.email.trim())}`
+          })
+        });
+        console.log('Successfully triggered N8N team invitation webhook.');
+      } catch (webhookErr) {
+        console.error('N8N webhook invocation failed:', webhookErr);
+      }
+
       showToast(
         'Invitation Sent', 
         `Successfully invited ${inviteForm.name} to join your workspace as ${inviteForm.role}.`, 
