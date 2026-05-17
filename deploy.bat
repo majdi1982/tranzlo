@@ -4,7 +4,7 @@ setlocal
 set "VPS_HOST=187.124.179.33"
 set "VPS_USER=root"
 set "LOCAL_ENV=D:\Tranzlo\.env.local"
-set "PROJECT_DIR=/root/tranzlo"
+set "PROJECT_DIR=/root/tranzlo-project"
 set "GIT_REPO=https://github.com/majdi1982/tranzlo.git"
 
 echo ==========================================
