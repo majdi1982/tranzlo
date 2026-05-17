@@ -4,6 +4,7 @@ import CompanyOverview from '../components/dashboard/company/CompanyOverview';
 import TranslatorOverview from '../components/dashboard/translator/TranslatorOverview';
 import PostJob from './dashboard/PostJob';
 import Projects from './dashboard/Projects';
+import Messages from './dashboard/Messages';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
@@ -39,6 +40,7 @@ const Dashboard = () => {
       <Route path="post-job" element={<PostJob />} />
       <Route path="projects" element={<Projects />} />
       <Route path="proposals" element={<Projects />} />
+      <Route path="messages" element={<Messages />} />
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
   );

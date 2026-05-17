@@ -51,7 +51,8 @@ async function setupSchema() {
         { id: 'auditLogs', name: 'Audit Logs' },
         { id: 'translators', name: 'Translators' },
         { id: 'companies', name: 'Companies' },
-        { id: 'notifications', name: 'Notifications' }
+        { id: 'notifications', name: 'Notifications' },
+        { id: 'messages', name: 'Messages' }
     ];
 
     for (const coll of collections) {
@@ -154,6 +155,15 @@ async function setupSchema() {
         await databases.createStringAttribute(databaseId, 'companies', 'companyName', 100, false);
     } catch (e: any) {
         console.log('Company specific fields error:', e.message);
+    }
+
+    // Role-specific fields for Messages
+    try {
+        await databases.createStringAttribute(databaseId, 'messages', 'messageText', 2000, true);
+        await databases.createStringAttribute(databaseId, 'messages', 'senderName', 100, true);
+        await databases.createStringAttribute(databaseId, 'messages', 'recipientId', 36, true);
+    } catch (e: any) {
+        console.log('Messages specific fields error:', e.message);
     }
 
     console.log('✅ Legal Schema Setup Completed!');

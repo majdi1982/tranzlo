@@ -12,6 +12,7 @@ export const APPWRITE_CONFIG = {
     notifications: 'notifications',
     jobApplications: 'jobApplications',
     auditLogs: 'auditLogs',
+    messages: 'messages',
   }
 };
 
