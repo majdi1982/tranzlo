@@ -267,7 +267,7 @@ const Team = () => {
             }`}
           >
             <Shield className="w-4 h-4" />
-            The Team ({members.length})
+            The Team
           </button>
           
           <button
@@ -291,7 +291,7 @@ const Team = () => {
             }`}
           >
             <Clock className="w-4 h-4" />
-            Pending Invitations ({pendingInvites.length})
+            Pending Invitations
           </button>
         </div>
 
