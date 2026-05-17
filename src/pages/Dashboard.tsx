@@ -6,6 +6,7 @@ import PostJob from './dashboard/PostJob';
 import Projects from './dashboard/Projects';
 import Messages from './dashboard/Messages';
 import Team from './dashboard/Team';
+import Billing from './dashboard/Billing';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
@@ -43,6 +44,7 @@ const Dashboard = () => {
       <Route path="proposals" element={<Projects />} />
       <Route path="messages" element={<Messages />} />
       <Route path="team" element={<Team />} />
+      <Route path="billing" element={<Billing />} />
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
   );
