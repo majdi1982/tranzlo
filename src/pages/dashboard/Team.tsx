@@ -238,7 +238,7 @@ const Team = () => {
           <div>
             <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white flex items-center gap-2.5">
               <Users className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-              Team Workspace / إدارة الفريق
+              Team Workspace
             </h1>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">
               Manage your company's sub-accounts, invite members, and adjust access control permissions
@@ -251,7 +251,7 @@ const Team = () => {
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-md shadow-blue-600/10 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <UserPlus className="w-4 h-4" />
-              Invite Member / دعوة عضو
+              Invite Member
             </button>
           </div>
         </div>
@@ -267,7 +267,7 @@ const Team = () => {
             }`}
           >
             <Shield className="w-4 h-4" />
-            1. The Team / الفريق ({members.length})
+            The Team ({members.length})
           </button>
           
           <button
@@ -279,7 +279,7 @@ const Team = () => {
             }`}
           >
             <UserPlus className="w-4 h-4" />
-            2. Invite Team / دعوة الفريق
+            Invite Team
           </button>
 
           <button
@@ -291,7 +291,7 @@ const Team = () => {
             }`}
           >
             <Clock className="w-4 h-4" />
-            3. Pending Invitations / دعوات معلقة ({pendingInvites.length})
+            Pending Invitations ({pendingInvites.length})
           </button>
         </div>
 
@@ -423,7 +423,7 @@ const Team = () => {
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        <span>Send Invitation / إرسال الدعوة</span>
+                        <span>Send Invitation</span>
                       </>
                     )}
                   </button>
