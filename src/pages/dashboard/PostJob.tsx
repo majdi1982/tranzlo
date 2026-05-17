@@ -53,7 +53,7 @@ const PostJob = () => {
         organizationId: user.profile?.companyId || null,
       });
       setSuccess(true);
-      setTimeout(() => navigate('/dashboard'), 2000);
+      setTimeout(() => navigate('/dashboard/projects'), 2000);
     } catch (error) {
       console.error('Failed to post job:', error);
     } finally {
