@@ -29,6 +29,7 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null); // holds applicationId being accepted
+  const [activeTab, setActiveTab] = useState<'all' | 'in_progress' | 'completed'>('all');
 
   const isTranslator = user?.role === 'translator';
 
@@ -324,10 +325,64 @@ const Projects = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {jobs.map((job) => {
-                const jobApps = applications[job.$id] || [];
-                const isExpanded = expandedJobId === job.$id;
-                const acceptedApp = jobApps.find(app => app.status === 'accepted');
+              {/* Premium Tab Navigation */}
+              <div className="flex border-b border-slate-200 dark:border-white/5 pb-0 mb-6 gap-4 overflow-x-auto scrollbar-none">
+                {[
+                  { id: 'all', label: 'All Projects / كل المشاريع', count: jobs.length },
+                  { id: 'in_progress', label: 'In Progress / تحت العمل', count: jobs.filter(j => j.status === 'in_progress').length },
+                  { id: 'completed', label: 'Completed / المكتملة', count: jobs.filter(j => j.status === 'completed').length },
+                ].map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id as any);
+                        setExpandedJobId(null); // collapse active expansion on tab change
+                      }}
+                      className={`pb-4 px-2 font-bold text-sm relative transition-all active:scale-95 flex items-center gap-2 shrink-0 cursor-pointer ${
+                        isActive 
+                          ? 'text-blue-600 dark:text-blue-400' 
+                          : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                        isActive 
+                          ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400' 
+                          : 'bg-slate-100 dark:bg-white/5 text-slate-500'
+                      }`}>
+                        {tab.count}
+                      </span>
+                      {isActive && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full shadow-lg shadow-blue-500/50" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {jobs.filter(job => {
+                if (activeTab === 'all') return true;
+                if (activeTab === 'in_progress') return job.status === 'in_progress';
+                if (activeTab === 'completed') return job.status === 'completed';
+                return true;
+              }).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900/10 border border-slate-200 dark:border-white/5 rounded-3xl text-center px-4 shadow-sm">
+                  <p className="text-slate-500 dark:text-slate-450 text-sm font-semibold">
+                    No projects found matching this status filter.
+                  </p>
+                </div>
+              ) : (
+                jobs.filter(job => {
+                  if (activeTab === 'all') return true;
+                  if (activeTab === 'in_progress') return job.status === 'in_progress';
+                  if (activeTab === 'completed') return job.status === 'completed';
+                  return true;
+                }).map((job) => {
+                  const jobApps = applications[job.$id] || [];
+                  const isExpanded = expandedJobId === job.$id;
+                  const acceptedApp = jobApps.find(app => app.status === 'accepted');
 
                 const statusStyles = {
                   active: { bg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', label: 'Bidding Open' },
@@ -502,7 +557,7 @@ const Projects = () => {
                     )}
                   </div>
                 );
-              })}
+              }))}
             </div>
           )
         )}
