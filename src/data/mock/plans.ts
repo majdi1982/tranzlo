@@ -1,0 +1,43 @@
+export const mockPlanStates = {
+  free: {
+    tier: "free",
+    label: "Free Plan",
+    trialActive: false,
+    trialEndsAt: null,
+    trialDaysLeft: 0,
+    upgradeRequired: false,
+    lockedFeatures: ["priority_support", "unlimited_applications", "verified_badge"],
+  },
+  trialActive: {
+    tier: "free",
+    label: "Free Trial",
+    trialActive: true,
+    trialEndsAt: new Date(Date.now() + 15 * 86400000).toISOString(),
+    trialDaysLeft: 15,
+    upgradeRequired: false,
+    lockedFeatures: ["priority_support"],
+  },
+  trialEnding: {
+    tier: "free",
+    label: "Trial Ending Soon",
+    trialActive: true,
+    trialEndsAt: new Date(Date.now() + 3 * 86400000).toISOString(),
+    trialDaysLeft: 3,
+    upgradeRequired: false,
+    lockedFeatures: ["priority_support"],
+  },
+  trialExpired: {
+    tier: "free",
+    label: "Trial Expired",
+    trialActive: false,
+    trialEndsAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+    trialDaysLeft: 0,
+    upgradeRequired: true,
+    lockedFeatures: [
+      "unlimited_applications",
+      "priority_support",
+      "verified_badge",
+      "advanced_filters",
+    ],
+  },
+};

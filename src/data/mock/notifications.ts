@@ -1,0 +1,88 @@
+import type { Notification } from "@/types";
+
+export const mockNotifications: Notification[] = [
+  {
+    $id: "mock_notif_1",
+    userId: "mock_translator_1",
+    type: "application_update",
+    title: "Application Shortlisted",
+    body: "Your application for 'Software UI Localization - EN to JA' has been shortlisted!",
+    data: { jobId: "mock_job_3", applicationId: "mock_app_2" },
+    read: false,
+    createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+  },
+  {
+    $id: "mock_notif_2",
+    userId: "mock_translator_1",
+    type: "message_received",
+    title: "New Message from Acme Corp",
+    body: "You have a new message regarding 'Legal Contract Translation'",
+    data: { conversationId: "mock_conv_1", companyName: "Acme Corp" },
+    read: false,
+    createdAt: new Date(Date.now() - 1 * 3600000).toISOString(),
+  },
+  {
+    $id: "mock_notif_3",
+    userId: "mock_translator_1",
+    type: "trial_ending",
+    title: "Trial Ending Soon",
+    body: "Your free trial ends in 15 days. Upgrade to keep full access.",
+    data: {},
+    read: true,
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+  {
+    $id: "mock_notif_4",
+    userId: "mock_company_1",
+    type: "application_update",
+    title: "New Application Received",
+    body: "A new application has been submitted for 'Legal Contract Translation'",
+    data: { jobId: "mock_job_1", translatorName: "Alex Johnson" },
+    read: false,
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+  {
+    $id: "mock_notif_5",
+    userId: "mock_company_1",
+    type: "message_received",
+    title: "New Message from Translator",
+    body: "Alex Johnson sent you a message about 'Technical Manual - EN to PT'",
+    data: { conversationId: "mock_conv_2", translatorName: "Alex Johnson" },
+    read: true,
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+  {
+    $id: "mock_notif_6",
+    userId: "mock_translator_2",
+    type: "verification_approved",
+    title: "Verification Approved!",
+    body: "Your translator verification has been approved. You can now apply to all projects.",
+    data: {},
+    read: false,
+    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+  },
+  {
+    $id: "mock_notif_7",
+    userId: "mock_company_1",
+    type: "verification_approved",
+    title: "Company Verified",
+    body: "Your company has been verified. You now have the verified badge.",
+    data: {},
+    read: true,
+    createdAt: new Date(Date.now() - 20 * 86400000).toISOString(),
+  },
+  {
+    $id: "mock_notif_8",
+    userId: "mock_translator_1",
+    type: "application_update",
+    title: "Application Accepted!",
+    body: "Your application for 'Technical Manual - EN to PT' has been accepted!",
+    data: { jobId: "mock_job_5", applicationId: "mock_app_4" },
+    read: false,
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+];
+
+export function getMockNotifications(userId: string): Notification[] {
+  return mockNotifications.filter((n) => n.userId === userId);
+}
