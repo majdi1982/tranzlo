@@ -472,6 +472,32 @@ export const mockDisputeService = {
   },
 };
 
+export const mockVerificationService = {
+  async submitRequest(userId: string, role: string): Promise<VerificationRequest> {
+    const req: VerificationRequest = {
+      $id: `mock_vr_${Date.now()}`,
+      userId,
+      role: role as "translator" | "company",
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    return req;
+  },
+
+  async getPendingRequests(): Promise<VerificationRequest[]> {
+    return [];
+  },
+
+  async approveRequest(requestId: string, note?: string): Promise<VerificationRequest> {
+    return { $id: requestId, userId: "", role: "translator", status: "verified", adminNote: note, reviewedAt: new Date().toISOString(), createdAt: "", updatedAt: "" } as VerificationRequest;
+  },
+
+  async rejectRequest(requestId: string, note: string): Promise<VerificationRequest> {
+    return { $id: requestId, userId: "", role: "translator", status: "rejected", adminNote: note, reviewedAt: new Date().toISOString(), createdAt: "", updatedAt: "" } as VerificationRequest;
+  },
+};
+
 export const mockRatingService = {
   async create(data: any): Promise<Rating> {
     const rating: Rating = {

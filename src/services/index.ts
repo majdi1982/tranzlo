@@ -15,6 +15,7 @@ export function getServices() {
       hub: mock.mockHubService,
       complaint: mock.mockComplaintService,
       dispute: mock.mockDisputeService,
+      verification: mock.mockVerificationService,
       rating: mock.mockRatingService,
     };
   }
@@ -30,6 +31,7 @@ export function getServices() {
     hub: appwrite.appwriteHubService,
     complaint: appwrite.appwriteComplaintService,
     dispute: appwrite.appwriteDisputeService,
+    verification: appwrite.appwriteVerificationService,
     rating: appwrite.appwriteRatingService,
   };
 }
