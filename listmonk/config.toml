@@ -1,0 +1,29 @@
+[app]
+address = "0.0.0.0:9000"
+
+[db]
+host = "listmonk-db"
+port = 5432
+user = "listmonk"
+password = "listmonk"
+database = "listmonk"
+ssl_mode = "disable"
+max_open = 25
+max_idle = 25
+max_lifetime = "5m"
+
+[email]
+send_batch_size = 100
+send_per_second = 25
+max_send_errors = 5
+
+[email.smtp]
+enabled = true
+host = "{{ .Env.SMTP_HOST }}"
+port = {{ .Env.SMTP_PORT }}
+auth_protocol = "{{ .Env.SMTP_ENCRYPTION | lower }}"
+username = "{{ .Env.SMTP_USER }}"
+password = "{{ .Env.SMTP_PASS }}"
+max_conns = 25
+tls_type = "tls"
+hello_hostname = "mail.tranzlo.net"
