@@ -157,7 +157,7 @@ function JobCard({
               </span>
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
-                {job.remote ? "Remote" : job.country}
+                {job.workType === "online" ? "Remote" : job.country ?? "On-site"}
               </span>
               <span className="flex items-center gap-1">
                 <DollarSign className="h-3.5 w-3.5" />${job.budget}

@@ -46,7 +46,7 @@ export default function BrowseJobsPage() {
     if (search && !job.title.toLowerCase().includes(search.toLowerCase())) return false;
     if (sourceLang && job.sourceLanguage !== sourceLang) return false;
     if (targetLang && job.targetLanguage !== targetLang) return false;
-    if (specFilter && job.specialization !== specFilter) return false;
+    if (specFilter && !job.specializations?.includes(specFilter)) return false;
     return true;
   });
 
@@ -154,7 +154,7 @@ export default function BrowseJobsPage() {
                             </span>
                             <span className="flex items-center gap-1">
                               <MapPin className="h-3.5 w-3.5" />
-                              {job.remote ? "Remote" : job.country}
+                              {job.workType === "online" ? "Remote" : job.country ?? "On-site"}
                             </span>
                             <span className="flex items-center gap-1">
                               <DollarSign className="h-3.5 w-3.5" />
@@ -167,7 +167,7 @@ export default function BrowseJobsPage() {
                           </div>
                         </div>
                         <Badge variant="secondary" className="shrink-0">
-                          {job.specialization}
+                          {job.specializations?.[0] ?? "General"}
                         </Badge>
                       </div>
                     </CardContent>

@@ -21,14 +21,22 @@ export interface TranslatorProfile extends BaseProfile {
   fullName: string;
   bio?: string;
   languages: string[];
+  languagePairs?: { source: string; target: string; level: "beginner" | "intermediate" | "advanced" | "native" }[];
   specializations: string[];
+  catTools?: string[];
   hourlyRate?: number;
+  pricing?: string; // JSON stringified: { serviceId: string; rate: number; unit: string; minCharge?: number }[]
   completedJobs: number;
   rating: number;
   ratingCount: number;
   cvUrl?: string;
+  certificates?: string[];
+  linkedIn?: string;
+  yearsOfExperience?: number;
   isApproved: boolean;
   status: EntityStatus;
+  onboardingStep?: number;
+  onboardingComplete?: boolean;
 }
 
 export interface CompanyProfile extends BaseProfile {
@@ -39,6 +47,11 @@ export interface CompanyProfile extends BaseProfile {
   registrationDoc?: string;
   taxDoc?: string;
   logoUrl?: string;
+  companySize?: string;
+  website?: string;
+  about?: string;
   isApproved: boolean;
   status: EntityStatus;
+  onboardingStep?: number;
+  onboardingComplete?: boolean;
 }

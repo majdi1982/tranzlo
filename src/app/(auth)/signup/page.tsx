@@ -45,7 +45,7 @@ export default function SignupPage() {
     setSubmitting(true);
     try {
       await signup(email, password, name, role);
-      toast({ title: "Account created", description: "Welcome to Tranzlo!", variant: "success" });
+      toast({ title: "Account created", description: "Welcome to Tranzlo! Check your email to verify your account.", variant: "success" });
       router.replace("/");
     } catch (err) {
       toast({ title: "Signup failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });

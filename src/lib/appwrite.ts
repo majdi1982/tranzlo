@@ -71,3 +71,4 @@ export const COLLECTIONS = {
 };
 
 export { ID, Query };
+export { BUCKETS } from "@/constants/buckets";

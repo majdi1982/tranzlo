@@ -7,11 +7,16 @@ export interface Job {
   description: string;
   sourceLanguage: string;
   targetLanguage: string;
-  country: string;
-  remote: boolean;
+  country?: string;
+  workType: "onsite" | "online";
   budget: number;
   deadline: string;
-  specialization: string;
+  specializations: string[];
+  services: string; // JSON: { serviceId: string; quantity: number; unit: string; rate?: number }[]
+  requiredCatTools?: string[];
+  requiresTest: boolean;
+  reviewerType: "company" | "translator";
+  activeTranslatorId?: string;
   status: JobStatus;
   createdAt: string;
   updatedAt: string;
@@ -21,7 +26,7 @@ export interface JobFilter {
   sourceLanguage?: string;
   targetLanguage?: string;
   country?: string;
-  specialization?: string;
+  specializations?: string[];
   budgetMin?: number;
   budgetMax?: number;
   verifiedOnly?: boolean;

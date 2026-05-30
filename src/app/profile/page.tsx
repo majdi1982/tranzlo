@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Save, ArrowLeft, Loader2, X } from "lucide-react";
+import Image from "next/image";
+import { Save, ArrowLeft, Loader2, X, Upload, User, Building2 } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
+import { getStorage, ID, BUCKETS } from "@/lib/appwrite";
 import { AuthGuard } from "@/guards/auth-guard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +47,10 @@ export default function ProfilePage() {
   });
 
   const [profileExists, setProfileExists] = React.useState(false);
+  const [avatarUrl, setAvatarUrl] = React.useState("");
+  const [logoUrl, setLogoUrl] = React.useState("");
+  const [uploading, setUploading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     async function load() {
@@ -55,6 +61,7 @@ export default function ProfilePage() {
           const profile = await services.profile.getTranslatorProfile(user.$id);
           if (profile) {
             setProfileExists(true);
+            setAvatarUrl(profile.avatarUrl || "");
             setTranslatorData({
               fullName: profile.fullName || user.name || "",
               bio: profile.bio || "",
@@ -70,6 +77,7 @@ export default function ProfilePage() {
           const profile = await services.profile.getCompanyProfile(user.$id);
           if (profile) {
             setProfileExists(true);
+            setLogoUrl(profile.logoUrl || "");
             setCompanyData({
               companyName: profile.companyName || "",
               fullName: profile.fullName || user.name || "",
@@ -89,6 +97,28 @@ export default function ProfilePage() {
     load();
   }, [user?.$id, role, user?.name, toast]);
 
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const storage = getStorage();
+      const uploaded = await storage.createFile(BUCKETS.PROFILE_IMAGES, ID.unique(), file);
+      const viewUrl = storage.getFileView(BUCKETS.PROFILE_IMAGES, uploaded.$id);
+      if (role === "translator") {
+        setAvatarUrl(viewUrl.toString());
+      } else {
+        setLogoUrl(viewUrl.toString());
+      }
+      toast({ title: "Image uploaded", variant: "success" });
+    } catch {
+      toast({ title: "Failed to upload image", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   async function handleSave() {
     if (!user?.$id) return;
     setSaving(true);
@@ -102,6 +132,7 @@ export default function ProfilePage() {
           phone: translatorData.phone,
           languages: translatorData.languages,
           specializations: translatorData.specializations,
+          avatarUrl: avatarUrl || undefined,
           email: user.email || "",
         });
       } else if (role === "company") {
@@ -110,6 +141,7 @@ export default function ProfilePage() {
           fullName: companyData.fullName,
           contactPerson: companyData.contactPerson,
           phone: companyData.phone,
+          logoUrl: logoUrl || undefined,
           email: user.email || "",
         });
       }
@@ -171,6 +203,14 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageUpload}
+        />
+
         {loading ? (
           <div className="space-y-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -179,6 +219,40 @@ export default function ProfilePage() {
           </div>
         ) : role === "translator" ? (
           <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Picture</CardTitle>
+                <CardDescription>Upload your avatar</CardDescription>
+              </CardHeader>
+              <CardContent className="flex items-center gap-6">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border">
+                  {avatarUrl ? (
+                    <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-muted">
+                      <User className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-2"
+                  >
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {uploading ? "Uploading..." : "Upload Image"}
+                  </Button>
+                  {avatarUrl && (
+                    <p className="text-xs text-muted-foreground">Click to change</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
@@ -289,6 +363,40 @@ export default function ProfilePage() {
           </div>
         ) : (
           <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Company Logo</CardTitle>
+                <CardDescription>Upload your company logo</CardDescription>
+              </CardHeader>
+              <CardContent className="flex items-center gap-6">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border">
+                  {logoUrl ? (
+                    <Image src={logoUrl} alt="Logo" fill className="object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-muted">
+                      <Building2 className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-2"
+                  >
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {uploading ? "Uploading..." : "Upload Logo"}
+                  </Button>
+                  {logoUrl && (
+                    <p className="text-xs text-muted-foreground">Click to change</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Company Information</CardTitle>

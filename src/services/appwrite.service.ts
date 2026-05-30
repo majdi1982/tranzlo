@@ -47,6 +47,7 @@ export const appwriteAuthService = {
     const user = await account.create(generateId("user"), input.email, input.password, input.name);
     await account.createEmailPasswordSession(input.email, input.password);
     await account.updatePrefs({ role: input.role });
+    await account.createVerification(`${process.env.NEXT_PUBLIC_APP_URL}/verify`);
     return {
       $id: user.$id,
       email: user.email,
@@ -137,7 +138,7 @@ export const appwriteAuthService = {
 
   async resendVerification(): Promise<void> {
     const account = getAccount();
-    await account.createVerification(`${process.env.NEXT_PUBLIC_APP_URL}`);
+    await account.createVerification(`${process.env.NEXT_PUBLIC_APP_URL}/verify`);
   },
 };
 

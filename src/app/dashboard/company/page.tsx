@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Briefcase, Plus, Users, Eye, CheckCircle, ArrowRight } from "lucide-react";
+import { Briefcase, Plus, Users, FileText, CheckCircle, ArrowRight } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import type { Job, Notification } from "@/types";
@@ -14,10 +14,12 @@ export default function CompanyDashboard() {
   const { user } = useSession();
   const [jobs, setJobs] = React.useState<Job[]>([]);
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
+  const [totalApplicants, setTotalApplicants] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function load() {
+      if (!user?.$id) return;
       try {
         const services = getServices();
         const [myJobs, notifs] = await Promise.all([
@@ -25,6 +27,11 @@ export default function CompanyDashboard() {
           services.notification.getNotifications(user?.$id || ""),
         ]);
         setJobs(myJobs);
+
+        const appPromises = myJobs.map((j) => services.application.getApplications(j.$id));
+        const appResults = await Promise.all(appPromises);
+        setTotalApplicants(appResults.reduce((sum, apps) => sum + apps.length, 0));
+
         setNotifications(notifs.filter((n) => !n.read).slice(0, 5));
       } catch {
         // ignore
@@ -37,12 +44,13 @@ export default function CompanyDashboard() {
 
   const openJobs = jobs.filter((j) => j.status === "open");
   const filledJobs = jobs.filter((j) => j.status === "filled");
+  const avgApplicants = jobs.length > 0 ? Math.round((totalApplicants / jobs.length) * 10) / 10 : 0;
 
   const stats = [
     { label: "Active Jobs", value: openJobs.length, icon: Briefcase, color: "text-blue-500" },
     { label: "Filled", value: filledJobs.length, icon: CheckCircle, color: "text-green-500" },
-    { label: "Total Views", value: "128", icon: Eye, color: "text-purple-500" },
-    { label: "Avg. Applicants", value: "6", icon: Users, color: "text-orange-500" },
+    { label: "Total Applicants", value: totalApplicants, icon: FileText, color: "text-purple-500" },
+    { label: "Avg. Applicants", value: avgApplicants, icon: Users, color: "text-orange-500" },
   ];
 
   return (
@@ -120,7 +128,7 @@ export default function CompanyDashboard() {
                     </p>
                   </div>
                   <Badge variant="secondary" className="shrink-0 ml-2">
-                    {job.specialization}
+                    {job.specializations?.[0] ?? "General"}
                   </Badge>
                 </div>
               ))

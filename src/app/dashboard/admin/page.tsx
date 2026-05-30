@@ -11,18 +11,27 @@ import type { Complaint, Dispute } from "@/types";
 export default function AdminDashboard() {
   const [complaints, setComplaints] = React.useState<Complaint[]>([]);
   const [disputes, setDisputes] = React.useState<Dispute[]>([]);
+  const [totalUsers, setTotalUsers] = React.useState(0);
+  const [pendingVerifications, setPendingVerifications] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function load() {
       try {
         const services = getServices();
-        const [allComplaints, allDisputes] = await Promise.all([
+        const db = (await import("@/lib/appwrite")).getDatabases();
+        const { DB_ID, COLLECTIONS } = await import("@/lib/appwrite");
+        const [allComplaints, allDisputes, translators, companies, verifs] = await Promise.all([
           services.complaint.getAllComplaints(),
           services.dispute.getDisputes(),
+          db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles),
+          db.listDocuments(DB_ID, COLLECTIONS.companyProfiles),
+          services.verification.getPendingRequests(),
         ]);
         setComplaints(allComplaints.filter((c) => c.status === "open"));
         setDisputes(allDisputes.filter((d) => d.status === "open"));
+        setTotalUsers(translators.total + companies.total);
+        setPendingVerifications(verifs.length);
       } catch {
         // ignore
       } finally {
@@ -33,10 +42,10 @@ export default function AdminDashboard() {
   }, []);
 
   const stats = [
-    { label: "Total Users", value: "1,234", icon: Users, color: "text-blue-500" },
+    { label: "Total Users", value: totalUsers, icon: Users, color: "text-blue-500" },
     { label: "Open Complaints", value: complaints.length, icon: AlertTriangle, color: "text-red-500" },
     { label: "Open Disputes", value: disputes.length, icon: Shield, color: "text-orange-500" },
-    { label: "Pending Verifications", value: "12", icon: UserCheck, color: "text-purple-500" },
+    { label: "Pending Verifications", value: pendingVerifications, icon: UserCheck, color: "text-purple-500" },
   ];
 
   return (

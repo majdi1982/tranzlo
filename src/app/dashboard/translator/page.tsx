@@ -17,18 +17,22 @@ export default function TranslatorDashboard() {
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [loading, setLoading] = React.useState(true);
 
+  const [rating, setRating] = React.useState(0);
+
   React.useEffect(() => {
     async function load() {
       try {
         const services = getServices();
-        const [openJobs, myApps, notifs] = await Promise.all([
+        const [openJobs, myApps, notifs, avgRating] = await Promise.all([
           services.job.getJobs({ status: "open" }),
           services.application.getMyApplications(user?.$id || ""),
           services.notification.getNotifications(user?.$id || ""),
+          services.rating.getAverageRating(user?.$id || ""),
         ]);
         setJobs(openJobs.slice(0, 5));
         setApplications(myApps);
         setNotifications(notifs.filter((n) => !n.read).slice(0, 5));
+        setRating(avgRating);
       } catch {
         // ignore
       } finally {
@@ -38,11 +42,13 @@ export default function TranslatorDashboard() {
     load();
   }, [user?.$id]);
 
+  const completed = applications.filter((a) => a.status === "accepted").length;
+
   const stats = [
     { label: "Open Jobs", value: jobs.length, icon: Briefcase, color: "text-blue-500" },
     { label: "Applications", value: applications.length, icon: FileText, color: "text-purple-500" },
-    { label: "Completed", value: 47, icon: CheckCircle, color: "text-green-500" },
-    { label: "Rating", value: "4.8", icon: Star, color: "text-yellow-500" },
+    { label: "Completed", value: completed, icon: CheckCircle, color: "text-green-500" },
+    { label: "Rating", value: rating.toFixed(1), icon: Star, color: "text-yellow-500" },
   ];
 
   return (
@@ -106,7 +112,7 @@ export default function TranslatorDashboard() {
                     </p>
                   </div>
                   <Badge variant="secondary" className="shrink-0 ml-2">
-                    {job.specialization}
+                    {job.specializations?.[0] ?? "General"}
                   </Badge>
                 </div>
               ))

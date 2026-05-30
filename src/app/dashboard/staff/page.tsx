@@ -1,26 +1,48 @@
 "use client";
 
 import * as React from "react";
-import { UserCheck, Shield, Clock, CheckCircle, ArrowRight } from "lucide-react";
+import { UserCheck, Shield, CheckCircle, ArrowRight, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { getServices } from "@/services";
+import { getDatabases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import type { Complaint, VerificationRequest } from "@/types";
 
 export default function StaffDashboard() {
   const [complaints, setComplaints] = React.useState<Complaint[]>([]);
+  const [pendingVerifs, setPendingVerifs] = React.useState<VerificationRequest[]>([]);
+  const [resolvedToday, setResolvedToday] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function load() {
       try {
         const services = getServices();
-        const [allComplaints] = await Promise.all([
+        const db = getDatabases();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayIso = today.toISOString();
+
+        const [allComplaints, verifs, resolvedComplaints, resolvedVerifs] = await Promise.all([
           services.complaint.getAllComplaints(),
+          services.verification.getPendingRequests(),
+          db.listDocuments(DB_ID, COLLECTIONS.complaints, [
+            (await import("@/lib/appwrite")).Query.equal("status", "resolved"),
+          ]),
+          db.listDocuments(DB_ID, COLLECTIONS.verificationRequests, [
+            (await import("@/lib/appwrite")).Query.equal("status", "verified"),
+          ]),
         ]);
+
         setComplaints(allComplaints.filter((c) => c.status === "open"));
+        setPendingVerifs(verifs);
+
+        const todayResolved = [...resolvedComplaints.documents, ...resolvedVerifs.documents].filter(
+          (d) => d.updatedAt && new Date(d.updatedAt) >= today
+        );
+        setResolvedToday(todayResolved.length);
       } catch {
         // ignore
       } finally {
@@ -31,10 +53,9 @@ export default function StaffDashboard() {
   }, []);
 
   const stats = [
-    { label: "Pending Verifications", value: "12", icon: UserCheck, color: "text-purple-500" },
+    { label: "Pending Verifications", value: pendingVerifs.length, icon: UserCheck, color: "text-purple-500" },
     { label: "Open Complaints", value: complaints.length, icon: Shield, color: "text-orange-500" },
-    { label: "Resolved Today", value: "3", icon: CheckCircle, color: "text-green-500" },
-    { label: "Avg. Response", value: "4h", icon: Clock, color: "text-blue-500" },
+    { label: "Resolved Today", value: resolvedToday, icon: CheckCircle, color: "text-green-500" },
   ];
 
   return (
@@ -44,7 +65,7 @@ export default function StaffDashboard() {
         <p className="text-muted-foreground">Support and moderation overview</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -112,26 +133,27 @@ export default function StaffDashboard() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">Sarah Williams</p>
-                  <p className="text-xs text-muted-foreground">Translator · ID: mock_user_t2</p>
-                </div>
-                <Badge variant="outline" className="shrink-0 ml-2">
-                  Pending
-                </Badge>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">Maria Garcia</p>
-                  <p className="text-xs text-muted-foreground">Translator · ID: mock_user_t3</p>
-                </div>
-                <Badge variant="outline" className="shrink-0 ml-2">
-                  Pending
-                </Badge>
+            ) : pendingVerifs.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No pending verification requests.</p>
+            ) : (
+              <div className="space-y-3">
+                {pendingVerifs.slice(0, 5).map((req) => (
+                  <div key={req.$id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{req.userId}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{req.role}</p>
+                    </div>
+                    <Badge variant="outline" className="shrink-0 ml-2">
+                      Pending
+                    </Badge>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
