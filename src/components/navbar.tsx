@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, LayoutDashboard, LogOut, User } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { Role } from "@/types";
@@ -17,17 +18,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/logo";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/jobs", label: "Browse Jobs" },
   { href: "/#how-it-works", label: "How it Works" },
-  { href: "/#about", label: "About" },
+  { href: "/#features", label: "Features" },
 ];
 
 export function Navbar() {
   const { user, loading, logout } = useSession();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [scrolled, setScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const initials = user?.name
     ? user.name
@@ -42,37 +52,53 @@ export function Navbar() {
   const dashboardHref = DASHBOARD_ROUTES[userRole] || "/";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={cn(
+        "fixed top-0 z-50 w-full transition-all duration-300",
+        scrolled
+          ? "glass border-b shadow-sm"
+          : "bg-transparent border-b border-transparent"
+      )}
+    >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <span className="text-primary">Tranzlo</span>
-        </Link>
+        <Logo size={32} />
 
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="transition-colors hover:text-primary text-muted-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                )}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           {loading ? (
             <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="relative rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                  <Avatar className="h-8 w-8 cursor-pointer">
-                    <AvatarFallback>{initials}</AvatarFallback>
+                <button className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group">
+                  <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                      {initials}
+                    </AvatarFallback>
                   </Avatar>
+                  <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 mt-1">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
                     <span className="truncate font-medium">{user.name}</span>
@@ -107,12 +133,14 @@ export function Navbar() {
           ) : (
             <>
               <Link href="/login">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="rounded-lg">
                   Sign in
                 </Button>
               </Link>
               <Link href="/signup">
-                <Button size="sm">Get started</Button>
+                <Button size="sm" className="rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow">
+                  Get started
+                </Button>
               </Link>
             </>
           )}
@@ -120,7 +148,7 @@ export function Navbar() {
 
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden p-2 text-muted-foreground hover:text-foreground"
+          className="md:hidden p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent transition-colors"
           aria-label="Toggle menu"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -128,19 +156,24 @@ export function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden border-t bg-background">
+        <div className="md:hidden border-t bg-background/95 backdrop-blur-xl animate-in">
           <nav className="flex flex-col gap-1 px-4 py-4">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className={cn(
+                  "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  pathname === link.href
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
               >
                 {link.label}
               </Link>
             ))}
-            <hr className="my-2" />
+            <hr className="my-2 border-border/50" />
             {loading ? (
               <div className="h-10 animate-pulse rounded-lg bg-muted" />
             ) : user ? (
@@ -152,17 +185,17 @@ export function Navbar() {
                 <Link
                   href={dashboardHref}
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent"
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent flex items-center gap-2"
                 >
-                  <LayoutDashboard className="mr-2 inline h-4 w-4" />
+                  <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Link>
                 <Link
                   href="/profile"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent"
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent flex items-center gap-2"
                 >
-                  <User className="mr-2 inline h-4 w-4" />
+                  <User className="h-4 w-4" />
                   Profile
                 </Link>
                 <button
@@ -170,21 +203,21 @@ export function Navbar() {
                     logout();
                     setMobileOpen(false);
                   }}
-                  className="flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="h-4 w-4" />
                   Sign out
                 </button>
               </>
             ) : (
               <div className="flex flex-col gap-2 px-3 pt-2">
                 <Link href="/login" onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full rounded-lg">
                     Sign in
                   </Button>
                 </Link>
                 <Link href="/signup" onClick={() => setMobileOpen(false)}>
-                  <Button className="w-full">Get started</Button>
+                  <Button className="w-full rounded-lg">Get started</Button>
                 </Link>
               </div>
             )}

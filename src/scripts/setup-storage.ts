@@ -40,6 +40,7 @@ interface BucketDef {
 }
 
 const BUCKETS: BucketDef[] = [
+  { id: "site_assets", name: "Site Assets", maxSize: 5_000_000, extensions: ["jpg", "jpeg", "png", "gif", "webp", "svg", "ico"] },
   { id: "profile_images", name: "Profile Images", maxSize: 5_000_000, extensions: ["jpg", "jpeg", "png", "gif", "webp"] },
   { id: "translator_documents", name: "Translator Documents", maxSize: 10_000_000, extensions: ["pdf", "doc", "docx"] },
   { id: "company_documents", name: "Company Documents", maxSize: 10_000_000, extensions: ["pdf", "doc", "docx"] },

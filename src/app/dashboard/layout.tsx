@@ -13,7 +13,6 @@ import {
   Users,
   UserCheck,
   Settings,
-  ChevronRight,
   Menu,
   X,
 } from "lucide-react";
@@ -24,6 +23,7 @@ import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { Role } from "@/types";
 import { AuthGuard } from "@/guards/auth-guard";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/logo";
 
 interface SidebarLink {
   href: string;
@@ -79,15 +79,22 @@ function DashboardSidebar({ role }: { role: Role }) {
             key={link.href}
             href={link.href}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
               isActive
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                ? "bg-primary/10 text-primary shadow-sm shadow-primary/5"
+                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
             )}
           >
-            <Icon className="h-4 w-4 shrink-0" />
+            <div className={cn(
+              "flex items-center justify-center h-5 w-5",
+              isActive && "text-primary"
+            )}>
+              <Icon className="h-4 w-4" />
+            </div>
             <span>{link.label}</span>
-            {isActive && <ChevronRight className="ml-auto h-4 w-4" />}
+            {isActive && (
+              <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+            )}
           </Link>
         );
       })}
@@ -105,37 +112,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <AuthGuard>
       <div className="flex min-h-screen flex-col">
         <Navbar />
-        <main className="flex-1 flex min-h-[calc(100vh-4rem)]">
+        <main className="flex-1 flex">
           <aside
             className={cn(
-              "fixed inset-y-16 left-0 z-40 w-64 border-r bg-background transition-transform lg:static lg:translate-x-0",
+              "fixed inset-y-16 left-0 z-40 w-64 border-r border-border/50 bg-background/95 backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0",
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >
             <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
               <div className="px-3 py-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {userRole} Dashboard
-                </p>
+                <div className="flex items-center gap-2 mb-6">
+                  <Logo size={24} showText={false} />
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {userRole} Dashboard
+                  </p>
+                </div>
+                <DashboardSidebar role={userRole} />
               </div>
-              <DashboardSidebar role={userRole} />
+              <div className="mt-auto px-3 py-3 border-t border-border/50">
+                <Link
+                  href={DASHBOARD_ROUTES[userRole] || "/"}
+                  className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  Back to overview
+                </Link>
+              </div>
             </div>
           </aside>
 
           {sidebarOpen && (
             <div
-              className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+              className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
           )}
 
-          <div className="flex-1 overflow-x-auto p-4 sm:p-6 lg:p-8">
+          <div className="flex-1 overflow-x-auto p-4 sm:p-6 lg:p-8 bg-muted/20">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="mb-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground lg:hidden"
+              className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors lg:hidden"
             >
-              {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-              {sidebarOpen ? "Close menu" : "Menu"}
+              <Menu className="h-4 w-4" />
+              Menu
             </button>
             {children}
           </div>
