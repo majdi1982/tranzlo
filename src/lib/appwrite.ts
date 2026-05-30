@@ -1,7 +1,7 @@
 import { Client, Account, Databases, Storage, Functions, Avatars, ID, Query } from "appwrite";
 
-const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "";
-const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "";
+const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://appwrite.tranzlo.net/v1";
+const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "6a156f9000335c99e9be";
 
 let client: Client | null = null;
 let account: Account | null = null;
