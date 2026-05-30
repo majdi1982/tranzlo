@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const LOGO_URL = "https://appwrite.tranzlo.net/v1/storage/buckets/site_assets/files/6a1af2c4000c47f6e828/view";
+const LOGO_URL = "/logo.jpg";
 
 interface LogoProps {
   size?: number;
