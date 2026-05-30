@@ -119,7 +119,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >
-            <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+            <div className="flex h-full flex-col overflow-y-auto p-4">
               <div className="px-3 py-2">
                 <div className="flex items-center gap-2 mb-6">
                   <Logo size={24} showText={false} />
@@ -127,9 +127,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {userRole} Dashboard
                   </p>
                 </div>
+              </div>
+              <div className="flex-1" />
+              <div className="px-3 py-2">
                 <DashboardSidebar role={userRole} />
               </div>
-              <div className="mt-auto px-3 py-3 border-t border-border/50">
+              <div className="mt-4 px-3 py-3 border-t border-border/50">
                 <Link
                   href={DASHBOARD_ROUTES[userRole] || "/"}
                   className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
