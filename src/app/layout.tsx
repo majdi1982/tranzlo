@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Connect with top freelance translators worldwide. Post translation projects, find work, and grow your translation business.",
   icons: {
-    icon: "/logo.jpg",
+    icon: "/favicon.svg",
   },
 };
 
