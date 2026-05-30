@@ -120,14 +120,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           >
             <div className="flex h-full flex-col overflow-y-auto p-4">
-              <div className="px-3 py-2">
-                <div className="flex items-center gap-2 mb-6">
-                  <Logo size={24} showText={false} />
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {userRole} Dashboard
-                  </p>
-                </div>
-              </div>
               <div className="flex-1" />
               <div className="px-3 py-2">
                 <DashboardSidebar role={userRole} />
