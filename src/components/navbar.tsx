@@ -33,6 +33,10 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
 
+  const isDashboardRoute =
+    pathname.startsWith("/dashboard") ||
+    ["/messages", "/notifications", "/profile", "/settings"].includes(pathname);
+
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -63,25 +67,27 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Logo size={32} />
 
-        <nav className="hidden md:flex items-center gap-1">
-          {NAV_LINKS.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                  isActive
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                )}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+        {!isDashboardRoute && (
+          <nav className="hidden md:flex items-center gap-1">
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    isActive
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
         <div className="hidden md:flex items-center gap-2">
           {loading ? (
@@ -158,22 +164,23 @@ export function Navbar() {
       {mobileOpen && (
         <div className="md:hidden border-t bg-background/95 backdrop-blur-xl animate-in">
           <nav className="flex flex-col gap-1 px-4 py-4">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  pathname === link.href
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <hr className="my-2 border-border/50" />
+            {!isDashboardRoute &&
+              NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    pathname === link.href
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            {!isDashboardRoute && <hr className="my-2 border-border/50" />}
             {loading ? (
               <div className="h-10 animate-pulse rounded-lg bg-muted" />
             ) : user ? (
