@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useSession } from "@/providers/session-provider";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { Role } from "@/types";
@@ -32,10 +33,49 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isDashboardRoute =
     pathname.startsWith("/dashboard") ||
     ["/messages", "/notifications", "/profile", "/settings"].includes(pathname);
+
+  const renderThemeSwitcher = () => {
+    if (!mounted) {
+      return <div className="h-8 w-8 rounded-xl bg-accent/20 animate-pulse" />;
+    }
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">
+            {theme === "light" && <Sun className="h-4 w-4" />}
+            {theme === "dark" && <Moon className="h-4 w-4" />}
+            {theme === "system" && <Monitor className="h-4 w-4" />}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-36 mt-1">
+          <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2 cursor-pointer">
+            <Sun className="h-4 w-4" />
+            <span>Light</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2 cursor-pointer">
+            <Moon className="h-4 w-4" />
+            <span>Dark</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2 cursor-pointer">
+            <Monitor className="h-4 w-4" />
+            <span>System</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -90,6 +130,7 @@ export function Navbar() {
         )}
 
         <div className="hidden md:flex items-center gap-2">
+          {renderThemeSwitcher()}
           {loading ? (
             <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
           ) : user ? (
@@ -226,6 +267,40 @@ export function Navbar() {
                 <Link href="/signup" onClick={() => setMobileOpen(false)}>
                   <Button className="w-full rounded-lg">Get started</Button>
                 </Link>
+              </div>
+            )}
+            {mounted && (
+              <div className="flex items-center justify-between px-3 py-2 text-sm text-muted-foreground border-t border-border/50 mt-2 pt-4">
+                <span>Theme</span>
+                <div className="flex gap-1 bg-accent/30 rounded-xl p-1">
+                  <button
+                    onClick={() => setTheme("light")}
+                    className={cn(
+                      "p-1.5 rounded-lg transition-colors",
+                      theme === "light" ? "bg-background text-primary shadow-sm" : "hover:text-foreground"
+                    )}
+                  >
+                    <Sun className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setTheme("dark")}
+                    className={cn(
+                      "p-1.5 rounded-lg transition-colors",
+                      theme === "dark" ? "bg-background text-primary shadow-sm" : "hover:text-foreground"
+                    )}
+                  >
+                    <Moon className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setTheme("system")}
+                    className={cn(
+                      "p-1.5 rounded-lg transition-colors",
+                      theme === "system" ? "bg-background text-primary shadow-sm" : "hover:text-foreground"
+                    )}
+                  >
+                    <Monitor className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             )}
           </nav>
