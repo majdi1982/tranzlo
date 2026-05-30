@@ -115,7 +115,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 flex">
           <aside
             className={cn(
-              "fixed inset-y-16 left-0 z-40 w-64 border-r border-border/50 bg-background/95 backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0",
+              "fixed inset-y-16 left-0 z-40 w-64 border-r border-border/50 bg-background/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0",
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >
@@ -151,7 +151,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             />
           )}
 
-          <div className="flex-1 overflow-x-auto p-4 sm:p-6 lg:p-8 bg-muted/20">
+          <div className="flex-1 overflow-x-auto pt-16 p-4 sm:p-6 lg:p-8 bg-muted/20 lg:pl-72">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors lg:hidden"
