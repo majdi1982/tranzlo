@@ -38,7 +38,7 @@ const client = new Client()
 
 const storage = new Storage(client);
 const BUCKET_ID = "site_assets";
-const logoPath = path.resolve(__dirname, "../../public/logo.jpg");
+const logoPath = path.resolve(__dirname, "../../public/logo.png");
 
 async function main() {
   console.log("Uploading logo to site_assets bucket...");
@@ -47,7 +47,7 @@ async function main() {
     // Delete existing logo if any
     const existing = await storage.listFiles(BUCKET_ID);
     for (const file of existing.files) {
-      if (file.name === "logo.jpg") {
+      if (file.name === "logo.png") {
         console.log(`  Deleting existing: ${file.$id}`);
         await storage.deleteFile(BUCKET_ID, file.$id);
       }
@@ -55,7 +55,7 @@ async function main() {
 
     // Upload new logo
     const fileBuffer = fs.readFileSync(logoPath);
-    const file = new File([fileBuffer], "logo.jpg", { type: "image/jpeg" });
+    const file = new File([fileBuffer], "logo.png", { type: "image/png" });
 
     const result = await storage.createFile(
       BUCKET_ID,

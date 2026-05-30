@@ -13,11 +13,11 @@ export function Logo({ size = 32, showText = true, className = "" }: LogoProps) 
   return (
     <Link href="/" className={`flex items-center gap-2.5 group ${className}`}>
       <Image
-        src="/logo.jpg"
+        src="/logo.png"
         alt="Tranzlo Logo"
         width={size}
         height={size}
-        className="rounded-lg"
+        className="object-contain"
         priority
       />
       {showText && (
