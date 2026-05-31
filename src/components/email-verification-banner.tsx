@@ -26,20 +26,20 @@ export function EmailVerificationBanner() {
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 bg-amber-950/30 border border-amber-800 px-4 py-3 text-sm text-amber-400">
-      <div className="flex items-center gap-2">
-        <ShieldAlert className="h-4 w-4 shrink-0" />
-        <span>Your email address has not been verified yet.</span>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-amber-950/20 border border-amber-500/30 px-5 py-4 text-sm text-amber-400 rounded-xl mb-6 shadow-lg backdrop-blur-md">
+      <div className="flex items-center gap-3">
+        <ShieldAlert className="h-5 w-5 shrink-0 text-amber-500" />
+        <span className="font-medium">Your email address has not been verified yet. Please check your inbox.</span>
       </div>
       <Button
         variant="outline"
         size="sm"
         onClick={handleResend}
         disabled={sending}
-        className="shrink-0 border-amber-800 text-amber-400 hover:bg-amber-950/50"
+        className="shrink-0 border-amber-500/30 text-amber-400 hover:bg-amber-500/10 rounded-md"
       >
-        {sending ? <Loader2 className="h-3 w-3 animate-spin" /> : <MailCheck className="h-3 w-3" />}
-        {sending ? "Sending..." : "Resend verification"}
+        {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MailCheck className="h-3.5 w-3.5" />}
+        {sending ? "Sending..." : "Resend verification email"}
       </Button>
     </div>
   );

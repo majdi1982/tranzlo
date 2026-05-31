@@ -23,6 +23,7 @@ import type { Role } from "@/types";
 import { AuthGuard } from "@/guards/auth-guard";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
+import { EmailVerificationBanner } from "@/components/email-verification-banner";
 
 interface SidebarLink {
   href: string;
@@ -178,6 +179,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Menu className="h-4 w-4" />
                 Menu
               </button>
+              <EmailVerificationBanner />
               {children}
             </div>
             {/* Dashboard Mini Footer */}
