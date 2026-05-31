@@ -16,7 +16,7 @@ export const LANGUAGES: Language[] = [
   { code: "zh", name: "Chinese", nativeName: "中文", direction: "ltr" },
   { code: "ja", name: "Japanese", nativeName: "日本語", direction: "ltr" },
   { code: "ko", name: "Korean", nativeName: "한국어", direction: "ltr" },
-  { code: "ar", name: "Arabic", nativeName: "العربية", direction: "rtl" },
+  { code: "ar", name: "Arabic", nativeName: "Arabic", direction: "rtl" },
   { code: "hi", name: "Hindi", nativeName: "हिन्दी", direction: "ltr" },
   { code: "nl", name: "Dutch", nativeName: "Nederlands", direction: "ltr" },
   { code: "pl", name: "Polish", nativeName: "Polski", direction: "ltr" },
