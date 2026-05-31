@@ -436,12 +436,74 @@ async function main() {
     console.log("");
   }
 
+  // Storage Buckets Setup
   console.log("═══════════════════════════════════════");
-  console.log("  ✅ ALL COLLECTIONS READY");
+  console.log("  📦 SETTING UP STORAGE BUCKETS");
+  console.log("═══════════════════════════════════════");
+  
+  const { Storage } = await import("node-appwrite");
+  const storage = new Storage(client);
+
+  const BUCKET_LIST = [
+    { id: "profile_images", name: "Profile Images" },
+    { id: "translator_documents", name: "Translator Documents" },
+    { id: "company_documents", name: "Company Documents" },
+    { id: "certificates", name: "Certificates" },
+    { id: "blog_media", name: "Blog Media" },
+    { id: "hub_media", name: "Hub Media" },
+    { id: "complaint_attachments", name: "Complaint Attachments" },
+    { id: "dispute_attachments", name: "Dispute Attachments" },
+  ];
+
+  for (const b of BUCKET_LIST) {
+    console.log(`🪣 Bucket: ${b.name} (${b.id})`);
+    try {
+      await storage.createBucket(
+        b.id,
+        b.name,
+        [
+          Permission.read(Role.any()),
+          Permission.create(Role.users()),
+          Permission.update(Role.users()),
+          Permission.delete(Role.users()),
+        ],
+        false // fileSecurity disabled so permissions apply bucket-wide
+      );
+      console.log("   ✅ Created Storage Bucket");
+    } catch (e: any) {
+      if (e.message?.includes("already exists") || e.message?.includes("already_exists")) {
+        console.log("   ⚠️  Already exists. Force updating permissions...");
+        try {
+          await storage.updateBucket(
+            b.id,
+            b.name,
+            [
+              Permission.read(Role.any()),
+              Permission.create(Role.users()),
+              Permission.update(Role.users()),
+              Permission.delete(Role.users()),
+            ],
+            false
+          );
+          console.log("   ✅ Permissions updated successfully");
+        } catch (updateErr: any) {
+          console.error(`   ❌ Failed to update permissions for ${b.id}:`, updateErr.message);
+        }
+      } else {
+        console.error(`   ❌ Failed to create ${b.id}:`, e.message);
+      }
+    }
+    await wait(500);
+  }
+
+  console.log("═══════════════════════════════════════");
+  console.log("  ✅ ALL COLLECTIONS & BUCKETS READY");
   console.log("═══════════════════════════════════════");
   console.log(`\nDatabase ID: ${DATABASE_ID}`);
   console.log("Collections:");
   SCHEMA.forEach((c) => console.log(`   • ${c.id}`));
+  console.log("\nStorage Buckets:");
+  BUCKET_LIST.forEach((b) => console.log(`   • ${b.id}`));
   console.log("\nNext: Set NEXT_PUBLIC_USE_MOCK_DATA=false in .env.local and restart.");
 }
 
