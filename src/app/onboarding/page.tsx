@@ -144,7 +144,7 @@ export default function OnboardingPage() {
           fullName: user?.name || "Linguist Pro",
           email: user?.email || "",
           languages: [nativeLang],
-          languagePairs: [{ source: sourceLang, target: targetLang, level: "advanced" }],
+          languagePairs: JSON.stringify([{ source: sourceLang, target: targetLang, level: "advanced" }]) as any,
           hourlyRate: parseFloat(hourlyRate) || 0,
           bio: bio || "Professional language specialist.",
           catTools: selectedCatTools,
