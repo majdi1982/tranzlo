@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { getServices } from "@/services";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -105,6 +107,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   const userRole = (user?.prefs?.role as Role) || "translator";
+  const [avatarUrl, setAvatarUrl] = React.useState<string>("");
+
+  React.useEffect(() => {
+    async function loadAvatar() {
+      if (!user?.$id) return;
+      try {
+        const services = getServices();
+        if (userRole === "translator") {
+          const profile = await services.profile.getTranslatorProfile(user.$id);
+          if (profile?.avatarUrl) setAvatarUrl(profile.avatarUrl);
+        } else if (userRole === "company") {
+          const profile = await services.profile.getCompanyProfile(user.$id);
+          if (profile?.logoUrl) setAvatarUrl(profile.logoUrl);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadAvatar();
+  }, [user?.$id, userRole]);
 
   return (
     <AuthGuard>
@@ -122,15 +144,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {/* User Info Card */}
                 {user && (
                   <div className="mb-6 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] shadow-inner flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-bold text-sm ring-1 ring-primary/30">
-                      {user.name
-                        ? user.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)
-                        : "?"}
+                    <div className="h-10 w-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-bold text-sm ring-1 ring-primary/30 overflow-hidden relative">
+                      {avatarUrl ? (
+                        <Image src={avatarUrl} alt={user.name || "User Avatar"} fill className="object-cover" />
+                      ) : (
+                        user.name
+                          ? user.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2)
+                          : "?"
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>

@@ -9,7 +9,7 @@ import { useSession } from "@/providers/session-provider";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { Role } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,10 +45,31 @@ export function Navbar() {
   // Lists for Dropdowns
   const [recentNotifs, setRecentNotifs] = React.useState<any[]>([]);
   const [recentChats, setRecentChats] = React.useState<any[]>([]);
+  const [avatarUrl, setAvatarUrl] = React.useState<string>("");
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  React.useEffect(() => {
+    async function loadAvatar() {
+      if (!user?.$id) return;
+      try {
+        const services = getServices();
+        const role = (user?.prefs?.role as Role) || "translator";
+        if (role === "translator") {
+          const profile = await services.profile.getTranslatorProfile(user.$id);
+          if (profile?.avatarUrl) setAvatarUrl(profile.avatarUrl);
+        } else if (role === "company") {
+          const profile = await services.profile.getCompanyProfile(user.$id);
+          if (profile?.logoUrl) setAvatarUrl(profile.logoUrl);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadAvatar();
+  }, [user?.$id, user?.prefs?.role]);
 
   React.useEffect(() => {
     if (!user?.$id) return;
@@ -336,10 +357,14 @@ export function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group ml-1">
-                    <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
-                      <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                        {initials}
-                      </AvatarFallback>
+                    <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent group-hover:ring-primary/50 transition-all overflow-hidden rounded-full">
+                      {avatarUrl ? (
+                        <AvatarImage src={avatarUrl} alt={user.name || "User Avatar"} className="object-cover h-full w-full" />
+                      ) : (
+                        <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                          {initials}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                   </button>
