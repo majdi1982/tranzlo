@@ -150,6 +150,12 @@ export const mockAuthService = {
     return;
   },
 
+  async updateEmail(email: string, password: string): Promise<void> {
+    if (!currentMockUser) throw new Error("Not authenticated");
+    currentMockUser.email = email;
+    return;
+  },
+
   async requestPasswordReset(email: string): Promise<void> {
     const profile = getMockProfileByEmail(email);
     if (!profile) throw new Error("No account found with this email");
