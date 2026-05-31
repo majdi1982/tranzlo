@@ -37,19 +37,13 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/translator", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/translator/jobs", label: "Browse Jobs", icon: Briefcase },
     { href: "/dashboard/translator/applications", label: "My Applications", icon: FileText },
-    { href: "/messages", label: "Messages", icon: MessageSquare },
-    { href: "/notifications", label: "Notifications", icon: Bell },
     { href: "/profile", label: "Profile", icon: User },
-    { href: "/settings", label: "Account Settings", icon: Settings },
   ],
   company: [
     { href: "/dashboard/company", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/company/jobs", label: "My Jobs", icon: Briefcase },
     { href: "/dashboard/company/post", label: "Post a Job", icon: FileText },
-    { href: "/messages", label: "Messages", icon: MessageSquare },
-    { href: "/notifications", label: "Notifications", icon: Bell },
     { href: "/profile", label: "Profile", icon: User },
-    { href: "/settings", label: "Account Settings", icon: Settings },
   ],
   admin: [
     { href: "/dashboard/admin", label: "Overview", icon: LayoutDashboard },
@@ -57,15 +51,12 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/admin/verifications", label: "Verifications", icon: UserCheck },
     { href: "/dashboard/admin/complaints", label: "Complaints", icon: Shield },
     { href: "/dashboard/admin/disputes", label: "Disputes", icon: Shield },
-    { href: "/settings", label: "Account Settings", icon: Settings },
   ],
   staff: [
     { href: "/dashboard/staff", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/staff/verifications", label: "Verifications", icon: UserCheck },
     { href: "/dashboard/staff/complaints", label: "Complaints", icon: Shield },
-    { href: "/notifications", label: "Notifications", icon: Bell },
     { href: "/profile", label: "Profile", icon: User },
-    { href: "/settings", label: "Account Settings", icon: Settings },
   ],
 };
 
@@ -150,19 +141,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                 )}
 
-                <div className="px-1">
+                <div className="px-1 pb-4">
                   <DashboardSidebar role={userRole} />
                 </div>
-              </div>
-
-              <div className="mt-auto pt-4 border-t border-border/50 px-1">
-                <Link
-                  href={DASHBOARD_ROUTES[userRole] || "/"}
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/[0.02] rounded-xl transition-all duration-200"
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  Back to overview
-                </Link>
               </div>
             </div>
           </aside>

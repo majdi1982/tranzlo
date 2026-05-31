@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown, Sun, Moon, Monitor, MessageSquare, Bell, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession } from "@/providers/session-provider";
@@ -32,12 +32,19 @@ const NAV_LINKS = [
 export function Navbar() {
   const { user, loading, logout } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+  
+  // Header Counts
   const [unreadNotifs, setUnreadNotifs] = React.useState(0);
   const [unreadSenders, setUnreadSenders] = React.useState(0);
+  
+  // Lists for Dropdowns
+  const [recentNotifs, setRecentNotifs] = React.useState<any[]>([]);
+  const [recentChats, setRecentChats] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     setMounted(true);
@@ -54,6 +61,13 @@ export function Navbar() {
           services.message.getConversations(user.$id)
         ]);
         setUnreadNotifs(notifCount);
+        
+        // Fetch recent notifications
+        const notifList = await services.notification.getNotifications(user.$id);
+        setRecentNotifs(notifList.slice(0, 4));
+
+        // Fetch recent conversations
+        setRecentChats(conversations.slice(0, 4));
         
         const convMessagesPromises = conversations.map(c => services.message.getMessages(c.$id));
         const allConvMessages = await Promise.all(convMessagesPromises);
@@ -74,6 +88,43 @@ export function Navbar() {
     const interval = setInterval(loadCounts, 10000);
     return () => clearInterval(interval);
   }, [user?.$id]);
+
+  // Click actions for Dropdown Items
+  const handleNotificationClick = async (notif: any) => {
+    try {
+      const services = getServices();
+      await services.notification.markAsRead(notif.$id);
+      setUnreadNotifs(prev => Math.max(0, prev - 1));
+      
+      let targetUrl = "/notifications";
+      if (notif.data) {
+        try {
+          const parsed = JSON.parse(notif.data);
+          if (parsed.jobId) targetUrl = `/jobs/${parsed.jobId}`;
+          else if (parsed.url) targetUrl = parsed.url;
+        } catch {
+          // ignore
+        }
+      }
+      router.push(targetUrl);
+    } catch (err) {
+      console.error(err);
+      router.push("/notifications");
+    }
+  };
+
+  const handleConversationClick = async (conv: any) => {
+    try {
+      if (user?.$id) {
+        const services = getServices();
+        await services.message.markAsRead(conv.$id, user.$id);
+      }
+      router.push(`/messages?conversationId=${conv.$id}`);
+    } catch (err) {
+      console.error(err);
+      router.push("/messages");
+    }
+  };
 
   const isDashboardRoute =
     pathname.startsWith("/dashboard") ||
@@ -168,29 +219,119 @@ export function Navbar() {
             <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
           ) : user ? (
             <>
-              {/* Message Icon with count of senders */}
-              <Link href="/messages">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 relative transition-colors">
-                  <MessageSquare className="h-4.5 w-4.5" />
-                  {unreadSenders > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-2xs font-bold text-primary-foreground leading-none animate-pulse-glow">
-                      {unreadSenders}
-                    </span>
+              {/* Message Icon Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 relative transition-colors">
+                    <MessageSquare className="h-4.5 w-4.5" />
+                    {unreadSenders > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-2xs font-bold text-primary-foreground leading-none animate-pulse-glow">
+                        {unreadSenders}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80 mt-1 rounded-lg p-2 space-y-1 bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl">
+                  <DropdownMenuLabel className="text-xs font-semibold px-2 py-1 flex items-center justify-between">
+                    <span>Recent Chats</span>
+                    {unreadSenders > 0 && (
+                      <span className="text-3xs font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">
+                        {unreadSenders} New Senders
+                      </span>
+                    )}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-border/50" />
+                  {recentChats.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-muted-foreground">
+                      No recent messages
+                    </div>
+                  ) : (
+                    recentChats.map((chat) => {
+                      const otherParticipant = chat.participants?.find((p: string) => p !== user?.$id) || "Client User";
+                      return (
+                        <DropdownMenuItem
+                          key={chat.$id}
+                          onClick={() => handleConversationClick(chat)}
+                          className="flex flex-col items-start gap-1 p-2.5 rounded-md cursor-pointer hover:bg-white/[0.04] transition-all duration-200"
+                        >
+                          <div className="flex items-center gap-2.5 w-full">
+                            <Avatar className="h-6 w-6 ring-1 ring-border shrink-0">
+                              <AvatarFallback className="bg-primary/20 text-primary text-3xs font-bold">
+                                {otherParticipant.slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs font-semibold text-foreground truncate flex-1">
+                              {otherParticipant}
+                            </span>
+                            <span className="text-3xs text-muted-foreground shrink-0">
+                              {chat.lastMessageAt ? new Date(chat.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                            </span>
+                          </div>
+                          <p className="text-2xs text-muted-foreground truncate pl-8.5 w-full">{chat.lastMessagePreview || "Open conversation..."}</p>
+                        </DropdownMenuItem>
+                      );
+                    })
                   )}
-                </Button>
-              </Link>
+                  <DropdownMenuSeparator className="bg-border/50" />
+                  <DropdownMenuItem asChild className="rounded-md cursor-pointer justify-center text-center text-xs font-medium text-primary hover:bg-primary/5 py-1">
+                    <Link href="/messages" className="w-full text-center">View all messages</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-              {/* Notification bell icon with count */}
-              <Link href="/notifications">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 relative transition-colors">
-                  <Bell className="h-4.5 w-4.5" />
-                  {unreadNotifs > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-2xs font-bold text-primary-foreground leading-none animate-pulse-glow">
-                      {unreadNotifs}
-                    </span>
+              {/* Notification Bell Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 relative transition-colors">
+                    <Bell className="h-4.5 w-4.5" />
+                    {unreadNotifs > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-2xs font-bold text-primary-foreground leading-none animate-pulse-glow">
+                        {unreadNotifs}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80 mt-1 rounded-lg p-2 space-y-1 bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl">
+                  <DropdownMenuLabel className="text-xs font-semibold px-2 py-1 flex items-center justify-between">
+                    <span>Notifications</span>
+                    {unreadNotifs > 0 && (
+                      <span className="text-3xs font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md animate-pulse">
+                        {unreadNotifs} New
+                      </span>
+                    )}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-border/50" />
+                  {recentNotifs.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-muted-foreground">
+                      No notifications yet
+                    </div>
+                  ) : (
+                    recentNotifs.map((notif) => (
+                      <DropdownMenuItem
+                        key={notif.$id}
+                        onClick={() => handleNotificationClick(notif)}
+                        className={cn(
+                          "flex flex-col items-start gap-1 p-2.5 rounded-md cursor-pointer transition-all duration-200 border border-transparent",
+                          !notif.read ? "bg-primary/5 hover:bg-primary/10 border-primary/10" : "hover:bg-white/[0.04]"
+                        )}
+                      >
+                        <div className="flex items-center gap-1.5 w-full">
+                          <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", !notif.read ? "bg-primary" : "bg-transparent")} />
+                          <span className="text-xs font-semibold text-foreground truncate flex-1">{notif.title}</span>
+                          <span className="text-3xs text-muted-foreground shrink-0">
+                            {new Date(notif.createdAt || notif.$createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="text-2xs text-muted-foreground line-clamp-2 pl-3">{notif.body}</p>
+                      </DropdownMenuItem>
+                    ))
                   )}
-                </Button>
-              </Link>
+                  <DropdownMenuSeparator className="bg-border/50" />
+                  <DropdownMenuItem asChild className="rounded-md cursor-pointer justify-center text-center text-xs font-medium text-primary hover:bg-primary/5 py-1">
+                    <Link href="/notifications" className="w-full text-center">View all notifications</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -226,7 +367,7 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="rounded-md cursor-pointer">
-                    <Link href="/profile#account" className="flex items-center">
+                    <Link href="/settings" className="flex items-center">
                       <Settings className="mr-2 h-4 w-4" />
                       Account Settings
                     </Link>
