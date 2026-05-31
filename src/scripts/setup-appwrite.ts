@@ -124,6 +124,7 @@ const SCHEMA: Col[] = [
       { key: "status", type: "enum", elements: ["active", "inactive", "suspended"], required: false, default: "active" },
       { key: "registrationDoc", type: "string", size: 512, required: false },
       { key: "taxDoc", type: "string", size: 512, required: false },
+      { key: "brochureUrl", type: "string", size: 512, required: false },
       { key: "companySize", type: "string", size: 16, required: false },
       { key: "website", type: "string", size: 255, required: false },
       { key: "about", type: "string", size: 2000, required: false },

@@ -49,6 +49,7 @@ export interface CompanyProfile extends BaseProfile {
   contactPerson: string;
   registrationDoc?: string;
   taxDoc?: string;
+  brochureUrl?: string;
   logoUrl?: string;
   companySize?: string;
   website?: string;
