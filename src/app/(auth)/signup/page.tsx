@@ -60,7 +60,7 @@ export default function SignupPage() {
     try {
       const account = getAccount();
       const redirectUrl = window.location.origin + "/";
-      await account.createOAuth2Session(provider, redirectUrl, redirectUrl);
+      await account.createOAuth2Session(provider as any, redirectUrl, redirectUrl);
     } catch (err: any) {
       toast({
         title: "Authentication Failed",
