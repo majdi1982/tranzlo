@@ -36,7 +36,7 @@ function getServiceSummary(servicesJson: string): string {
       .map((s) => {
         const st = SERVICE_TYPES.find((t) => t.id === s.serviceId);
         const unit = s.unit ?? "unit";
-        return `${st?.nameAr ?? st?.name ?? s.serviceId} (${s.quantity.toLocaleString()} ${unit})`;
+        return `${st?.name ?? s.serviceId} (${s.quantity.toLocaleString()} ${unit})`;
       })
       .join(", ");
   } catch {

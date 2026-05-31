@@ -162,7 +162,7 @@ export default function JobDetailPage() {
                     const st = SERVICE_TYPES.find((t) => t.id === s.serviceId);
                     return (
                       <div key={i} className="flex items-center justify-between text-sm py-2 border-b last:border-0">
-                        <span>{st?.nameAr ?? st?.name ?? s.serviceId}</span>
+                        <span>{st?.name ?? s.serviceId}</span>
                         <span className="text-muted-foreground">{s.quantity.toLocaleString()} {s.unit ?? "unit"}</span>
                       </div>
                     );

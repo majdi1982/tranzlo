@@ -249,20 +249,45 @@ export default function PostJobPage() {
                   <CardTitle>Specializations</CardTitle>
                   <CardDescription>Select the expertise areas required for this project</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {SPECIALIZATIONS.map((spec) => (
-                      <Badge
-                        key={spec}
-                        variant={specializations.includes(spec) ? "default" : "outline"}
-                        className="cursor-pointer text-sm py-1.5 px-3"
-                        onClick={() => toggleSpecialization(spec)}
-                      >
-                        {specializations.includes(spec) && <X className="h-3 w-3 mr-1" />}
-                        {spec}
-                      </Badge>
-                    ))}
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="specializationSelect">Add Specialization</Label>
+                    <Select onValueChange={(val) => {
+                      if (val && !specializations.includes(val)) {
+                        setSpecializations([...specializations, val]);
+                      }
+                    }}>
+                      <SelectTrigger id="specializationSelect">
+                        <SelectValue placeholder="Choose a specialization..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SPECIALIZATIONS.map((spec) => (
+                          <SelectItem key={spec} value={spec} disabled={specializations.includes(spec)}>
+                            {spec}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+
+                  {specializations.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Selected Specializations</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {specializations.map((spec) => (
+                          <Badge
+                            key={spec}
+                            variant="default"
+                            className="text-sm py-1.5 px-3 flex items-center gap-1.5 cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                            onClick={() => toggleSpecialization(spec)}
+                          >
+                            <span>{spec}</span>
+                            <X className="h-3 w-3" />
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {errors.specializations && <p className="text-xs text-destructive mt-2">{errors.specializations}</p>}
                 </CardContent>
               </Card>
@@ -286,7 +311,7 @@ export default function PostJobPage() {
                                 const taken = services.find((r, i) => i !== idx && r.serviceId === s.id);
                                 return (
                                   <SelectItem key={s.id} value={s.id} disabled={!!taken}>
-                                    {s.nameAr ?? s.name}
+                                    {s.name}
                                   </SelectItem>
                                 );
                               })}
@@ -330,20 +355,48 @@ export default function PostJobPage() {
                   <CardTitle>Required CAT Tools</CardTitle>
                   <CardDescription>Select the translation tools the translator must be proficient in (optional)</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {CAT_TOOLS.map((tool) => (
-                      <Badge
-                        key={tool.id}
-                        variant={requiredCatTools.includes(tool.id) ? "default" : "outline"}
-                        className="cursor-pointer text-sm py-1.5 px-3"
-                        onClick={() => toggleCatTool(tool.id)}
-                      >
-                        {requiredCatTools.includes(tool.id) && <X className="h-3 w-3 mr-1" />}
-                        {tool.name}
-                      </Badge>
-                    ))}
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="catToolSelect">Add Required CAT Tool</Label>
+                    <Select onValueChange={(val) => {
+                      if (val && !requiredCatTools.includes(val)) {
+                        setRequiredCatTools([...requiredCatTools, val]);
+                      }
+                    }}>
+                      <SelectTrigger id="catToolSelect">
+                        <SelectValue placeholder="Choose a CAT tool..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CAT_TOOLS.map((tool) => (
+                          <SelectItem key={tool.id} value={tool.id} disabled={requiredCatTools.includes(tool.id)}>
+                            {tool.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+
+                  {requiredCatTools.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Selected CAT Tools</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {requiredCatTools.map((toolId) => {
+                          const tool = CAT_TOOLS.find((t) => t.id === toolId);
+                          return (
+                            <Badge
+                              key={toolId}
+                              variant="default"
+                              className="text-sm py-1.5 px-3 flex items-center gap-1.5 cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                              onClick={() => toggleCatTool(toolId)}
+                            >
+                              <span>{tool?.name ?? toolId}</span>
+                              <X className="h-3 w-3" />
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
