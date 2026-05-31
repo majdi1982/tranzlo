@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Save, ArrowLeft, Loader2, X, Upload, User, Building2 } from "lucide-react";
+import { Save, ArrowLeft, Loader2, X, Upload, User, Building2, CheckCircle } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { getStorage, ID, BUCKETS } from "@/lib/appwrite";

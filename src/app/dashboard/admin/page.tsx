@@ -6,6 +6,7 @@ import { Users, Shield, UserCheck, AlertTriangle, ArrowRight, Activity, Cpu, Shi
 import { getServices } from "@/services";
 import type { Complaint, Dispute } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
