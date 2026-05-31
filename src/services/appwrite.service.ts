@@ -52,7 +52,15 @@ export const appwriteAuthService = {
     const user = await account.create(generateId("user"), input.email, input.password, input.name);
     await account.createEmailPasswordSession(input.email, input.password);
     await account.updatePrefs({ role: input.role });
-    await account.createVerification(getRedirectUrl("/verify"));
+    
+    // Attempt to create email verification. Wrap in try/catch so that if the domain is not yet
+    // registered in Appwrite Project Settings -> Platforms, the user is still registered successfully.
+    try {
+      await account.createVerification(getRedirectUrl("/verify"));
+    } catch (err) {
+      console.warn("Failed to send verification email (likely redirect URI is not registered in Appwrite Console):", err);
+    }
+
     return {
       $id: user.$id,
       email: user.email,
