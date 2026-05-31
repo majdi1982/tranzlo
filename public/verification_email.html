@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تأكيد حسابك في Tranzlo</title>
+  <style>
+    body {
+      background-color: #0b0f19;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .card {
+      background-color: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #22d3ee, #0b7595);
+    }
+    .logo-container {
+      margin-bottom: 30px;
+    }
+    .logo-img {
+      max-width: 90px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.25);
+    }
+    .brand-title {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+      margin-top: 15px;
+      letter-spacing: 0.5px;
+    }
+    .brand-highlight {
+      color: #22d3ee;
+    }
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #1f2937, transparent);
+      margin: 25px 0;
+    }
+    .welcome-text {
+      color: #9ca3af;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .welcome-title {
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    .button-container {
+      margin: 35px 0;
+    }
+    .btn-verify {
+      background: linear-gradient(135deg, #22d3ee 0%, #0b7595 100%);
+      color: #0b0f19 !important;
+      padding: 15px 40px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(34, 211, 238, 0.4);
+      transition: all 0.2s ease-in-out;
+    }
+    .link-fallback {
+      background-color: #0b0f19;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 30px;
+      word-break: break-all;
+    }
+    .link-fallback-title {
+      color: #6b7280;
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-align: right;
+    }
+    .link-url {
+      color: #22d3ee;
+      font-size: 13px;
+      text-decoration: none;
+      font-family: monospace;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #4b5563;
+      font-size: 12px;
+    }
+    .footer a {
+      color: #9ca3af;
+      text-decoration: none;
+    }
+    .footer-divider {
+      margin: 15px auto;
+      width: 40px;
+      height: 2px;
+      background-color: #1f2937;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="card">
+      <!-- Brand Logo Header -->
+      <div class="logo-container">
+        <img class="logo-img" src="https://tranzlo.net/logo.png" alt="Tranzlo Logo">
+        <div class="brand-title"><span class="brand-highlight">Tranz</span>lo</div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <!-- Content -->
+      <div class="welcome-title">أهلاً بك في منصة Tranzlo! 👋</div>
+      
+      <div class="welcome-text">
+        مرحباً <strong>{{user}}</strong>، يسعدنا انضمامك إلينا. يرجى تأكيد عنوان بريدك الإلكتروني لتنشيط حسابك بالكامل والبدء في استخدام كافة خدمات الترجمة الفورية والاحترافية.
+      </div>
+      
+      <!-- Call to Action -->
+      <div class="button-container">
+        <a href="{{redirect}}" class="btn-verify">تأكيد البريد الإلكتروني</a>
+      </div>
+      
+      <div class="welcome-text" style="font-size: 13px;">
+        إذا لم تقم بإنشاء هذا الحساب، يمكنك تجاهل هذا البريد الإلكتروني بأمان.
+      </div>
+      
+      <div class="divider"></div>
+      
+      <!-- Fallback Link -->
+      <div class="link-fallback">
+        <div class="link-fallback-title">إذا واجهت مشكلة في الضغط على الزر، يمكنك نسخ هذا الرابط ولصقه في متصفحك:</div>
+        <a href="{{redirect}}" class="link-url">{{redirect}}</a>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+      <p>© 2026 Tranzlo. جميع الحقوق محفوظة.</p>
+      <div class="footer-divider"></div>
+      <p>تصلك هذه الرسالة التلقائية كجزء من عملية التسجيل في <a href="https://tranzlo.net">Tranzlo</a>.</p>
+      <p>إذا كان لديك أي استفسار، يرجى التواصل معنا عبر <a href="mailto:help@tranzlo.net">help@tranzlo.net</a></p>
+    </div>
+  </div>
+</body>
+</html>
