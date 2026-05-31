@@ -440,7 +440,7 @@ async function main() {
   console.log("═══════════════════════════════════════");
   console.log("  📦 SETTING UP STORAGE BUCKETS");
   console.log("═══════════════════════════════════════");
-  
+
   const { Storage } = await import("node-appwrite");
   const storage = new Storage(client);
 
