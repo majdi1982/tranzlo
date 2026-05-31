@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { getServices } from "@/services";
 import { getAccount } from "@/lib/appwrite";
 
 export default function LoginPage() {
@@ -23,7 +24,30 @@ export default function LoginPage() {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
-    if (user) router.replace("/");
+    if (user) {
+      const services = getServices();
+      const role = user.prefs?.role || "translator";
+      
+      const checkOnboardingAndRedirect = async () => {
+        try {
+          let profile = null;
+          if (role === "translator") {
+            profile = await services.profile.getTranslatorProfile(user.$id);
+          } else {
+            profile = await services.profile.getCompanyProfile(user.$id);
+          }
+          if (profile?.onboardingComplete) {
+            router.replace(role === "translator" ? "/dashboard/translator" : "/dashboard/company");
+          } else {
+            router.replace("/onboarding");
+          }
+        } catch {
+          router.replace("/onboarding");
+        }
+      };
+
+      checkOnboardingAndRedirect();
+    }
   }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,9 +67,23 @@ export default function LoginPage() {
 
     setSubmitting(true);
     try {
-      await login(email, password);
+      const loggedInUser = await login(email, password);
       toast({ title: "Welcome back", variant: "success" });
-      router.replace("/");
+      
+      const services = getServices();
+      const role = loggedInUser.prefs?.role || "translator";
+      let profile = null;
+      if (role === "translator") {
+        profile = await services.profile.getTranslatorProfile(loggedInUser.$id);
+      } else {
+        profile = await services.profile.getCompanyProfile(loggedInUser.$id);
+      }
+
+      if (profile?.onboardingComplete) {
+        router.replace(role === "translator" ? "/dashboard/translator" : "/dashboard/company");
+      } else {
+        router.replace("/onboarding");
+      }
     } catch (err) {
       toast({ title: "Login failed", description: err instanceof Error ? err.message : "Invalid credentials", variant: "destructive" });
     } finally {
@@ -56,7 +94,7 @@ export default function LoginPage() {
   const handleSocialLogin = async (provider: "google" | "linkedin") => {
     try {
       const account = getAccount();
-      const redirectUrl = window.location.origin + "/";
+      const redirectUrl = window.location.origin + "/onboarding";
       await account.createOAuth2Session(provider as any, redirectUrl, redirectUrl);
     } catch (err: any) {
       toast({

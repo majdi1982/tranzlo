@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { getAccount } from "@/lib/appwrite";
+import { getServices } from "@/services";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -26,7 +27,30 @@ export default function SignupPage() {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
-    if (user) router.replace("/");
+    if (user) {
+      const services = getServices();
+      const currentRole = user.prefs?.role || "translator";
+      
+      const checkOnboardingAndRedirect = async () => {
+        try {
+          let profile = null;
+          if (currentRole === "translator") {
+            profile = await services.profile.getTranslatorProfile(user.$id);
+          } else {
+            profile = await services.profile.getCompanyProfile(user.$id);
+          }
+          if (profile?.onboardingComplete) {
+            router.replace(currentRole === "translator" ? "/dashboard/translator" : "/dashboard/company");
+          } else {
+            router.replace("/onboarding");
+          }
+        } catch {
+          router.replace("/onboarding");
+        }
+      };
+
+      checkOnboardingAndRedirect();
+    }
   }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
