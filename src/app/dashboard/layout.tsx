@@ -17,7 +17,6 @@ import {
   X,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
 import { useSession } from "@/providers/session-provider";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { Role } from "@/types";
@@ -170,18 +169,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             />
           )}
 
-          <div className="flex-1 overflow-x-auto pt-16 p-4 sm:p-6 lg:p-8 bg-muted/20 lg:pl-72">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors lg:hidden"
-            >
-              <Menu className="h-4 w-4" />
-              Menu
-            </button>
-            {children}
+          <div className="flex-1 overflow-x-auto p-4 sm:p-6 lg:p-8 pt-24 sm:pt-28 lg:pt-24 bg-muted/20 lg:pl-72 flex flex-col min-h-[calc(100vh-64px)]">
+            <div className="flex-1">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors lg:hidden"
+              >
+                <Menu className="h-4 w-4" />
+                Menu
+              </button>
+              {children}
+            </div>
+            {/* Dashboard Mini Footer */}
+            <footer className="mt-12 pt-6 pb-2 text-center text-xs text-muted-foreground border-t border-border/30">
+              © {new Date().getFullYear()} Tranzlo. All rights reserved.
+            </footer>
           </div>
         </main>
-        <Footer />
       </div>
     </AuthGuard>
   );

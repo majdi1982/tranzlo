@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown, Sun, Moon, Monitor } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown, Sun, Moon, Monitor, MessageSquare, Bell, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession } from "@/providers/session-provider";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
+import { getServices } from "@/services";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -35,10 +36,44 @@ export function Navbar() {
   const [scrolled, setScrolled] = React.useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+  const [unreadNotifs, setUnreadNotifs] = React.useState(0);
+  const [unreadSenders, setUnreadSenders] = React.useState(0);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  React.useEffect(() => {
+    if (!user?.$id) return;
+    const services = getServices();
+    
+    const loadCounts = async () => {
+      try {
+        const [notifCount, conversations] = await Promise.all([
+          services.notification.getUnreadCount(user.$id),
+          services.message.getConversations(user.$id)
+        ]);
+        setUnreadNotifs(notifCount);
+        
+        const convMessagesPromises = conversations.map(c => services.message.getMessages(c.$id));
+        const allConvMessages = await Promise.all(convMessagesPromises);
+        
+        let unreadSendersCount = 0;
+        allConvMessages.forEach(msgs => {
+          const hasUnread = msgs.some(m => !m.read && m.senderId !== user.$id);
+          if (hasUnread) unreadSendersCount++;
+        });
+        
+        setUnreadSenders(unreadSendersCount);
+      } catch (err) {
+        console.error("Error loading navbar counts:", err);
+      }
+    };
+    
+    loadCounts();
+    const interval = setInterval(loadCounts, 10000);
+    return () => clearInterval(interval);
+  }, [user?.$id]);
 
   const isDashboardRoute =
     pathname.startsWith("/dashboard") ||
@@ -52,23 +87,23 @@ export function Navbar() {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">
             {theme === "light" && <Sun className="h-4 w-4" />}
             {theme === "dark" && <Moon className="h-4 w-4" />}
             {theme === "system" && <Monitor className="h-4 w-4" />}
             <span className="sr-only">Toggle theme</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-36 mt-1">
-          <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2 cursor-pointer">
+        <DropdownMenuContent align="end" className="w-36 mt-1 rounded-lg">
+          <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2 cursor-pointer rounded-md">
             <Sun className="h-4 w-4" />
             <span>Light</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2 cursor-pointer">
+          <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2 cursor-pointer rounded-md">
             <Moon className="h-4 w-4" />
             <span>Dark</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2 cursor-pointer">
+          <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2 cursor-pointer rounded-md">
             <Monitor className="h-4 w-4" />
             <span>System</span>
           </DropdownMenuItem>
@@ -98,94 +133,124 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 z-50 w-full transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 w-full border-b transition-all duration-300 border-border/50",
         scrolled
-          ? "glass border-b shadow-sm"
-          : "bg-transparent border-b border-transparent"
+          ? "glass shadow-sm bg-background/95"
+          : "bg-background/80 backdrop-blur-md"
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Logo size={32} />
 
-        {!isDashboardRoute && (
-          <nav className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                    isActive
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
+        <nav className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                )}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
 
         <div className="hidden md:flex items-center gap-2">
           {renderThemeSwitcher()}
           {loading ? (
             <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
           ) : user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group">
-                  <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
-                    <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-1">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="text-xs font-normal text-muted-foreground truncate">
-                      {user.email}
+            <>
+              {/* Message Icon with count of senders */}
+              <Link href="/messages">
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 relative transition-colors">
+                  <MessageSquare className="h-4.5 w-4.5" />
+                  {unreadSenders > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-2xs font-bold text-primary-foreground leading-none animate-pulse-glow">
+                      {unreadSenders}
                     </span>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={dashboardHref} className="cursor-pointer">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => logout()}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  )}
+                </Button>
+              </Link>
+
+              {/* Notification bell icon with count */}
+              <Link href="/notifications">
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 relative transition-colors">
+                  <Bell className="h-4.5 w-4.5" />
+                  {unreadNotifs > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-2xs font-bold text-primary-foreground leading-none animate-pulse-glow">
+                      {unreadNotifs}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group ml-1">
+                    <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
+                      <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 mt-1 rounded-lg">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="truncate font-semibold">{user.name}</span>
+                      <span className="text-xs font-normal text-muted-foreground truncate">
+                        {user.email}
+                      </span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="rounded-md cursor-pointer">
+                    <Link href={dashboardHref} className="flex items-center">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="rounded-md cursor-pointer">
+                    <Link href="/profile" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="rounded-md cursor-pointer">
+                    <Link href="/profile#account" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Account Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => logout()}
+                    className="rounded-md cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <>
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="rounded-lg">
+                <Button variant="ghost" size="sm" className="rounded-md">
                   Sign in
                 </Button>
               </Link>
               <Link href="/signup">
-                <Button size="sm" className="rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow">
+                <Button size="sm" className="rounded-md shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow">
                   Get started
                 </Button>
               </Link>
@@ -205,23 +270,22 @@ export function Navbar() {
       {mobileOpen && (
         <div className="md:hidden border-t bg-background/95 backdrop-blur-xl animate-in">
           <nav className="flex flex-col gap-1 px-4 py-4">
-            {!isDashboardRoute &&
-              NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    pathname === link.href
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            {!isDashboardRoute && <hr className="my-2 border-border/50" />}
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  pathname === link.href
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <hr className="my-2 border-border/50" />
             {loading ? (
               <div className="h-10 animate-pulse rounded-lg bg-muted" />
             ) : user ? (

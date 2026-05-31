@@ -88,40 +88,7 @@ export default function HomePage() {
     );
   }
 
-  if (user) {
-    const userRole = (user.prefs?.role as Role) || "translator";
-    return (
-      <div>
-        <EmailVerificationBanner />
-        <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-4 text-center overflow-hidden">
-          <div className="absolute inset-0 bg-hero-glow" />
-          <div className="relative animate-in">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary mb-8">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-              </span>
-              You&apos;re signed in
-            </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight max-w-4xl leading-tight">
-              Welcome back,{" "}
-              <span className="text-gradient">{user.name}</span>
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto">
-              You are signed in as a <span className="text-primary font-medium">{userRole}</span>.
-              Head to your dashboard to manage your work.
-            </p>
-            <Link href={DASHBOARD_ROUTES[userRole] || "/"}>
-              <Button size="lg" className="mt-8 h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all text-base">
-                Go to Dashboard
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </section>
-      </div>
-    );
-  }
+
 
   return (
     <div>
