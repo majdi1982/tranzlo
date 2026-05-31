@@ -37,6 +37,9 @@ export interface TranslatorProfile extends BaseProfile {
   status: EntityStatus;
   onboardingStep?: number;
   onboardingComplete?: boolean;
+  isPublicPlatform?: boolean;
+  searchEngines?: string[];
+  seoKeywords?: string;
 }
 
 export interface CompanyProfile extends BaseProfile {
@@ -54,4 +57,7 @@ export interface CompanyProfile extends BaseProfile {
   status: EntityStatus;
   onboardingStep?: number;
   onboardingComplete?: boolean;
+  isPublicPlatform?: boolean;
+  searchEngines?: string[];
+  seoKeywords?: string;
 }

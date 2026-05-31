@@ -210,6 +210,34 @@ export const appwriteProfileService = {
     const created = await db.createDocument(DB_ID, COLLECTIONS.companyProfiles, generateId("company"), data);
     return mapDoc<CompanyProfile>(created as Record<string, unknown>);
   },
+
+  async listPublicTranslators(): Promise<TranslatorProfile[]> {
+    try {
+      const db = getDatabases();
+      const docs = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
+        Query.equal("isPublicPlatform", true),
+        Query.equal("onboardingComplete", true),
+        Query.limit(100),
+      ]);
+      return docs.documents.map((d) => mapDoc<TranslatorProfile>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
+  },
+
+  async listPublicCompanies(): Promise<CompanyProfile[]> {
+    try {
+      const db = getDatabases();
+      const docs = await db.listDocuments(DB_ID, COLLECTIONS.companyProfiles, [
+        Query.equal("isPublicPlatform", true),
+        Query.equal("onboardingComplete", true),
+        Query.limit(100),
+      ]);
+      return docs.documents.map((d) => mapDoc<CompanyProfile>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
+  },
 };
 
 export const appwriteJobService = {

@@ -48,7 +48,7 @@ export default function SignupPage() {
     try {
       await signup(email, password, name, role);
       toast({ title: "Account created", description: "Welcome to Tranzlo! Check your email to verify your account.", variant: "success" });
-      router.replace("/");
+      router.replace("/onboarding");
     } catch (err) {
       toast({ title: "Signup failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
     } finally {
@@ -59,7 +59,7 @@ export default function SignupPage() {
   const handleSocialLogin = async (provider: "google" | "linkedin") => {
     try {
       const account = getAccount();
-      const redirectUrl = window.location.origin + "/";
+      const redirectUrl = window.location.origin + "/onboarding";
       await account.createOAuth2Session(provider as any, redirectUrl, redirectUrl);
     } catch (err: any) {
       toast({
@@ -185,49 +185,6 @@ export default function SignupPage() {
               </button>
             </div>
             {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">I want to join as</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole("translator")}
-                className={cn(
-                  "flex flex-col items-center gap-2 rounded-xl border p-5 text-sm transition-all duration-200",
-                  role === "translator"
-                    ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
-                    : "border-border/50 hover:border-muted-foreground/30 bg-background hover:bg-accent/30"
-                )}
-              >
-                <div className={cn(
-                  "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
-                  role === "translator" ? "bg-primary/20" : "bg-muted"
-                )}>
-                  <Briefcase className="h-5 w-5" />
-                </div>
-                <span className="font-medium">Translator</span>
-                <span className="text-xs text-muted-foreground">Find translation work</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("company")}
-                className={cn(
-                  "flex flex-col items-center gap-2 rounded-xl border p-5 text-sm transition-all duration-200",
-                  role === "company"
-                    ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
-                    : "border-border/50 hover:border-muted-foreground/30 bg-background hover:bg-accent/30"
-                )}
-              >
-                <div className={cn(
-                  "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
-                  role === "company" ? "bg-primary/20" : "bg-muted"
-                )}>
-                  <User className="h-5 w-5" />
-                </div>
-                <span className="font-medium">Company</span>
-                <span className="text-xs text-muted-foreground">Post translation jobs</span>
-              </button>
-            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4 pt-2">

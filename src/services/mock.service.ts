@@ -199,6 +199,14 @@ export const mockProfileService = {
     Object.assign(profile, data);
     return profile;
   },
+
+  async listPublicTranslators(): Promise<TranslatorProfile[]> {
+    return mockTranslatorProfiles.filter((p) => p.isPublicPlatform !== false);
+  },
+
+  async listPublicCompanies(): Promise<CompanyProfile[]> {
+    return mockCompanyProfiles.filter((p) => p.isPublicPlatform !== false);
+  },
 };
 
 export const mockJobService = {
