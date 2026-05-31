@@ -15,6 +15,7 @@ import {
   Settings,
   Menu,
   X,
+  User,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { useSession } from "@/providers/session-provider";
@@ -38,7 +39,8 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/translator/applications", label: "My Applications", icon: FileText },
     { href: "/messages", label: "Messages", icon: MessageSquare },
     { href: "/notifications", label: "Notifications", icon: Bell },
-    { href: "/profile", label: "Profile", icon: Settings },
+    { href: "/profile", label: "Profile", icon: User },
+    { href: "/settings", label: "Account Settings", icon: Settings },
   ],
   company: [
     { href: "/dashboard/company", label: "Overview", icon: LayoutDashboard },
@@ -46,7 +48,8 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/company/post", label: "Post a Job", icon: FileText },
     { href: "/messages", label: "Messages", icon: MessageSquare },
     { href: "/notifications", label: "Notifications", icon: Bell },
-    { href: "/profile", label: "Profile", icon: Settings },
+    { href: "/profile", label: "Profile", icon: User },
+    { href: "/settings", label: "Account Settings", icon: Settings },
   ],
   admin: [
     { href: "/dashboard/admin", label: "Overview", icon: LayoutDashboard },
@@ -54,14 +57,15 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/admin/verifications", label: "Verifications", icon: UserCheck },
     { href: "/dashboard/admin/complaints", label: "Complaints", icon: Shield },
     { href: "/dashboard/admin/disputes", label: "Disputes", icon: Shield },
-    { href: "/settings", label: "Settings", icon: Settings },
+    { href: "/settings", label: "Account Settings", icon: Settings },
   ],
   staff: [
     { href: "/dashboard/staff", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/staff/verifications", label: "Verifications", icon: UserCheck },
     { href: "/dashboard/staff/complaints", label: "Complaints", icon: Shield },
     { href: "/notifications", label: "Notifications", icon: Bell },
-    { href: "/profile", label: "Profile", icon: Settings },
+    { href: "/profile", label: "Profile", icon: User },
+    { href: "/settings", label: "Account Settings", icon: Settings },
   ],
 };
 

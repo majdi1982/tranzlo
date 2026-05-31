@@ -134,6 +134,11 @@ export const appwriteAuthService = {
     await account.updatePassword(newPassword, currentPassword);
   },
 
+  async updateEmail(email: string, password: string): Promise<void> {
+    const account = getAccount();
+    await account.updateEmail(email, password);
+  },
+
   async requestPasswordReset(email: string): Promise<void> {
     const account = getAccount();
     await account.createRecovery(email, getRedirectUrl("/reset-password"));
