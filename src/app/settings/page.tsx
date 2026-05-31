@@ -152,7 +152,7 @@ export default function SettingsPage() {
       const account = getAccount();
       const redirectUrl = window.location.origin + "/settings";
       // This will link the OAuth identity to the logged-in user
-      await account.createOAuth2Session(provider, redirectUrl, redirectUrl);
+      await account.createOAuth2Session(provider as any, redirectUrl, redirectUrl);
     } catch (err: any) {
       toast({
         title: `Failed to link ${provider}`,
