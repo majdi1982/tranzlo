@@ -19,11 +19,11 @@ max_send_errors = 5
 
 [email.smtp]
 enabled = true
-host = "{{ .Env.SMTP_HOST }}"
-port = {{ .Env.SMTP_PORT }}
-auth_protocol = "{{ .Env.SMTP_ENCRYPTION | lower }}"
-username = "{{ .Env.SMTP_USER }}"
-password = "{{ .Env.SMTP_PASS }}"
+host = "smtp.hostinger.com"
+port = 465
+auth_protocol = "login"
+username = "help@tranzlo.net"
+password = "Cdromlg@8442"
 max_conns = 25
-tls_type = "tls"
+tls_type = "ssl"
 hello_hostname = "mail.tranzlo.net"
