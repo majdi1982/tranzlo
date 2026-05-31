@@ -5,6 +5,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_APPWRITE_ENDPOINT=https://appwrite.tranzlo.net/v1
+        - NEXT_PUBLIC_APPWRITE_PROJECT_ID=6a156f9000335c99e9be
+        - NEXT_PUBLIC_PAYPAL_CLIENT_ID=AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5
     container_name: tranzlo-frontend
     restart: unless-stopped
     environment:

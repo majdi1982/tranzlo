@@ -41,13 +41,18 @@ function mapDoc<T>(doc: Record<string, unknown>): T {
   return { $id: doc.$id, ...doc } as unknown as T;
 }
 
+const getRedirectUrl = (path: string): string => {
+  const base = (typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL) || "https://tranzlo.net";
+  return `${base.replace(/\/$/, "")}${path}`;
+};
+
 export const appwriteAuthService = {
   async signup(input: SignupInput): Promise<User> {
     const account = getAccount();
     const user = await account.create(generateId("user"), input.email, input.password, input.name);
     await account.createEmailPasswordSession(input.email, input.password);
     await account.updatePrefs({ role: input.role });
-    await account.createVerification(`${process.env.NEXT_PUBLIC_APP_URL}/verify`);
+    await account.createVerification(getRedirectUrl("/verify"));
     return {
       $id: user.$id,
       email: user.email,
@@ -123,7 +128,7 @@ export const appwriteAuthService = {
 
   async requestPasswordReset(email: string): Promise<void> {
     const account = getAccount();
-    await account.createRecovery(email, `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`);
+    await account.createRecovery(email, getRedirectUrl("/reset-password"));
   },
 
   async resetPassword(userId: string, secret: string, password: string): Promise<void> {
@@ -138,7 +143,7 @@ export const appwriteAuthService = {
 
   async resendVerification(): Promise<void> {
     const account = getAccount();
-    await account.createVerification(`${process.env.NEXT_PUBLIC_APP_URL}/verify`);
+    await account.createVerification(getRedirectUrl("/verify"));
   },
 };
 
