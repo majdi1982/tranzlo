@@ -195,7 +195,7 @@ export default function SettingsPage() {
       return;
     }
 
-    deleteLoading(true);
+    setDeleteLoading(true);
     try {
       const db = getDatabases();
       const targetCollection = role === "translator" ? COLLECTIONS.translatorProfiles : COLLECTIONS.companyProfiles;
@@ -224,7 +224,7 @@ export default function SettingsPage() {
         variant: "destructive",
       });
     } finally {
-      deleteLoading(false);
+      setDeleteLoading(false);
     }
   };
 
