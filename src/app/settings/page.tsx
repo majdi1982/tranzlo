@@ -58,6 +58,7 @@ export default function SettingsPage() {
   const [passwordLoading, setPasswordLoading] = React.useState(false);
   const [deleteLoading, setDeleteLoading] = React.useState(false);
   const [sessionsLoading, setSessionsLoading] = React.useState(true);
+  const [resending, setResending] = React.useState(false);
   
   // Appwrite states
   const [sessions, setSessions] = React.useState<SessionItem[]>([]);
@@ -74,6 +75,27 @@ export default function SettingsPage() {
       setSessionsLoading(false);
     }
   }, []);
+
+  const handleResendVerification = async () => {
+    setResending(true);
+    try {
+      const services = getServices();
+      await services.auth.resendVerification();
+      toast({
+        title: "Verification email sent",
+        description: "Please check your inbox for the verification link.",
+        variant: "success",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Failed to send",
+        description: err.message || "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setResending(false);
+    }
+  };
 
   React.useEffect(() => {
     if (user?.$id) {
@@ -281,9 +303,22 @@ export default function SettingsPage() {
                       className="bg-white/[0.02] border-border/50 rounded-md text-xs text-muted-foreground"
                     />
                     {!user?.emailVerification && (
-                      <div className="flex items-center gap-2 text-2xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md mt-1 border border-amber-500/20">
-                        <AlertTriangle className="h-3 w-3 shrink-0" />
-                        <span>Email address is currently unverified.</span>
+                      <div className="flex flex-col gap-2.5 text-2xs text-amber-500 bg-amber-500/10 p-3 rounded-md mt-1 border border-amber-500/20">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                          <span className="font-medium">Email address is currently unverified.</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={resending}
+                          onClick={handleResendVerification}
+                          className="w-full border-amber-500/30 text-amber-500 hover:bg-amber-500/10 rounded-md text-2xs py-1 h-7 flex items-center justify-center gap-1.5"
+                        >
+                          {resending ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                          Verify Email / Resend Code
+                        </Button>
                       </div>
                     )}
                   </div>
