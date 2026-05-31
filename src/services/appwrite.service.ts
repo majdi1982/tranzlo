@@ -196,7 +196,7 @@ export const appwriteProfileService = {
       const updated = await db.updateDocument(DB_ID, COLLECTIONS.translatorProfiles, existing.$id, data);
       return mapDoc<TranslatorProfile>(updated as Record<string, unknown>);
     }
-    const created = await db.createDocument(DB_ID, COLLECTIONS.translatorProfiles, generateId("translator"), data);
+    const created = await db.createDocument(DB_ID, COLLECTIONS.translatorProfiles, generateId("translator"), { ...data, userId });
     return mapDoc<TranslatorProfile>(created as Record<string, unknown>);
   },
 
@@ -207,7 +207,7 @@ export const appwriteProfileService = {
       const updated = await db.updateDocument(DB_ID, COLLECTIONS.companyProfiles, existing.$id, data);
       return mapDoc<CompanyProfile>(updated as Record<string, unknown>);
     }
-    const created = await db.createDocument(DB_ID, COLLECTIONS.companyProfiles, generateId("company"), data);
+    const created = await db.createDocument(DB_ID, COLLECTIONS.companyProfiles, generateId("company"), { ...data, userId });
     return mapDoc<CompanyProfile>(created as Record<string, unknown>);
   },
 

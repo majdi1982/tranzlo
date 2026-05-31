@@ -196,10 +196,63 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleSkip = () => {
-    // If they skipped onboarding, redirect them to dashboard based on role selection
+  const handleSkip = async () => {
+    setSubmitting(true);
     const targetRole = role || "translator";
-    router.replace(targetRole === "translator" ? "/dashboard/translator" : "/dashboard/company");
+    try {
+      // 1. Update user preferences role in Appwrite auth account
+      const account = getAccount();
+      await account.updatePrefs({ role: targetRole });
+
+      // 2. Save an empty profile with onboardingComplete: true and isPublicPlatform: false (private by default)
+      if (targetRole === "translator") {
+        await services.profile.updateTranslatorProfile(user?.$id || "", {
+          fullName: user?.name || "Linguist Pro",
+          email: user?.email || "",
+          languages: [],
+          specializations: [],
+          hourlyRate: 0,
+          bio: "",
+          catTools: [],
+          isPublicPlatform: false,
+          searchEngines: [],
+          seoKeywords: "",
+          onboardingComplete: true,
+          completedJobs: 0,
+          rating: 0,
+          ratingCount: 0,
+          isApproved: true,
+          status: "active"
+        });
+      } else {
+        await services.profile.updateCompanyProfile(user?.$id || "", {
+          companyName: user?.name || "Enterprise Corp",
+          fullName: user?.name || "Corporate Client",
+          contactPerson: user?.name || "Director",
+          email: user?.email || "",
+          website: "",
+          companySize: "1-10",
+          about: "",
+          isPublicPlatform: false,
+          searchEngines: [],
+          seoKeywords: "",
+          onboardingComplete: true,
+          isApproved: true,
+          status: "active"
+        });
+      }
+
+      await refreshUser();
+      router.replace(targetRole === "translator" ? "/dashboard/translator" : "/dashboard/company");
+    } catch (err: any) {
+      toast({
+        title: "Setup Failed",
+        description: err.message || "Failed to skip onboarding and save profile.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const progressPercent = getProgress();
