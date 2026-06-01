@@ -25,6 +25,38 @@ import { SPECIALIZATIONS } from "@/data/specializations";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { TranslatorProfile, CompanyProfile, Role } from "@/types";
 
+const COUNTRY_CODES = [
+  { code: "+966", flag: "🇸🇦", name: "Saudi Arabia" },
+  { code: "+971", flag: "🇦🇪", name: "UAE" },
+  { code: "+20", flag: "🇪🇬", name: "Egypt" },
+  { code: "+962", flag: "🇯🇴", name: "Jordan" },
+  { code: "+961", flag: "🇱🇧", name: "Lebanon" },
+  { code: "+964", flag: "🇮🇶", name: "Iraq" },
+  { code: "+965", flag: "🇰🇼", name: "Kuwait" },
+  { code: "+974", flag: "🇶🇦", name: "Qatar" },
+  { code: "+973", flag: "🇧🇭", name: "Bahrain" },
+  { code: "+968", flag: "🇴🇲", name: "Oman" },
+  { code: "+970", flag: "🇵🇸", name: "Palestine" },
+  { code: "+212", flag: "🇲🇦", name: "Morocco" },
+  { code: "+213", flag: "🇩🇿", name: "Algeria" },
+  { code: "+216", flag: "🇹🇳", name: "Tunisia" },
+  { code: "+218", flag: "🇱🇾", name: "Libya" },
+  { code: "+249", flag: "🇸🇩", name: "Sudan" },
+  { code: "+963", flag: "🇸🇾", name: "Syria" },
+  { code: "+967", flag: "🇾🇪", name: "Yemen" },
+  { code: "+1", flag: "🇺🇸", name: "US/Canada" },
+  { code: "+44", flag: "🇬🇧", name: "UK" },
+  { code: "+90", flag: "🇹🇷", name: "Turkey" },
+  { code: "+49", flag: "🇩🇪", name: "Germany" },
+  { code: "+33", flag: "🇫🇷", name: "France" },
+  { code: "+39", flag: "🇮🇹", name: "Italy" },
+  { code: "+34", flag: "🇪🇸", name: "Spain" },
+  { code: "+91", flag: "🇮🇳", name: "India" },
+  { code: "+92", flag: "🇵🇰", name: "Pakistan" },
+  { code: "+60", flag: "🇲🇾", name: "Malaysia" },
+  { code: "+62", flag: "🇮🇩", name: "Indonesia" }
+];
+
 export default function ProfilePage() {
   const router = useRouter();
   const { user } = useSession();
@@ -863,14 +895,63 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone (optional)</Label>
-                      <Input
-                        id="phone"
-                        value={translatorData.phone}
-                        onChange={(e) => setTranslatorData((p) => ({ ...p, phone: e.target.value }))}
-                        placeholder="+1 234 567 890"
-                        className="rounded-xl border-border/50"
-                      />
+                      <Label className="text-sm font-semibold">WhatsApp Number</Label>
+                      <div className="flex gap-2">
+                        <select
+                          value={(() => {
+                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                            for (const c of sortedCodes) {
+                              if (translatorData.phone.startsWith(c.code)) return c.code;
+                            }
+                            return "+966";
+                          })()}
+                          onChange={(e) => {
+                            const newCode = e.target.value;
+                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                            let currentNumber = translatorData.phone;
+                            for (const c of sortedCodes) {
+                              if (translatorData.phone.startsWith(c.code)) {
+                                currentNumber = translatorData.phone.substring(c.code.length);
+                                break;
+                              }
+                            }
+                            setTranslatorData((p) => ({ ...p, phone: newCode + currentNumber.replace(/^[0]+/g, "") }));
+                          }}
+                          className="bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-xl focus:border-teal-500 text-sm outline-none w-[130px] shrink-0"
+                        >
+                          {COUNTRY_CODES.map((c) => (
+                            <option key={c.code} value={c.code}>
+                              {c.flag} {c.code} ({c.name})
+                            </option>
+                          ))}
+                        </select>
+                        <Input
+                          id="phone"
+                          type="text"
+                          placeholder="e.g. 501234567"
+                          value={(() => {
+                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                            for (const c of sortedCodes) {
+                              if (translatorData.phone.startsWith(c.code)) return translatorData.phone.substring(c.code.length);
+                            }
+                            return translatorData.phone;
+                          })()}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, ""); // Keep only digits
+                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                            let activeCode = "+966";
+                            for (const c of sortedCodes) {
+                              if (translatorData.phone.startsWith(c.code)) {
+                                activeCode = c.code;
+                                break;
+                              }
+                            }
+                            setTranslatorData((p) => ({ ...p, phone: activeCode + val.replace(/^[0]+/g, "") }));
+                          }}
+                          className="rounded-xl border-border/50 flex-1"
+                        />
+                      </div>
+                      <p className="text-2xs text-muted-foreground leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1108,14 +1189,63 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone (optional)</Label>
-                      <Input
-                        id="phone"
-                        value={companyData.phone}
-                        onChange={(e) => setCompanyData((p) => ({ ...p, phone: e.target.value }))}
-                        placeholder="+1 234 567 890"
-                        className="rounded-xl border-border/50"
-                      />
+                      <Label className="text-sm font-semibold">WhatsApp Number</Label>
+                      <div className="flex gap-2">
+                        <select
+                          value={(() => {
+                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                            for (const c of sortedCodes) {
+                              if (companyData.phone.startsWith(c.code)) return c.code;
+                            }
+                            return "+966";
+                          })()}
+                          onChange={(e) => {
+                            const newCode = e.target.value;
+                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                            let currentNumber = companyData.phone;
+                            for (const c of sortedCodes) {
+                              if (companyData.phone.startsWith(c.code)) {
+                                currentNumber = companyData.phone.substring(c.code.length);
+                                break;
+                              }
+                            }
+                            setCompanyData((p) => ({ ...p, phone: newCode + currentNumber.replace(/^[0]+/g, "") }));
+                          }}
+                          className="bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-xl focus:border-teal-500 text-sm outline-none w-[130px] shrink-0"
+                        >
+                          {COUNTRY_CODES.map((c) => (
+                            <option key={c.code} value={c.code}>
+                              {c.flag} {c.code} ({c.name})
+                            </option>
+                          ))}
+                        </select>
+                        <Input
+                          id="phone"
+                          type="text"
+                          placeholder="e.g. 501234567"
+                          value={(() => {
+                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                            for (const c of sortedCodes) {
+                              if (companyData.phone.startsWith(c.code)) return companyData.phone.substring(c.code.length);
+                            }
+                            return companyData.phone;
+                          })()}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, ""); // Keep only digits
+                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                            let activeCode = "+966";
+                            for (const c of sortedCodes) {
+                              if (companyData.phone.startsWith(c.code)) {
+                                activeCode = c.code;
+                                break;
+                              }
+                            }
+                            setCompanyData((p) => ({ ...p, phone: activeCode + val.replace(/^[0]+/g, "") }));
+                          }}
+                          className="rounded-xl border-border/50 flex-1"
+                        />
+                      </div>
+                      <p className="text-2xs text-muted-foreground leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
                     </div>
                   </CardContent>
                 </Card>

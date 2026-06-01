@@ -42,6 +42,38 @@ const SEARCH_ENGINES = [
   { id: "yandex", name: "Yandex", icon: "🇷🇺" }
 ];
 
+const COUNTRY_CODES = [
+  { code: "+966", flag: "🇸🇦", name: "Saudi Arabia" },
+  { code: "+971", flag: "🇦🇪", name: "UAE" },
+  { code: "+20", flag: "🇪🇬", name: "Egypt" },
+  { code: "+962", flag: "🇯🇴", name: "Jordan" },
+  { code: "+961", flag: "🇱🇧", name: "Lebanon" },
+  { code: "+964", flag: "🇮🇶", name: "Iraq" },
+  { code: "+965", flag: "🇰🇼", name: "Kuwait" },
+  { code: "+974", flag: "🇶🇦", name: "Qatar" },
+  { code: "+973", flag: "🇧🇭", name: "Bahrain" },
+  { code: "+968", flag: "🇴🇲", name: "Oman" },
+  { code: "+970", flag: "🇵🇸", name: "Palestine" },
+  { code: "+212", flag: "🇲🇦", name: "Morocco" },
+  { code: "+213", flag: "🇩🇿", name: "Algeria" },
+  { code: "+216", flag: "🇹🇳", name: "Tunisia" },
+  { code: "+218", flag: "🇱🇾", name: "Libya" },
+  { code: "+249", flag: "🇸🇩", name: "Sudan" },
+  { code: "+963", flag: "🇸🇾", name: "Syria" },
+  { code: "+967", flag: "🇾🇪", name: "Yemen" },
+  { code: "+1", flag: "🇺🇸", name: "US/Canada" },
+  { code: "+44", flag: "🇬🇧", name: "UK" },
+  { code: "+90", flag: "🇹🇷", name: "Turkey" },
+  { code: "+49", flag: "🇩🇪", name: "Germany" },
+  { code: "+33", flag: "🇫🇷", name: "France" },
+  { code: "+39", flag: "🇮🇹", name: "Italy" },
+  { code: "+34", flag: "🇪🇸", name: "Spain" },
+  { code: "+91", flag: "🇮🇳", name: "India" },
+  { code: "+92", flag: "🇵🇰", name: "Pakistan" },
+  { code: "+60", flag: "🇲🇾", name: "Malaysia" },
+  { code: "+62", flag: "🇮🇩", name: "Indonesia" }
+];
+
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, refreshUser } = useSession();
@@ -67,6 +99,7 @@ export default function OnboardingPage() {
   const [website, setWebsite] = React.useState("");
   const [companySize, setCompanySize] = React.useState("1-10");
   const [about, setAbout] = React.useState("");
+  const [phone, setPhone] = React.useState("");
 
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -147,6 +180,7 @@ export default function OnboardingPage() {
           languagePairs: JSON.stringify([{ source: sourceLang, target: targetLang, level: "advanced" }]) as any,
           hourlyRate: parseFloat(hourlyRate) || 0,
           bio: bio || "Professional language specialist.",
+          phone,
           catTools: selectedCatTools,
           isPublicPlatform,
           searchEngines: selectedSearchEngines,
@@ -164,6 +198,7 @@ export default function OnboardingPage() {
           fullName: user?.name || "Corporate Client",
           contactPerson: user?.name || "Director",
           email: user?.email || "",
+          phone,
           website,
           companySize,
           about: about || "Enterprise service entity.",
@@ -428,6 +463,67 @@ export default function OnboardingPage() {
                     </div>
                   </div>
 
+                  {/* WhatsApp Number */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">WhatsApp Number</Label>
+                    <div className="flex gap-2">
+                      <select
+                        value={(() => {
+                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                          for (const c of sortedCodes) {
+                            if (phone.startsWith(c.code)) return c.code;
+                          }
+                          return "+966";
+                        })()}
+                        onChange={(e) => {
+                          const newCode = e.target.value;
+                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                          let currentNumber = phone;
+                          for (const c of sortedCodes) {
+                            if (phone.startsWith(c.code)) {
+                              currentNumber = phone.substring(c.code.length);
+                              break;
+                            }
+                          }
+                          setPhone(newCode + currentNumber.replace(/^[0]+/g, ""));
+                        }}
+                        className="bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-md focus:border-primary text-sm outline-none w-[130px] shrink-0"
+                      >
+                        {COUNTRY_CODES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.flag} {c.code} ({c.name})
+                          </option>
+                        ))}
+                      </select>
+                      <Input
+                        id="phone"
+                        type="text"
+                        placeholder="e.g. 501234567"
+                        value={(() => {
+                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                          for (const c of sortedCodes) {
+                            if (phone.startsWith(c.code)) return phone.substring(c.code.length);
+                          }
+                          return phone;
+                        })()}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, ""); // Keep only digits
+                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                          let activeCode = "+966";
+                          for (const c of sortedCodes) {
+                            if (phone.startsWith(c.code)) {
+                              activeCode = c.code;
+                              break;
+                            }
+                          }
+                          setPhone(activeCode + val.replace(/^[0]+/g, "")); // Remove leading zeros for clean format
+                        }}
+                        className="bg-slate-950 border-slate-800 rounded-md flex-1"
+                      />
+                    </div>
+                    <p className="text-2xs text-slate-500 leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
+                  </div>
+
                   {/* CAT Tools Selector */}
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">CAT Tools Proficiency</Label>
@@ -489,6 +585,67 @@ export default function OnboardingPage() {
                       onChange={(e) => setWebsite(e.target.value)}
                       className="bg-slate-950 border-slate-800 rounded-md"
                     />
+                  </div>
+
+                  {/* WhatsApp Number */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">WhatsApp Number</Label>
+                    <div className="flex gap-2">
+                      <select
+                        value={(() => {
+                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                          for (const c of sortedCodes) {
+                            if (phone.startsWith(c.code)) return c.code;
+                          }
+                          return "+966";
+                        })()}
+                        onChange={(e) => {
+                          const newCode = e.target.value;
+                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                          let currentNumber = phone;
+                          for (const c of sortedCodes) {
+                            if (phone.startsWith(c.code)) {
+                              currentNumber = phone.substring(c.code.length);
+                              break;
+                            }
+                          }
+                          setPhone(newCode + currentNumber.replace(/^[0]+/g, ""));
+                        }}
+                        className="bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-md focus:border-primary text-sm outline-none w-[130px] shrink-0"
+                      >
+                        {COUNTRY_CODES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.flag} {c.code} ({c.name})
+                          </option>
+                        ))}
+                      </select>
+                      <Input
+                        id="companyPhone"
+                        type="text"
+                        placeholder="e.g. 501234567"
+                        value={(() => {
+                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                          for (const c of sortedCodes) {
+                            if (phone.startsWith(c.code)) return phone.substring(c.code.length);
+                          }
+                          return phone;
+                        })()}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, ""); // Keep only digits
+                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+                          let activeCode = "+966";
+                          for (const c of sortedCodes) {
+                            if (phone.startsWith(c.code)) {
+                              activeCode = c.code;
+                              break;
+                            }
+                          }
+                          setPhone(activeCode + val.replace(/^[0]+/g, "")); // Remove leading zeros for clean format
+                        }}
+                        className="bg-slate-950 border-slate-800 rounded-md flex-1"
+                      />
+                    </div>
+                    <p className="text-2xs text-slate-500 leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
                   </div>
 
                   <div className="space-y-2">
