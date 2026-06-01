@@ -19,7 +19,10 @@ for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
     if (eq > 0) {
       let v = t.slice(eq + 1).trim();
       if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
-      process.env[t.slice(0, eq).trim()] = v;
+      const k = t.slice(0, eq).trim();
+      if (!process.env[k]) {
+        process.env[k] = v;
+      }
     }
   }
 }
@@ -151,10 +154,10 @@ const SCHEMA: Col[] = [
       { key: "companyId", type: "string", size: 64, required: true },
       { key: "title", type: "string", size: 255, required: true },
       { key: "description", type: "string", size: 10000, required: true },
-      { key: "sourceLanguage", type: "string", size: 8, required: true },
-      { key: "targetLanguage", type: "string", size: 8, required: true },
-      { key: "country", type: "string", size: 8, required: false },
-      { key: "workType", type: "enum", elements: ["onsite", "online"], required: true, default: "online" },
+      { key: "sourceLanguage", type: "string", size: 255, required: true },
+      { key: "targetLanguage", type: "string", size: 255, required: true },
+      { key: "country", type: "string", size: 255, required: false },
+      { key: "workType", type: "enum", elements: ["onsite", "online", "hybrid"], required: true, default: "online" },
       { key: "budget", type: "float", required: true },
       { key: "deadline", type: "datetime", required: true },
       { key: "specializations", type: "string", size: 128, required: true, array: true },
@@ -379,6 +382,14 @@ async function main() {
     await wait(500);
 
     for (const a of col.attrs) {
+      // Recreate/migrate attributes if schema changes
+      if (col.id === "jobs" && (a.key === "sourceLanguage" || a.key === "targetLanguage" || a.key === "country" || a.key === "workType")) {
+        try {
+          await db.deleteAttribute(DATABASE_ID, col.id, a.key);
+          console.log(`      🧹 Dropped existing ${a.key} for migration`);
+          await wait(3000);
+        } catch {}
+      }
       try {
         const dbId = DATABASE_ID;
         const colId = col.id;
