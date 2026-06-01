@@ -6,6 +6,7 @@ import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { getAccount } from "@/lib/appwrite";
 import { LANGUAGES } from "@/data/languages";
+import { COUNTRY_CODES } from "@/data/country-codes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,38 +41,6 @@ const SEARCH_ENGINES = [
   { id: "bing", name: "Bing (Microsoft)", icon: "🔍" },
   { id: "duckduckgo", name: "DuckDuckGo", icon: "🦆" },
   { id: "yandex", name: "Yandex", icon: "🇷🇺" }
-];
-
-const COUNTRY_CODES = [
-  { code: "+966", flag: "🇸🇦", name: "Saudi Arabia" },
-  { code: "+971", flag: "🇦🇪", name: "UAE" },
-  { code: "+20", flag: "🇪🇬", name: "Egypt" },
-  { code: "+962", flag: "🇯🇴", name: "Jordan" },
-  { code: "+961", flag: "🇱🇧", name: "Lebanon" },
-  { code: "+964", flag: "🇮🇶", name: "Iraq" },
-  { code: "+965", flag: "🇰🇼", name: "Kuwait" },
-  { code: "+974", flag: "🇶🇦", name: "Qatar" },
-  { code: "+973", flag: "🇧🇭", name: "Bahrain" },
-  { code: "+968", flag: "🇴🇲", name: "Oman" },
-  { code: "+970", flag: "🇵🇸", name: "Palestine" },
-  { code: "+212", flag: "🇲🇦", name: "Morocco" },
-  { code: "+213", flag: "🇩🇿", name: "Algeria" },
-  { code: "+216", flag: "🇹🇳", name: "Tunisia" },
-  { code: "+218", flag: "🇱🇾", name: "Libya" },
-  { code: "+249", flag: "🇸🇩", name: "Sudan" },
-  { code: "+963", flag: "🇸🇾", name: "Syria" },
-  { code: "+967", flag: "🇾🇪", name: "Yemen" },
-  { code: "+1", flag: "🇺🇸", name: "US/Canada" },
-  { code: "+44", flag: "🇬🇧", name: "UK" },
-  { code: "+90", flag: "🇹🇷", name: "Turkey" },
-  { code: "+49", flag: "🇩🇪", name: "Germany" },
-  { code: "+33", flag: "🇫🇷", name: "France" },
-  { code: "+39", flag: "🇮🇹", name: "Italy" },
-  { code: "+34", flag: "🇪🇸", name: "Spain" },
-  { code: "+91", flag: "🇮🇳", name: "India" },
-  { code: "+92", flag: "🇵🇰", name: "Pakistan" },
-  { code: "+60", flag: "🇲🇾", name: "Malaysia" },
-  { code: "+62", flag: "🇮🇩", name: "Indonesia" }
 ];
 
 export default function OnboardingPage() {
