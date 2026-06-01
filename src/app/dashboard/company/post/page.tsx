@@ -141,8 +141,13 @@ export default function PostJobPage() {
       });
       toast({ title: "Job posted successfully!", variant: "success" });
       router.push("/dashboard/company");
-    } catch {
-      toast({ title: "Failed to post job", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Failed to post job error:", err);
+      toast({ 
+        title: "Failed to post job", 
+        description: err?.message || "An unknown error occurred while posting the job", 
+        variant: "destructive" 
+      });
     } finally {
       setSaving(false);
     }
