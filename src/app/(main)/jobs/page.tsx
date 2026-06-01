@@ -11,16 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { LANGUAGES } from "@/data/languages";
+import { LANGUAGES, getLanguageName } from "@/data/languages";
 import { SPECIALIZATIONS } from "@/data/specializations";
 import { SERVICE_TYPES } from "@/data/service-types";
 
 
 const RECENT_SEARCHES_KEY = "tranzlo_recent_searches";
-
-function getLanguageName(code: string): string {
-  return LANGUAGES.find((l) => l.code === code)?.name ?? code;
-}
 
 interface ServiceSummaryItem {
   serviceId: string;

@@ -38,10 +38,10 @@ export default function PostJobPage() {
 
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
-  const [sourceLanguage, setSourceLanguage] = React.useState("");
-  const [targetLanguage, setTargetLanguage] = React.useState("");
+  const [sourceLanguages, setSourceLanguages] = React.useState<string[]>([]);
+  const [targetLanguages, setTargetLanguages] = React.useState<string[]>([]);
   const [country, setCountry] = React.useState("");
-  const [workType, setWorkType] = React.useState<"onsite" | "online">("online");
+  const [workType, setWorkType] = React.useState<"onsite" | "online" | "hybrid">("online");
   const [deadline, setDeadline] = React.useState("");
   const [specializations, setSpecializations] = React.useState<string[]>([]);
   const [services, setServices] = React.useState<ServiceRow[]>([{ serviceId: "translation", quantity: 1000, unit: "word", rate: 0.08 }]);
@@ -100,9 +100,9 @@ export default function PostJobPage() {
     const formData = {
       title,
       description,
-      sourceLanguage,
-      targetLanguage,
-      country: workType === "onsite" ? country : undefined,
+      sourceLanguage: sourceLanguages.join(", "),
+      targetLanguage: targetLanguages.join(", "),
+      country: (workType === "onsite" || workType === "hybrid") ? country : undefined,
       workType,
       budget: Math.round(totalBudget),
       deadline,
@@ -125,8 +125,8 @@ export default function PostJobPage() {
       return;
     }
 
-    if (workType === "onsite" && !country) {
-      setErrors((prev) => ({ ...prev, country: "Country is required for on-site jobs" }));
+    if ((workType === "onsite" || workType === "hybrid") && !country) {
+      setErrors((prev) => ({ ...prev, country: "Country is required for physical location jobs" }));
       return;
     }
 
@@ -190,33 +190,92 @@ export default function PostJobPage() {
                 </CardHeader>
                 <CardContent className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="sourceLanguage">Source Language</Label>
-                    <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-                      <SelectTrigger id="sourceLanguage"><SelectValue placeholder="Select language" /></SelectTrigger>
+                    <Label htmlFor="sourceLanguageSelect">Source Languages</Label>
+                    <Select
+                      onValueChange={(val) => {
+                        if (val && !sourceLanguages.includes(val)) {
+                          setSourceLanguages([...sourceLanguages, val]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger id="sourceLanguageSelect">
+                        <SelectValue placeholder="Add source language..." />
+                      </SelectTrigger>
                       <SelectContent>
                         {LANGUAGES.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                          <SelectItem key={lang.code} value={lang.code} disabled={sourceLanguages.includes(lang.code)}>
+                            {lang.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.sourceLanguage && <p className="text-xs text-destructive">{errors.sourceLanguage}</p>}
+                    
+                    {sourceLanguages.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1.5">
+                        {sourceLanguages.map((code) => {
+                          const lang = LANGUAGES.find((l) => l.code === code);
+                          return (
+                            <Badge
+                              key={code}
+                              variant="secondary"
+                              className="text-xs py-1 px-2 flex items-center gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors animate-fade-in"
+                              onClick={() => setSourceLanguages(sourceLanguages.filter((c) => c !== code))}
+                            >
+                              <span>{lang?.name ?? code}</span>
+                              <X className="h-3 w-3" />
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {errors.sourceLanguage && <p className="text-xs text-destructive mt-1">{errors.sourceLanguage}</p>}
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="targetLanguage">Target Language</Label>
-                    <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-                      <SelectTrigger id="targetLanguage"><SelectValue placeholder="Select language" /></SelectTrigger>
+                    <Label htmlFor="targetLanguageSelect">Target Languages</Label>
+                    <Select
+                      onValueChange={(val) => {
+                        if (val && !targetLanguages.includes(val)) {
+                          setTargetLanguages([...targetLanguages, val]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger id="targetLanguageSelect">
+                        <SelectValue placeholder="Add target language..." />
+                      </SelectTrigger>
                       <SelectContent>
                         {LANGUAGES.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                          <SelectItem key={lang.code} value={lang.code} disabled={targetLanguages.includes(lang.code)}>
+                            {lang.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.targetLanguage && <p className="text-xs text-destructive">{errors.targetLanguage}</p>}
+                    
+                    {targetLanguages.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1.5">
+                        {targetLanguages.map((code) => {
+                          const lang = LANGUAGES.find((l) => l.code === code);
+                          return (
+                            <Badge
+                              key={code}
+                              variant="secondary"
+                              className="text-xs py-1 px-2 flex items-center gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors animate-fade-in"
+                              onClick={() => setTargetLanguages(targetLanguages.filter((c) => c !== code))}
+                            >
+                              <span>{lang?.name ?? code}</span>
+                              <X className="h-3 w-3" />
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {errors.targetLanguage && <p className="text-xs text-destructive mt-1">{errors.targetLanguage}</p>}
                   </div>
 
                   <div className="space-y-3 sm:col-span-2">
                     <Label>Work Type</Label>
-                    <div className="flex gap-4">
+                    <div className="flex gap-6">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="radio" name="workType" value="online" checked={workType === "online"} onChange={() => setWorkType("online")} className="h-4 w-4" />
                         <Globe className="h-4 w-4 text-muted-foreground" />
@@ -226,22 +285,46 @@ export default function PostJobPage() {
                         <input type="radio" name="workType" value="onsite" checked={workType === "onsite"} onChange={() => setWorkType("onsite")} className="h-4 w-4" />
                         <span className="text-sm">On-site (In Person)</span>
                       </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="workType" value="hybrid" checked={workType === "hybrid"} onChange={() => setWorkType("hybrid")} className="h-4 w-4" />
+                        <span className="text-sm">Hybrid (Both Remote & On-site)</span>
+                      </label>
                     </div>
                   </div>
 
-                  {workType === "onsite" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="country">Country</Label>
-                      <Select value={country} onValueChange={setCountry}>
-                        <SelectTrigger id="country"><SelectValue placeholder="Select country" /></SelectTrigger>
-                        <SelectContent>
-                          {COUNTRIES.map((c) => (
-                            <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.country && <p className="text-xs text-destructive">{errors.country}</p>}
-                    </div>
+                  {(workType === "onsite" || workType === "hybrid") && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="country">Country</Label>
+                        <Select value={country.includes(" - ") ? country.split(" - ")[0] : country} onValueChange={(val) => {
+                          const addr = country.includes(" - ") ? country.split(" - ").slice(1).join(" - ") : "";
+                          setCountry(addr ? `${val} - ${addr}` : val);
+                        }}>
+                          <SelectTrigger id="country"><SelectValue placeholder="Select country" /></SelectTrigger>
+                          <SelectContent>
+                            {COUNTRIES.map((c) => (
+                              <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.country && <p className="text-xs text-destructive">{errors.country}</p>}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="location">Physical Location / Office Address (Optional)</Label>
+                        <Input
+                          id="location"
+                          placeholder="e.g. Riyadh Office, Building A, Floor 2"
+                          value={country.includes(" - ") ? country.split(" - ").slice(1).join(" - ") : ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const baseCountry = country.includes(" - ") ? country.split(" - ")[0] : country;
+                            setCountry(val ? `${baseCountry} - ${val}` : baseCountry);
+                          }}
+                          className="rounded-xl border-border/50"
+                        />
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>

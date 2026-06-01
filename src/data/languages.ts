@@ -146,5 +146,12 @@ export function getLanguage(code: string): Language | undefined {
 }
 
 export function getLanguageName(code: string): string {
+  if (!code) return "";
+  if (code.includes(",")) {
+    return code
+      .split(",")
+      .map((c) => getLanguage(c.trim())?.name ?? c.trim())
+      .join(", ");
+  }
   return getLanguage(code)?.name ?? code;
 }

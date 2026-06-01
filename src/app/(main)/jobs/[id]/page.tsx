@@ -13,14 +13,10 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { LANGUAGES } from "@/data/languages";
+import { LANGUAGES, getLanguageName } from "@/data/languages";
 import { SPECIALIZATIONS } from "@/data/specializations";
 import { SERVICE_TYPES } from "@/data/service-types";
 import type { Job, Application, CompanyProfile } from "@/types";
-
-function getLanguageName(code: string): string {
-  return LANGUAGES.find((l) => l.code === code)?.name ?? code;
-}
 
 export default function JobDetailPage() {
   const params = useParams();

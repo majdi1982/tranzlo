@@ -13,7 +13,7 @@ export const createJobSchema = z.object({
   sourceLanguage: z.string().min(1, "Source language is required"),
   targetLanguage: z.string().min(1, "Target language is required"),
   country: z.string().optional(),
-  workType: z.enum(["onsite", "online"]),
+  workType: z.enum(["onsite", "online", "hybrid"]),
   budget: z.number().positive("Budget must be positive"),
   deadline: z.string().min(1, "Deadline is required"),
   specializations: z.array(z.string()).min(1, "At least one specialization is required"),
