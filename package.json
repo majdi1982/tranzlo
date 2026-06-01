@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "setup:appwrite": "npx tsx src/scripts/setup-appwrite.ts"
+    "setup:appwrite": "npx -y tsx src/scripts/setup-appwrite.ts"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.0",

@@ -195,7 +195,7 @@ export default function PostJobPage() {
                       <SelectTrigger id="sourceLanguage"><SelectValue placeholder="Select language" /></SelectTrigger>
                       <SelectContent>
                         {LANGUAGES.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code}>{lang.name} ({lang.nativeName})</SelectItem>
+                          <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -207,7 +207,7 @@ export default function PostJobPage() {
                       <SelectTrigger id="targetLanguage"><SelectValue placeholder="Select language" /></SelectTrigger>
                       <SelectContent>
                         {LANGUAGES.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code}>{lang.name} ({lang.nativeName})</SelectItem>
+                          <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
