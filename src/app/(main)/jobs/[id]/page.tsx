@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LANGUAGES, getLanguageName } from "@/data/languages";
 import { SPECIALIZATIONS } from "@/data/specializations";
 import { SERVICE_TYPES } from "@/data/service-types";
-import type { Job, Application, CompanyProfile } from "@/types";
+import type { Job, Application, CompanyProfile, TranslatorProfile } from "@/types";
 
 export default function JobDetailPage() {
   const params = useParams();
@@ -25,6 +25,7 @@ export default function JobDetailPage() {
   const { toast } = useToast();
   const [job, setJob] = React.useState<Job | null>(null);
   const [company, setCompany] = React.useState<CompanyProfile | null>(null);
+  const [translatorProfile, setTranslatorProfile] = React.useState<TranslatorProfile | null>(null);
   const [application, setApplication] = React.useState<Application | null>(null);
   const [coverLetter, setCoverLetter] = React.useState("");
   const [bidAmount, setBidAmount] = React.useState("");
@@ -48,6 +49,11 @@ export default function JobDetailPage() {
         setCompany(companyData);
         const existing = myApps.find((a) => a.jobId === jobData.$id);
         if (existing) setApplication(existing);
+
+        if (user && user.prefs?.role === "translator") {
+          const profileData = await services.profile.getTranslatorProfile(user.$id);
+          setTranslatorProfile(profileData);
+        }
       } catch {
         // silent
       } finally {
@@ -95,6 +101,22 @@ export default function JobDetailPage() {
       </div>
     );
   }
+
+  // Profile matching validation
+  const isTranslator = user && user.prefs?.role === "translator";
+  const jobSourceLangs = job.sourceLanguage ? job.sourceLanguage.split(",").map((s) => s.trim()) : [];
+  const jobTargetLangs = job.targetLanguage ? job.targetLanguage.split(",").map((t) => t.trim()) : [];
+  const transLangs = translatorProfile?.languages || [];
+  
+  const hasMatchingSource = !isTranslator || transLangs.some((l) => jobSourceLangs.includes(l));
+  const hasMatchingTarget = !isTranslator || transLangs.some((l) => jobTargetLangs.includes(l));
+  const hasMatchingLangs = hasMatchingSource && hasMatchingTarget;
+
+  const jobSpecs = job.specializations || [];
+  const transSpecs = translatorProfile?.specializations || [];
+  const hasMatchingSpecs = !isTranslator || jobSpecs.length === 0 || transSpecs.some((s) => jobSpecs.includes(s));
+
+  const isProfileMatch = !isTranslator || (hasMatchingLangs && hasMatchingSpecs);
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
@@ -224,6 +246,51 @@ export default function JobDetailPage() {
               <CardDescription>Submit your application with your proposed budget and a cover letter</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {!isProfileMatch && (
+                <div className="flex flex-col gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-destructive">Profile Verification Failed</span>
+                  </div>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    You cannot apply for this job because your profile does not meet the specified job requirements. Please align your translator profile criteria:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 mt-1 text-xs text-muted-foreground">
+                    {!hasMatchingSource && (
+                      <li>
+                        Required Source Languages:{" "}
+                        <span className="font-semibold text-foreground">
+                          {jobSourceLangs.map((l) => getLanguageName(l)).join(", ")}
+                        </span>
+                      </li>
+                    )}
+                    {!hasMatchingTarget && (
+                      <li>
+                        Required Target Languages:{" "}
+                        <span className="font-semibold text-foreground">
+                          {jobTargetLangs.map((l) => getLanguageName(l)).join(", ")}
+                        </span>
+                      </li>
+                    )}
+                    {!hasMatchingSpecs && (
+                      <li>
+                        Required Specializations:{" "}
+                        <span className="font-semibold text-foreground">
+                          {jobSpecs.join(", ")}
+                        </span>
+                      </li>
+                    )}
+                  </ul>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 w-fit bg-background text-foreground border-destructive/30 hover:bg-destructive/10"
+                    onClick={() => router.push("/profile")}
+                  >
+                    Configure My Profile
+                  </Button>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Proposed Bid Price (USD)</label>
                 <Input
@@ -231,6 +298,7 @@ export default function JobDetailPage() {
                   placeholder="e.g. 80"
                   value={bidAmount}
                   onChange={(e) => setBidAmount(e.target.value)}
+                  disabled={!isProfileMatch}
                   className="h-11 rounded-xl bg-background"
                 />
                 <p className="text-xs text-muted-foreground">You can negotiate the price by proposing your preferred bid amount (client budget: ${job.budget.toLocaleString()}).</p>
@@ -241,6 +309,7 @@ export default function JobDetailPage() {
                   placeholder="Introduce yourself and explain why you are the right translator for this project..."
                   value={coverLetter}
                   onChange={(e) => setCoverLetter(e.target.value)}
+                  disabled={!isProfileMatch}
                   className="min-h-[140px]"
                 />
               </div>
@@ -250,7 +319,7 @@ export default function JobDetailPage() {
                   <span>This job requires a translation test. You will receive the test after submitting your application.</span>
                 </div>
               )}
-              <Button onClick={handleApply} disabled={submitting || coverLetter.length < 20 || !bidAmount}>
+              <Button onClick={handleApply} disabled={submitting || coverLetter.length < 20 || !bidAmount || !isProfileMatch}>
                 {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
                 Submit Application
               </Button>
