@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LANGUAGES } from "@/data/languages";
 import { SPECIALIZATIONS } from "@/data/specializations";
 import { COUNTRIES } from "@/data/countries";
-import { SERVICE_TYPES } from "@/data/service-types";
+import { SERVICE_TYPES, SERVICE_UNITS } from "@/data/service-types";
 import { CAT_TOOLS } from "@/data/cat-tools";
 import { createJobSchema } from "@/validators";
 
@@ -27,6 +27,7 @@ interface ServiceRow {
   serviceId: string;
   quantity: number;
   unit: string;
+  rate: number;
 }
 
 export default function PostJobPage() {
@@ -43,7 +44,7 @@ export default function PostJobPage() {
   const [workType, setWorkType] = React.useState<"onsite" | "online">("online");
   const [deadline, setDeadline] = React.useState("");
   const [specializations, setSpecializations] = React.useState<string[]>([]);
-  const [services, setServices] = React.useState<ServiceRow[]>([{ serviceId: "translation", quantity: 1000, unit: "word" }]);
+  const [services, setServices] = React.useState<ServiceRow[]>([{ serviceId: "translation", quantity: 1000, unit: "word", rate: 0.08 }]);
   const [requiredCatTools, setRequiredCatTools] = React.useState<string[]>([]);
   const [requiresTest, setRequiresTest] = React.useState(false);
   const [reviewerType, setReviewerType] = React.useState<"company" | "translator">("company");
@@ -56,7 +57,7 @@ export default function PostJobPage() {
   function addService() {
     if (availableServiceTypes.length === 0) return;
     const first = availableServiceTypes[0];
-    setServices([...services, { serviceId: first.id, quantity: 1000, unit: first.unit }]);
+    setServices([...services, { serviceId: first.id, quantity: 1000, unit: first.unit, rate: first.unit === "word" ? 0.08 : 25.00 }]);
   }
 
   function removeService(idx: number) {
@@ -70,6 +71,7 @@ export default function PostJobPage() {
       if (field === "serviceId") {
         const svc = SERVICE_TYPES.find((st) => st.id === value);
         next.unit = svc?.unit ?? "word";
+        next.rate = next.unit === "word" ? 0.08 : 25.00;
       }
       return next;
     }));
@@ -88,7 +90,7 @@ export default function PostJobPage() {
   }
 
   const totalBudget = React.useMemo(() => {
-    return services.reduce((sum, s) => sum + s.quantity * 0.08, 0);
+    return services.reduce((sum, s) => sum + s.quantity * s.rate, 0);
   }, [services]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -105,7 +107,7 @@ export default function PostJobPage() {
       budget: Math.round(totalBudget),
       deadline,
       specializations,
-      services: services.map((s) => ({ serviceId: s.serviceId, quantity: s.quantity, unit: s.unit })),
+      services: services.map((s) => ({ serviceId: s.serviceId, quantity: s.quantity, unit: s.unit, rate: s.rate })),
       requiredCatTools: requiredCatTools.length > 0 ? requiredCatTools : undefined,
       requiresTest,
       reviewerType,
@@ -295,14 +297,14 @@ export default function PostJobPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Services Required</CardTitle>
-                  <CardDescription>Select the translation services and specify quantities</CardDescription>
+                  <CardDescription>Select the translation services, specify quantities, units, and rates</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {services.map((svc, idx) => {
                     const st = SERVICE_TYPES.find((s) => s.id === svc.serviceId);
                     return (
-                      <div key={idx} className="flex items-end gap-3 bg-muted/30 p-3 rounded-lg">
-                        <div className="flex-1 space-y-1">
+                      <div key={idx} className="flex flex-wrap md:flex-nowrap items-end gap-3 bg-muted/30 p-3 rounded-lg">
+                        <div className="flex-1 min-w-[150px] space-y-1">
                           <Label className="text-xs">Service</Label>
                           <Select value={svc.serviceId} onValueChange={(v) => updateService(idx, "serviceId", v)}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -318,17 +320,30 @@ export default function PostJobPage() {
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="w-28 space-y-1">
-                          <Label className="text-xs">Quantity ({svc.unit})</Label>
+                        <div className="w-24 space-y-1">
+                          <Label className="text-xs">Quantity</Label>
                           <Input type="number" min="1" value={svc.quantity} onChange={(e) => updateService(idx, "quantity", Number(e.target.value))} />
                         </div>
-                        <div className="w-20 space-y-1">
+                        <div className="w-28 space-y-1">
                           <Label className="text-xs">Unit</Label>
-                          <div className="h-10 flex items-center text-sm text-muted-foreground px-2 border rounded-md bg-background">{svc.unit}</div>
+                          <Select value={svc.unit} onValueChange={(v) => updateService(idx, "unit", v)}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {SERVICE_UNITS.map((u) => (
+                                <SelectItem key={u.id} value={u.id}>
+                                  {u.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="w-28 space-y-1">
+                          <Label className="text-xs">Unit Price (USD)</Label>
+                          <Input type="number" step="0.001" min="0.001" value={svc.rate} onChange={(e) => updateService(idx, "rate", Number(e.target.value))} />
+                        </div>
+                        <div className="w-24 space-y-1">
                           <Label className="text-xs">Est. Total</Label>
-                          <div className="h-10 flex items-center text-sm font-medium px-2 border rounded-md bg-background">${(svc.quantity * 0.08).toFixed(0)}</div>
+                          <div className="h-10 flex items-center text-sm font-medium px-2 border rounded-md bg-background">${(svc.quantity * svc.rate).toFixed(0)}</div>
                         </div>
                         {services.length > 1 && (
                           <Button type="button" variant="ghost" size="icon" className="mb-0.5" onClick={() => removeService(idx)}>

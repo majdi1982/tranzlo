@@ -183,6 +183,7 @@ const SCHEMA: Col[] = [
       { key: "coverLetter", type: "string", size: 10000, required: true },
       { key: "cvUrl", type: "string", size: 512, required: false },
       { key: "status", type: "enum", elements: ["submitted", "viewed", "shortlisted", "accepted", "rejected", "withdrawn"], required: true },
+      { key: "bidAmount", type: "float", required: false },
       { key: "createdAt", type: "datetime", required: false },
       { key: "updatedAt", type: "datetime", required: false },
     ],

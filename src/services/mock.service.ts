@@ -267,6 +267,7 @@ export const mockApplicationService = {
       jobId: data.jobId,
       translatorId: data.translatorId,
       coverLetter: data.coverLetter,
+      bidAmount: data.bidAmount,
       status: "submitted",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

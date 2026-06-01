@@ -6,6 +6,7 @@ export interface Application {
   translatorId: string;
   coverLetter: string;
   cvUrl?: string;
+  bidAmount?: number;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;

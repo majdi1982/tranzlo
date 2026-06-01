@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { LANGUAGES } from "@/data/languages";
 import { SPECIALIZATIONS } from "@/data/specializations";
@@ -30,6 +31,7 @@ export default function JobDetailPage() {
   const [company, setCompany] = React.useState<CompanyProfile | null>(null);
   const [application, setApplication] = React.useState<Application | null>(null);
   const [coverLetter, setCoverLetter] = React.useState("");
+  const [bidAmount, setBidAmount] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const isOwner = user && job?.companyId === user.$id;
@@ -41,6 +43,7 @@ export default function JobDetailPage() {
         const jobData = await services.job.getJob(params.id as string);
         if (!jobData) return;
         setJob(jobData);
+        setBidAmount(String(jobData.budget));
 
         const [companyData, myApps] = await Promise.all([
           services.profile.getCompanyProfile(jobData.companyId),
@@ -63,7 +66,12 @@ export default function JobDetailPage() {
     setSubmitting(true);
     try {
       const services = getServices();
-      await services.application.apply({ jobId: job!.$id, coverLetter, translatorId: user.$id });
+      await services.application.apply({
+        jobId: job!.$id,
+        coverLetter,
+        translatorId: user.$id,
+        bidAmount: bidAmount ? Number(bidAmount) : undefined
+      });
       toast({ title: "Application submitted!", variant: "success" });
       router.refresh();
     } catch {
@@ -217,9 +225,20 @@ export default function JobDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>Apply for this Job</CardTitle>
-              <CardDescription>Submit your application with a cover letter</CardDescription>
+              <CardDescription>Submit your application with your proposed budget and a cover letter</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Proposed Bid Price (USD)</label>
+                <Input
+                  type="number"
+                  placeholder="e.g. 80"
+                  value={bidAmount}
+                  onChange={(e) => setBidAmount(e.target.value)}
+                  className="h-11 rounded-xl bg-background"
+                />
+                <p className="text-xs text-muted-foreground">You can negotiate the price by proposing your preferred bid amount (client budget: ${job.budget.toLocaleString()}).</p>
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Cover Letter</label>
                 <Textarea
@@ -235,7 +254,7 @@ export default function JobDetailPage() {
                   <span>This job requires a translation test. You will receive the test after submitting your application.</span>
                 </div>
               )}
-              <Button onClick={handleApply} disabled={submitting || coverLetter.length < 20}>
+              <Button onClick={handleApply} disabled={submitting || coverLetter.length < 20 || !bidAmount}>
                 {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
                 Submit Application
               </Button>
@@ -248,17 +267,24 @@ export default function JobDetailPage() {
             <CardHeader>
               <CardTitle>Your Application</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center gap-3">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              <span className="text-sm">
-                You applied on {new Date(application.createdAt).toLocaleDateString()}
-                {application.status !== "submitted" && (
-                  <> · Status: <Badge variant={
-                    application.status === "accepted" ? "default" :
-                    application.status === "rejected" ? "destructive" : "secondary"
-                  }>{application.status}</Badge></>
-                )}
-              </span>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <span className="text-sm">
+                  You applied on {new Date(application.createdAt).toLocaleDateString()}
+                  {application.status !== "submitted" && (
+                    <> · Status: <Badge variant={
+                      application.status === "accepted" ? "default" :
+                      application.status === "rejected" ? "destructive" : "secondary"
+                    }>{application.status}</Badge></>
+                  )}
+                </span>
+              </div>
+              {application.bidAmount && (
+                <div className="text-sm text-muted-foreground mt-2">
+                  Proposed Bid Price: <span className="font-semibold text-foreground">${application.bidAmount.toLocaleString()}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
