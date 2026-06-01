@@ -399,6 +399,13 @@ async function main() {
           await wait(3000);
         } catch {}
       }
+      if (col.id === "jobs" && a.key === "specializations") {
+        try {
+          await db.deleteAttribute(DATABASE_ID, col.id, "specialization");
+          console.log(`      🧹 Dropped old stale 'specialization' (singular) for migration`);
+          await wait(3000);
+        } catch {}
+      }
       try {
         const dbId = DATABASE_ID;
         const colId = col.id;
