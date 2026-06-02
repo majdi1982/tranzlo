@@ -144,8 +144,10 @@ export default function PlansPage() {
     }
     if (user?.$id) {
       loadCurrentPlan();
+    } else if (!loading) {
+      setFetchingProfile(false);
     }
-  }, [user?.$id, role]);
+  }, [user?.$id, role, loading]);
 
   const handleSubscribe = (planId: string | null, planTier: string) => {
     if (!planId) return;
