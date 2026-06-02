@@ -6,3 +6,9 @@ next-env.d.ts
 check_webhooks.js
 subscribe-service.py
 subscribe-service/
+
+# managed
+**.data.json
+**.node-persist**
+**_IGNORE_**
+# end managed
