@@ -31,22 +31,6 @@ services:
     networks:
       - tranzlo-net
 
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: tranzlo-n8n
-    restart: unless-stopped
-    environment:
-      - N8N_HOST=n8n.tranzlo.net
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=https
-      - NODE_ENV=production
-      - WEBHOOK_URL=https://n8n.tranzlo.net/
-      - GENE_API_KEY=${GEMINI_API_KEY}
-    volumes:
-      - n8n_data:/home/node/.n8n
-    networks:
-      - tranzlo-net
-
   nginx:
     image: nginx:1.25-alpine
     container_name: tranzlo-nginx
@@ -65,7 +49,6 @@ services:
       - tranzlo-net
     depends_on:
       - frontend
-      - n8n
       - listmonk
 
   listmonk:
@@ -98,22 +81,6 @@ services:
     networks:
       - tranzlo-net
 
-  whatsapp-gateway:
-    build:
-      context: ./whatsapp-service
-      dockerfile: Dockerfile
-    container_name: tranzlo-whatsapp-gateway
-    restart: unless-stopped
-    ports:
-      - "8084:8084"
-    volumes:
-      - whatsapp_data:/app
-    environment:
-      - OPEN_WA_API_KEY=tranzloSecretKey
-      - PORT=8084
-    networks:
-      - tranzlo-net
-
 networks:
   tranzlo-net:
     driver: bridge
@@ -121,9 +88,5 @@ networks:
 volumes:
   redis_data:
     driver: local
-  n8n_data:
-    driver: local
   listmonk_db_data:
-    driver: local
-  whatsapp_data:
     driver: local
