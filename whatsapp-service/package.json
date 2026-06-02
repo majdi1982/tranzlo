@@ -1,0 +1,13 @@
+{
+  "name": "tranzlo-whatsapp-service",
+  "version": "1.0.0",
+  "description": "Custom WhatsApp open-wa HTTP Gateway for Tranzlo",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@open-wa/wa-automate": "^4.71.1",
+    "express": "^4.18.2"
+  }
+}

@@ -162,7 +162,9 @@ async function main() {
     SMTP_PORT: smtpPort || "465",
     SMTP_USER: smtpUser || "help@tranzlo.net",
     SMTP_PASSWORD: smtpPassword || "Cdromlg@8442",
-    SMTP_FROM: smtpFrom || "support@tranzlo.net"
+    SMTP_FROM: smtpFrom || "support@tranzlo.net",
+    OPEN_WA_API_URL: "http://187.124.179.33:8084/send",
+    OPEN_WA_API_KEY: "tranzloSecretKey"
   };
 
   for (const [key, value] of Object.entries(vars)) {

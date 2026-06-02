@@ -98,6 +98,22 @@ services:
     networks:
       - tranzlo-net
 
+  whatsapp-gateway:
+    build:
+      context: ./whatsapp-service
+      dockerfile: Dockerfile
+    container_name: tranzlo-whatsapp-gateway
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    volumes:
+      - whatsapp_data:/app
+    environment:
+      - OPEN_WA_API_KEY=tranzloSecretKey
+      - PORT=8084
+    networks:
+      - tranzlo-net
+
 networks:
   tranzlo-net:
     driver: bridge
@@ -108,4 +124,6 @@ volumes:
   n8n_data:
     driver: local
   listmonk_db_data:
+    driver: local
+  whatsapp_data:
     driver: local
