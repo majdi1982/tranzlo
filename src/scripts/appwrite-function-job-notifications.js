@@ -48,8 +48,8 @@ async function sendEmail({ to, subject, html, log, error }) {
 
 // Send WhatsApp via open-wa Gateway
 async function sendWhatsApp({ to, message, log, error }) {
-  const url = process.env.OPEN_WA_API_URL;
-  const apiKey = process.env.OPEN_WA_API_KEY;
+  const url = process.env.OPEN_WA_API_URL || "http://187.124.179.33:2785/api/sessions/tranzlo/messages/send-text";
+  const apiKey = process.env.OPEN_WA_API_KEY || "owa_k1_1a5d0207b454ff67bc2711564fc9073bee9730a83ee30351ae83148d57df991b";
 
   if (!url || !to) {
     log("⚠️ WhatsApp skipped (OPEN_WA_API_URL missing or no recipient phone).");
@@ -68,8 +68,8 @@ async function sendWhatsApp({ to, message, log, error }) {
         "Authorization": apiKey ? `Bearer ${apiKey}` : ""
       },
       body: JSON.stringify({
-        to: recipient,
-        content: message
+        chatId: recipient,
+        text: message
       })
     });
 

@@ -163,8 +163,8 @@ async function main() {
     SMTP_USER: smtpUser || "help@tranzlo.net",
     SMTP_PASSWORD: smtpPassword || "Cdromlg@8442",
     SMTP_FROM: smtpFrom || "support@tranzlo.net",
-    OPEN_WA_API_URL: "http://187.124.179.33:8084/send",
-    OPEN_WA_API_KEY: "tranzloSecretKey"
+    OPEN_WA_API_URL: "http://187.124.179.33:2785/api/sessions/tranzlo/messages/send-text",
+    OPEN_WA_API_KEY: "owa_k1_1a5d0207b454ff67bc2711564fc9073bee9730a83ee30351ae83148d57df991b"
   };
 
   for (const [key, value] of Object.entries(vars)) {
