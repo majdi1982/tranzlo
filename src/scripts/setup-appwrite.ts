@@ -102,6 +102,11 @@ const SCHEMA: Col[] = [
       { key: "isPublicPlatform", type: "boolean", required: false, default: true },
       { key: "searchEngines", type: "string", size: 64, required: false, array: true },
       { key: "seoKeywords", type: "string", size: 2000, required: false },
+      { key: "paypalSubscriptionId", type: "string", size: 128, required: false },
+      { key: "paypalEmail", type: "string", size: 255, required: false },
+      { key: "escrowBalance", type: "float", required: false, default: 0 },
+      { key: "availableBalance", type: "float", required: false, default: 0 },
+      { key: "whatsappNotificationEnabled", type: "boolean", required: false, default: true },
       { key: "createdAt", type: "datetime", required: false },
       { key: "updatedAt", type: "datetime", required: false },
     ],
@@ -139,6 +144,11 @@ const SCHEMA: Col[] = [
       { key: "isPublicPlatform", type: "boolean", required: false, default: true },
       { key: "searchEngines", type: "string", size: 64, required: false, array: true },
       { key: "seoKeywords", type: "string", size: 2000, required: false },
+      { key: "paypalSubscriptionId", type: "string", size: 128, required: false },
+      { key: "paypalEmail", type: "string", size: 255, required: false },
+      { key: "escrowBalance", type: "float", required: false, default: 0 },
+      { key: "availableBalance", type: "float", required: false, default: 0 },
+      { key: "whatsappNotificationEnabled", type: "boolean", required: false, default: true },
       { key: "createdAt", type: "datetime", required: false },
       { key: "updatedAt", type: "datetime", required: false },
     ],
@@ -167,6 +177,11 @@ const SCHEMA: Col[] = [
       { key: "reviewerType", type: "enum", elements: ["company", "translator"], required: true },
       { key: "activeTranslatorId", type: "string", size: 64, required: false },
       { key: "status", type: "enum", elements: ["open", "closed", "filled", "cancelled"], required: true },
+      { key: "escrowStatus", type: "enum", elements: ["unfunded", "funded", "approved", "released", "disputed", "refunded"], required: false, default: "unfunded" },
+      { key: "escrowAmount", type: "float", required: false, default: 0 },
+      { key: "paypalCaptureId", type: "string", size: 128, required: false },
+      { key: "platformFeeDeducted", type: "float", required: false, default: 0 },
+      { key: "releaseAt", type: "datetime", required: false },
       { key: "createdAt", type: "datetime", required: false },
       { key: "updatedAt", type: "datetime", required: false },
     ],
@@ -196,6 +211,11 @@ const SCHEMA: Col[] = [
       { key: "financialFileId", type: "string", size: 128, required: false },
       { key: "rejectionReason", type: "string", size: 1000, required: false },
       { key: "rejectionEmailSent", type: "boolean", required: false, default: false },
+      { key: "escrowStatus", type: "enum", elements: ["unfunded", "funded", "approved", "released", "disputed", "refunded"], required: false, default: "unfunded" },
+      { key: "escrowAmount", type: "float", required: false, default: 0 },
+      { key: "paypalCaptureId", type: "string", size: 128, required: false },
+      { key: "platformFeeDeducted", type: "float", required: false, default: 0 },
+      { key: "releaseAt", type: "datetime", required: false },
       { key: "createdAt", type: "datetime", required: false },
       { key: "updatedAt", type: "datetime", required: false },
     ],
@@ -403,6 +423,13 @@ async function main() {
         try {
           await db.deleteAttribute(DATABASE_ID, col.id, "specialization");
           console.log(`      🧹 Dropped old stale 'specialization' (singular) for migration`);
+          await wait(3000);
+        } catch {}
+      }
+      if ((col.id === "jobs" || col.id === "applications") && a.key === "escrowStatus") {
+        try {
+          await db.deleteAttribute(DATABASE_ID, col.id, "escrowStatus");
+          console.log(`      🧹 Dropped existing 'escrowStatus' in ${col.id} for migration`);
           await wait(3000);
         } catch {}
       }

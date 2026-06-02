@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown, Sun, Moon, Monitor, MessageSquare, Bell, Settings } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown, Sun, Moon, Monitor, MessageSquare, Bell, Settings, Sparkles } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession } from "@/providers/session-provider";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
@@ -355,6 +355,15 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {user && (
+                <Link href="/dashboard/plans">
+                  <Button variant="outline" size="sm" className="hidden lg:flex rounded-full text-xs font-semibold border-primary/30 text-primary hover:bg-primary/5 hover:text-primary mr-1">
+                    <Sparkles className="mr-1 h-3.5 w-3.5 text-primary animate-pulse" />
+                    Upgrade
+                  </Button>
+                </Link>
+              )}
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group ml-1">
@@ -380,6 +389,12 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="rounded-md cursor-pointer text-primary focus:text-primary font-medium">
+                    <Link href="/dashboard/plans" className="flex items-center">
+                      <Sparkles className="mr-2 h-4 w-4 text-primary animate-pulse" />
+                      Upgrade Membership
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild className="rounded-md cursor-pointer">
                     <Link href={dashboardHref} className="flex items-center">
                       <LayoutDashboard className="mr-2 h-4 w-4" />

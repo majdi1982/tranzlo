@@ -1,0 +1,231 @@
+// Tranzlo RSS Auto-Publisher with Gemini AI Translation & Refinement
+// Run: npx tsx src/scripts/auto-publish-rss.ts
+//
+// Requires: APPWRITE_API_KEY and GEMINI_API_KEY in .env.local
+
+import * as fs from "fs";
+import * as path from "path";
+
+// 1. Load Environment Variables from .env.local
+const envPath = path.resolve(process.cwd(), ".env.local");
+if (fs.existsSync(envPath)) {
+  for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
+    const t = line.trim();
+    if (t && !t.startsWith("#")) {
+      const eq = t.indexOf("=");
+      if (eq > 0) {
+        let v = t.slice(eq + 1).trim();
+        if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+        const k = t.slice(0, eq).trim();
+        if (!process.env[k]) {
+          process.env[k] = v;
+        }
+      }
+    }
+  }
+}
+
+const {
+  NEXT_PUBLIC_APPWRITE_ENDPOINT: endpoint,
+  NEXT_PUBLIC_APPWRITE_PROJECT_ID: projectId,
+  APPWRITE_API_KEY: apiKey,
+  NEXT_PUBLIC_APPWRITE_DATABASE_ID: databaseId,
+  GEMINI_API_KEY: geminiApiKey,
+} = process.env;
+
+const DB_ID = databaseId || "tranzlo_main";
+const COLLECTION_BLOG_POSTS = "blog_posts";
+
+if (!endpoint || !projectId || !apiKey) {
+  console.error("❌ Missing Appwrite credentials in .env.local");
+  process.exit(1);
+}
+
+const RSS_FEEDS = [
+  "https://blog.google/rss/",
+  "https://blog.google/technology/ai/rss/",
+  "https://dev.to/feed/tag/translation",
+  "https://dev.to/feed/tag/localization"
+];
+
+// Helper to sanitize XML/HTML and extract content
+function cleanCDATA(str: string): string {
+  return str.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/, "$1").trim();
+}
+
+function extractTag(xml: string, tag: string): string {
+  const match = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\/${tag}>`, "i"));
+  if (match) {
+    return cleanCDATA(match[1]);
+  }
+  return "";
+}
+
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+}
+
+// Generate high quality post contents & translate using Gemini AI
+async function enrichAndTranslateWithGemini(title: string, rawContent: string): Promise<{
+  titleAr: string;
+  excerptAr: string;
+  contentAr: string;
+  tags: string[];
+}> {
+  if (!geminiApiKey) {
+    console.warn("⚠️ GEMINI_API_KEY not found. Falling back to raw English parsing.");
+    return {
+      titleAr: title,
+      excerptAr: rawContent.slice(0, 150).replace(/<[^>]*>/g, "") + "...",
+      contentAr: rawContent,
+      tags: ["news", "general"]
+    };
+  }
+
+  const prompt = `
+You are an expert tech writer and professional blogger for Tranzlo (a translation and localization platform).
+Analyze this blog post title and description:
+Title: "${title}"
+Content/Description snippet: "${rawContent.slice(0, 1000)}"
+
+Task:
+1. Optimize the Title into a catchy, premium English blog title.
+2. Write a professional English summary/excerpt (1-2 sentences, min 15 chars).
+3. Generate a beautifully structured, premium English blog post content in Markdown (min 100 chars), expanding on the topic professionally to keep the readers of a translation/localization/tech platform engaged. Keep it clean, professional, and visually stunning.
+4. Provide 3-5 relevant lowercase tags (e.g. technology, localization, ai, translation).
+
+Return your output STRICTLY as a JSON object with this exact format, with no markdown code block backticks around it:
+{
+  "titleAr": "Optimized English title here",
+  "excerptAr": "Optimized English excerpt here",
+  "contentAr": "Optimized English full content here in Markdown format",
+  "tags": ["tag1", "tag2", "tag3"]
+}
+`;
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" }
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    }
+
+    const data = await res.json();
+    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textResult) throw new Error("Empty response from Gemini");
+
+    return JSON.parse(textResult.trim());
+  } catch (err: any) {
+    console.error("❌ Gemini enrichment failed:", err.message);
+    return {
+      titleAr: `[News] ${title}`,
+      excerptAr: `Article summary: ${title} in technology and translation.`,
+      contentAr: `### ${title}\n\n${rawContent.replace(/<[^>]*>/g, "")}`,
+      tags: ["news", "translation"]
+    };
+  }
+}
+
+async function main() {
+  const { Client, Databases, Query } = await import("node-appwrite");
+  const client = new Client().setEndpoint(endpoint!).setProject(projectId!).setKey(apiKey!);
+  const db = new Databases(client);
+
+  console.log("🚀 Starting RSS Auto-Publishing Job...");
+
+  for (const url of RSS_FEEDS) {
+    console.log(`\n📡 Fetching Feed: ${url}`);
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+      });
+
+      if (!res.ok) {
+        console.error(`❌ Failed to fetch feed ${url}: ${res.status}`);
+        continue;
+      }
+
+      const text = await res.text();
+      const items = text.split("<item>");
+      
+      // Skip the first element as it's the header RSS info
+      const blogItems = items.slice(1, 4); // Limit to top 3 articles per feed to avoid rate limits
+      console.log(`Found ${items.length - 1} articles. Processing top ${blogItems.length}...`);
+
+      for (const itemXml of blogItems) {
+        const originalTitle = extractTag(itemXml, "title");
+        const originalLink = extractTag(itemXml, "link");
+        const originalDesc = extractTag(itemXml, "description") || extractTag(itemXml, "content:encoded") || extractTag(itemXml, "content");
+        
+        if (!originalTitle || !originalLink) continue;
+
+        const slug = generateSlug(originalTitle);
+        console.log(`👉 Processing: "${originalTitle}" (Slug: ${slug})`);
+
+        // Check if slug already exists in Appwrite to avoid duplicates
+        try {
+          const existing = await db.listDocuments(DB_ID, COLLECTION_BLOG_POSTS, [
+            Query.equal("slug", slug),
+            Query.limit(1)
+          ]);
+
+          if (existing.documents.length > 0) {
+            console.log(`   ⏭️ Already published. Skipping.`);
+            continue;
+          }
+        } catch (dbErr: any) {
+          console.error(`   ⚠️ DB check error: ${dbErr.message}`);
+        }
+
+        console.log("   ✨ Translating and generating professional Arabic article with Gemini...");
+        const enriched = await enrichAndTranslateWithGemini(originalTitle, originalDesc);
+
+        console.log(`   💾 Saving post to Appwrite database...`);
+        try {
+          const now = new Date().toISOString();
+          const docId = `post_${Math.random().toString(36).substring(2, 11)}`;
+          
+          await db.createDocument(DB_ID, COLLECTION_BLOG_POSTS, docId, {
+            authorId: "system_news_bot",
+            title: enriched.titleAr,
+            slug: slug,
+            excerpt: enriched.excerptAr.slice(0, 490),
+            content: enriched.contentAr.slice(0, 48000),
+            tags: enriched.tags,
+            status: "published",
+            publishedAt: now,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          console.log(`   ✅ SUCCESS: Post "${enriched.titleAr}" published!`);
+        } catch (saveErr: any) {
+          console.error(`   ❌ Failed to save post:`, saveErr.message);
+        }
+      }
+    } catch (feedErr: any) {
+      console.error(`❌ Error parsing feed ${url}:`, feedErr.message);
+    }
+  }
+
+  console.log("\n🏁 RSS Auto-Publishing Job Finished successfully.");
+}
+
+main().catch((err) => {
+  console.error("Fatal Error:", err);
+  process.exit(1);
+});
