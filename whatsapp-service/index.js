@@ -23,7 +23,16 @@ create({
   logQR: true, // Will print QR code directly in docker container logs
   popup: false,
   qrTimeout: 0,
-  useChrome: false // Use Chromium bundled inside Alpine Docker
+  useChrome: false,
+  executablePath: "/usr/bin/chromium-browser", // Use Chromium installed via Alpine apk
+  chromiumArgs: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--no-zygote",
+    "--single-process"
+  ]
 }).then((client) => {
   waClient = client;
   isReady = true;
