@@ -154,7 +154,7 @@ export default function PlansPage() {
     setProcessingPlan(planTier);
 
     // Initialize PayPal Subscription Button overlay dynamically
-    const clientId = process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5";
+    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5";
     
     // Inject PayPal subscription overlay dynamically or redirect to custom portal
     const containerId = `paypal-sub-container-${planTier}`;
