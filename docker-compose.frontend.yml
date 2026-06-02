@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_APPWRITE_ENDPOINT=https://appwrite.tranzlo.net/v1
+        - NEXT_PUBLIC_APPWRITE_PROJECT_ID=6a156f9000335c99e9be
+        - NEXT_PUBLIC_PAYPAL_CLIENT_ID=AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5
+    container_name: tranzlo-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APPWRITE_ENDPOINT=https://appwrite.tranzlo.net/v1
+      - NEXT_PUBLIC_APPWRITE_PROJECT_ID=6a156f9000335c99e9be
+      - NEXT_PUBLIC_PAYPAL_CLIENT_ID=AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5
+    networks:
+      - tranzlo-net
+
+networks:
+  tranzlo-net:
+    external: true

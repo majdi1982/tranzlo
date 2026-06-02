@@ -31,18 +31,17 @@ git push -u origin main || git push origin main
 
 :: Create directory structure on VPS
 echo [2/5] Creating isolated subdirectories on VPS...
-ssh -o StrictHostKeyChecking=no %VPS_USER%@%VPS_HOST% "mkdir -p %PROJECT_DIR%/nginx %PROJECT_DIR%/scripts %PROJECT_DIR%/frontend %PROJECT_DIR%/whatsapp-service"
+ssh -o StrictHostKeyChecking=no %VPS_USER%@%VPS_HOST% "mkdir -p %PROJECT_DIR%/nginx %PROJECT_DIR%/scripts %PROJECT_DIR%/frontend"
 
 :: Upload config files
 echo [3/5] Uploading production configurations...
 scp -o StrictHostKeyChecking=no "deploy.sh" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/deploy.sh
-scp -o StrictHostKeyChecking=no "docker-compose.yml" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/docker-compose.yml
+scp -o StrictHostKeyChecking=no "docker-compose.frontend.yml" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/docker-compose.frontend.yml
+scp -o StrictHostKeyChecking=no "docker-compose.listmonk.yml" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/docker-compose.listmonk.yml
+scp -o StrictHostKeyChecking=no "docker-compose.redis.yml" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/docker-compose.redis.yml
 scp -o StrictHostKeyChecking=no "nginx\default.conf" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/nginx/default.conf
 scp -o StrictHostKeyChecking=no "scripts\setup-vps.sh" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/scripts/setup-vps.sh
 scp -o StrictHostKeyChecking=no "scripts\certbot-ssl.sh" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/scripts/certbot-ssl.sh
-scp -o StrictHostKeyChecking=no "whatsapp-service\index.js" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/whatsapp-service/index.js
-scp -o StrictHostKeyChecking=no "whatsapp-service\package.json" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/whatsapp-service/package.json
-scp -o StrictHostKeyChecking=no "whatsapp-service\Dockerfile" %VPS_USER%@%VPS_HOST%:%PROJECT_DIR%/whatsapp-service/Dockerfile
 
 :: Upload environment variables
 echo [4/5] Uploading secure environment credentials...

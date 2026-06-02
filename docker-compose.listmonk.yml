@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  listmonk:
+    image: listmonk/listmonk:latest
+    container_name: tranzlo-listmonk
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./config.toml:/listmonk/config.toml
+    depends_on:
+      listmonk-db:
+        condition: service_healthy
+    networks:
+      - tranzlo-net
+
+  listmonk-db:
+    image: postgres:15-alpine
+    container_name: tranzlo-listmonk-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=listmonk
+      - POSTGRES_USER=listmonk
+      - POSTGRES_DB=listmonk
+    volumes:
+      - listmonk_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U listmonk"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tranzlo-net
+
+networks:
+  tranzlo-net:
+    external: true
+
+volumes:
+  listmonk_db_data:
+    driver: local
