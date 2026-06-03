@@ -26,7 +26,7 @@ import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { TranslatorProfile, CompanyProfile, Role } from "@/types";
 import { COUNTRY_CODES } from "@/data/country-codes";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useSession();
@@ -1451,5 +1451,17 @@ export default function ProfilePage() {
 
       </div>
     </AuthGuard>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <React.Suspense fallback={
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <ProfileContent />
+    </React.Suspense>
   );
 }
