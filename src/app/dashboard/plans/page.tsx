@@ -12,57 +12,57 @@ import { getServices } from "@/services";
 
 // Plan mappings corresponding to our Appwrite PayPal Webhook PLAN_MAP
 const PLANS = {
-  translator: [
+  translator: (isAnnual: boolean) => [
     {
       name: "Free Member",
       price: "$0",
       period: "forever",
-      description: "Basic translating features with default platform fee.",
+      description: "Basic translating features with default platform fee. Setup is 100% free.",
       features: [
         "20% platform escrow fee",
         "Standard payout release (30 days)",
         "Basic email notifications",
-        "Public platform profile"
+        "Public platform profile",
+        "Account setup & preparation: Free"
       ],
       tier: "free",
       buttonText: "Current Plan",
       paypalPlanId: null
     },
     {
-      name: "Standard Member",
-      price: "$19",
-      period: "month",
+      name: "Pro Member",
+      price: isAnnual ? "$190" : "$19",
+      period: isAnnual ? "year" : "month",
       description: "Great for active translators who want to keep more of their earnings.",
       features: [
         "10% platform escrow fee (50% reduction!)",
-        "Fast payout release (30 days automated)",
-        "SMTP and WhatsApp notifications",
-        "Direct PayPal Payouts enabled",
-        "Verified Translator badge"
+        "Up to 5 languages",
+        "Automatic payouts enabled",
+        "Verified Pro Translator badge",
+        "Account setup & preparation: Free"
       ],
-      tier: "standard",
-      buttonText: "Subscribe Standard",
-      paypalPlanId: "P-1FA07072XD6828721NHNGB6I" // Monthly Standard Plan ID
+      tier: "standard", // internally maps to standard
+      buttonText: isAnnual ? "Subscribe Pro Annual" : "Subscribe Pro Monthly",
+      paypalPlanId: isAnnual ? "P-67S23580XX424023HNHN3PVA" : "P-1FA07072XD6828721NHNGB6I"
     },
     {
       name: "Plus Member",
-      price: "$49",
-      period: "month",
-      description: "Ultimate plan for professional full-time translators.",
+      price: isAnnual ? "$490" : "$49",
+      period: isAnnual ? "year" : "month",
+      description: "Ultimate plan for professional full-time translators and small teams.",
       features: [
         "Only 5% platform escrow fee (75% reduction!)",
-        "SMTP, Email & instant WhatsApp notifications",
-        "Premium support & priority job matching",
-        "Direct automated PayPal Payouts",
+        "Add 3 colleagues as a team (No extra fees)",
+        "Inherit all Pro features for your team",
         "Featured placement in browse lists",
-        "Verified Plus Badge"
+        "Account setup & preparation: Free"
       ],
       tier: "plus",
-      buttonText: "Upgrade to Plus",
-      paypalPlanId: "P-5H654170A9572811WNHNGK3Q" // Monthly Plus Plan ID
+      buttonText: isAnnual ? "Upgrade to Plus Annual" : "Upgrade to Plus Monthly",
+      paypalPlanId: isAnnual ? "P-2YT069538P2060108NHN3OZA" : "P-5H654170A9572811WNHNGK3Q"
     }
   ],
-  company: [
+  company: (isAnnual: boolean) => [
     {
       name: "Free Tier",
       price: "$0",
@@ -72,44 +72,44 @@ const PLANS = {
         "5% project funding escrow fee",
         "Standard email notifications",
         "Up to 3 active job postings",
-        "Standard translator search"
+        "Standard translator search",
+        "Account setup & preparation: Free"
       ],
       tier: "free",
       buttonText: "Current Plan",
       paypalPlanId: null
     },
     {
-      name: "Standard Business",
-      price: "$99",
-      period: "month",
+      name: "Pro Business",
+      price: isAnnual ? "$990" : "$99",
+      period: isAnnual ? "year" : "month",
       description: "Best for growing organizations and agency localization.",
       features: [
         "2% project funding escrow fee",
-        "SMTP & WhatsApp notifications",
         "Unlimited active job postings",
         "Access to verified translators",
-        "Priority support"
+        "Add 3 accounts with Translator Pro specs",
+        "Account setup & preparation: Free"
       ],
       tier: "standard",
-      buttonText: "Subscribe Standard",
-      paypalPlanId: "P-69A23890DT383361KNHN26ZQ" // Monthly Standard Plan ID
+      buttonText: isAnnual ? "Subscribe Pro Annual" : "Subscribe Pro Monthly",
+      paypalPlanId: isAnnual ? "P-9DV15255E68299003NHN3OFI" : "P-69A23890DT383361KNHN26ZQ"
     },
     {
-      name: "Plus Corporate",
-      price: "$249",
-      period: "month",
+      name: "Plus Business",
+      price: isAnnual ? "$2490" : "$249",
+      period: isAnnual ? "year" : "month",
       description: "Designed for enterprise scale localization with zero fees.",
       features: [
         "0% project funding escrow fee (No fees!)",
-        "SMTP, Email & instant WhatsApp notifications",
-        "Premium dedicated account manager",
         "Advanced translator matching filters",
         "Featured job listings (Top of browse)",
-        "Verified Corporate Badge"
+        "Add 3 accounts with Translator Plus specs",
+        "Account setup & preparation: Free"
       ],
       tier: "plus",
-      buttonText: "Upgrade to Plus",
-      paypalPlanId: "P-7R9234853W7319009NHN3A2I" // Monthly Plus Plan ID
+      buttonText: isAnnual ? "Upgrade to Plus Annual" : "Upgrade to Plus Monthly",
+      paypalPlanId: isAnnual ? "P-2WR17344M29329341NHN3NPI" : "P-7R9234853W7319009NHN3A2I"
     }
   ]
 };
@@ -117,12 +117,14 @@ const PLANS = {
 export default function PlansPage() {
   const { user, loading } = useSession();
   const router = useRouter();
+  const [isAnnual, setIsAnnual] = React.useState<boolean>(false);
   const [currentTier, setCurrentTier] = React.useState<string>("free");
   const [fetchingProfile, setFetchingProfile] = React.useState<boolean>(true);
   const [processingPlan, setProcessingPlan] = React.useState<string | null>(null);
 
   const role = (user?.prefs?.role as Role) || "translator";
-  const userPlans = role === "company" ? PLANS.company : PLANS.translator;
+  // Pro Member tier internally maps to standard to preserve DB schema compatibility
+  const userPlans = role === "company" ? PLANS.company(isAnnual) : PLANS.translator(isAnnual);
 
   React.useEffect(() => {
     async function loadCurrentPlan() {
@@ -149,61 +151,69 @@ export default function PlansPage() {
     }
   }, [user?.$id, role, loading]);
 
+  React.useEffect(() => {
+    if (!processingPlan) return;
+
+    const plan = userPlans.find((p: any) => p.tier === processingPlan);
+    if (!plan || !plan.paypalPlanId) return;
+
+    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5";
+    const containerId = `paypal-sub-container-${processingPlan}`;
+
+    const renderButton = () => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      if ((window as any).paypal) {
+        container.innerHTML = ""; // Clear existing loading spinner
+        (window as any).paypal.Buttons({
+          style: {
+            shape: "rect",
+            color: "blue",
+            layout: "vertical",
+            label: "subscribe"
+          },
+          createSubscription: function(data: any, actions: any) {
+            return actions.subscription.create({
+              plan_id: plan.paypalPlanId,
+              custom_id: user?.$id // Pass userId to webhook
+            });
+          },
+          onApprove: function(data: any, actions: any) {
+            alert(`🎉 Subscription successful! ID: ${data.subscriptionID}. Your account will be upgraded within a few moments.`);
+            setProcessingPlan(null);
+            window.location.reload();
+          },
+          onError: function(err: any) {
+            console.error("Subscription Error:", err);
+            alert("❌ Payment could not be processed. Please try again.");
+            setProcessingPlan(null);
+          }
+        }).render(`#${containerId}`);
+      } else {
+        // If script is loading or loaded but paypal object not initialized, retry
+        setTimeout(renderButton, 100);
+      }
+    };
+
+    const scriptId = "paypal-checkout-subscription-script";
+    let script = document.getElementById(scriptId) as HTMLScriptElement;
+
+    if (!script) {
+      script = document.createElement("script");
+      script.id = scriptId;
+      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&vault=true&intent=subscription`;
+      script.onload = renderButton;
+      document.body.appendChild(script);
+    } else {
+      // Small timeout to allow React to commit DOM render of container
+      setTimeout(renderButton, 100);
+    }
+  }, [processingPlan, user?.$id, userPlans]);
+
   const handleSubscribe = (planId: string | null, planTier: string) => {
     if (!planId) return;
     setProcessingPlan(planTier);
-
-    // Initialize PayPal Subscription Button overlay dynamically
-    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5";
-    
-    // Inject PayPal subscription overlay dynamically or redirect to custom portal
-    const containerId = `paypal-sub-container-${planTier}`;
-    const container = document.getElementById(containerId);
-    if (container) {
-      container.innerHTML = ""; // Clear existing
-      
-      const scriptId = "paypal-checkout-subscription-script";
-      let script = document.getElementById(scriptId) as HTMLScriptElement;
-      
-      const renderButton = () => {
-        if ((window as any).paypal) {
-          (window as any).paypal.Buttons({
-            style: {
-              shape: "rect",
-              color: "blue",
-              layout: "vertical",
-              label: "subscribe"
-            },
-            createSubscription: function(data: any, actions: any) {
-              return actions.subscription.create({
-                plan_id: planId,
-                custom_id: user?.$id // Pass userId to webhook
-              });
-            },
-            onApprove: function(data: any, actions: any) {
-              alert(`🎉 Subscription successful! ID: ${data.subscriptionID}. Your account will be upgraded within a few moments.`);
-              setProcessingPlan(null);
-              window.location.reload();
-            },
-            onError: function(err: any) {
-              console.error("Subscription Error:", err);
-              alert("❌ Payment could not be processed. Please try again.");
-              setProcessingPlan(null);
-            }
-          }).render(`#${containerId}`);
-        }
-      };
-
-      if (!script) {
-        script = document.createElement("script");
-        script.id = scriptId;
-        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&vault=true&intent=subscription`;
-        script.onload = renderButton;
-        document.body.appendChild(script);
-      } else {
-        renderButton();
-      }
-    }
   };
 
   if (loading || fetchingProfile) {
@@ -229,10 +239,34 @@ export default function PlansPage() {
           </h1>
           <p className="text-lg text-muted-foreground">
             {role === "translator" 
-              ? "Lower platform fees, get direct PayPal Payouts, and boost your job application match rate."
-              : "Zero commission funding, unlimited job listings, and premium dedicated support."
+              ? "Lower platform fees, support multiple languages, and build your collaborative team."
+              : "Zero commission funding, post unlimited jobs, and enable collaborator accounts."
             }
           </p>
+
+          {/* Monthly / Annual Toggle Switch */}
+          <div className="flex items-center justify-center gap-4 pt-4">
+            <span className={`text-sm font-semibold transition-colors ${!isAnnual ? "text-primary" : "text-muted-foreground"}`}>
+              Monthly
+            </span>
+            <button
+              onClick={() => setIsAnnual(!isAnnual)}
+              className="relative w-12 h-6 bg-primary/20 rounded-full transition-colors focus:outline-none"
+              aria-label="Toggle annual billing"
+            >
+              <div
+                className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-primary transition-transform ${
+                  isAnnual ? "translate-x-6" : ""
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${isAnnual ? "text-primary" : "text-muted-foreground"}`}>
+              Annual
+              <span className="text-[10px] bg-teal-500/20 text-teal-600 px-2 py-0.5 rounded-full font-bold">
+                2 Months Free!
+              </span>
+            </span>
+          </div>
         </div>
 
         {/* Current Plan status banner */}
@@ -242,7 +276,7 @@ export default function PlansPage() {
             <div>
               <p className="text-sm text-muted-foreground font-medium">YOUR CURRENT MEMBERSHIP</p>
               <h3 className="text-lg font-bold text-foreground capitalize">
-                {currentTier} Account
+                {currentTier === "standard" ? "Pro" : currentTier} Account
               </h3>
             </div>
           </div>

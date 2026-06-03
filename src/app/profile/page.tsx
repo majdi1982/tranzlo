@@ -72,6 +72,7 @@ function ProfileContent() {
     seoKeywords: "",
     planTier: "free",
     pricing: [] as { serviceId: string; rate: number; unit: string }[],
+    paypalEmail: "",
   });
 
   // Company state
@@ -89,6 +90,7 @@ function ProfileContent() {
     isPublicPlatform: true,
     searchEngines: [] as string[],
     seoKeywords: "",
+    paypalEmail: "",
   });
 
   const [profileExists, setProfileExists] = React.useState(false);
@@ -163,6 +165,7 @@ function ProfileContent() {
             seoKeywords: translatorProfile.seoKeywords || "",
             planTier: translatorProfile.planTier || "free",
             pricing: parsedPricing,
+            paypalEmail: translatorProfile.paypalEmail || "",
           });
           foundProfile = true;
         }
@@ -189,6 +192,7 @@ function ProfileContent() {
               isPublicPlatform: companyProfile.isPublicPlatform ?? true,
               searchEngines: companyProfile.searchEngines || [],
               seoKeywords: companyProfile.seoKeywords || "",
+              paypalEmail: companyProfile.paypalEmail || "",
             });
             foundProfile = true;
           }
@@ -327,8 +331,8 @@ function ProfileContent() {
           email: user.email || "",
           onboardingComplete: true,
           pricing: JSON.stringify(translatorData.pricing || []),
+          paypalEmail: translatorData.paypalEmail || undefined,
         });
-      } else if (role === "company") {
         await services.profile.updateCompanyProfile(user.$id, {
           companyName: companyData.companyName,
           fullName: companyData.fullName,
@@ -345,7 +349,8 @@ function ProfileContent() {
           isPublicPlatform: companyData.isPublicPlatform,
           searchEngines: companyData.searchEngines,
           seoKeywords: companyData.seoKeywords,
-          onboardingComplete: true
+          onboardingComplete: true,
+          paypalEmail: companyData.paypalEmail || undefined,
         } as any);
       }
       toast({
@@ -370,11 +375,11 @@ function ProfileContent() {
           languages: prev.languages.filter((l) => l !== code),
         };
       }
-      const limit = prev.planTier === "standard" ? 3 : prev.planTier === "plus" ? 10 : 1;
+      const limit = prev.planTier === "standard" || prev.planTier === "pro" ? 5 : prev.planTier === "plus" ? 10 : 1;
       if (prev.languages.length >= limit) {
         toast({
           title: "Language Limit Reached",
-          description: `Your plan (${prev.planTier === "standard" ? "Standard" : prev.planTier === "plus" ? "Plus" : "Free"}) is limited to ${limit} language(s). Please upgrade to add more.`,
+          description: `Your plan (${prev.planTier === "standard" || prev.planTier === "pro" ? "Pro" : prev.planTier === "plus" ? "Plus" : "Free"}) is limited to ${limit} language(s). Please upgrade to add more.`,
           variant: "destructive",
         });
         return prev;
@@ -927,6 +932,18 @@ function ProfileContent() {
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="paypalEmail">PayPal Payout Email</Label>
+                      <Input
+                        id="paypalEmail"
+                        type="email"
+                        value={translatorData.paypalEmail}
+                        onChange={(e) => setTranslatorData((p) => ({ ...p, paypalEmail: e.target.value }))}
+                        placeholder="your-paypal-email@domain.com"
+                        className="rounded-xl border-border/50"
+                      />
+                      <p className="text-4xs text-muted-foreground">PayPal payouts are sent directly to this address. Ensure it is correct.</p>
+                    </div>
+                    <div className="space-y-2">
                       <Label className="text-sm font-semibold">WhatsApp Number</Label>
                       <div className="flex gap-2">
                         <ResponsiveSelect
@@ -1032,7 +1049,7 @@ function ProfileContent() {
                       <div className="flex justify-between items-center">
                         <Label className="text-xs font-semibold">Languages Spoken/Written</Label>
                         <Badge variant="outline" className="text-4xs uppercase bg-teal-500/5 text-teal-600 border-teal-500/20 font-bold">
-                          Tier: {translatorData.planTier === "standard" ? "Standard (Max 3)" : translatorData.planTier === "plus" ? "Plus (Max 10)" : "Free (Max 1)"}
+                          Tier: {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? "Pro (Max 5)" : translatorData.planTier === "plus" ? "Plus (Max 10)" : "Free (Max 1)"}
                         </Badge>
                       </div>
                       <ResponsiveSelect
@@ -1080,7 +1097,7 @@ function ProfileContent() {
                         <div className="space-y-0.5">
                           <span className="text-4xs font-bold text-muted-foreground uppercase tracking-wider block">Languages Limit</span>
                           <span className="text-xs font-bold text-foreground">
-                            {translatorData.languages.length} / {translatorData.planTier === "standard" ? 3 : translatorData.planTier === "plus" ? 10 : 1} Used
+                            {translatorData.languages.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 10 : 1} Used
                           </span>
                         </div>
                         {translatorData.planTier !== "plus" && (
@@ -1343,6 +1360,18 @@ function ProfileContent() {
                         placeholder="Your full name"
                         className="rounded-xl border-border/50"
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="companyPaypalEmail">PayPal Billing Email</Label>
+                      <Input
+                        id="companyPaypalEmail"
+                        type="email"
+                        value={companyData.paypalEmail}
+                        onChange={(e) => setCompanyData((p) => ({ ...p, paypalEmail: e.target.value }))}
+                        placeholder="billing-paypal@company.com"
+                        className="rounded-xl border-border/50"
+                      />
+                      <p className="text-4xs text-muted-foreground">PayPal invoice billing email for payments and refunds.</p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="contactPerson">Contact Person Title</Label>

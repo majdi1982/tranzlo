@@ -26,7 +26,7 @@ export default function TranslatorTeamPage() {
   const { user } = useSession();
   const { toast } = useToast();
   const router = useRouter();
-  const [planTier, setPlanTier] = React.useState<"free" | "standard" | "plus">("free");
+  const [planTier, setPlanTier] = React.useState<"free" | "standard" | "pro" | "plus">("free");
   const [loadingPlan, setLoadingPlan] = React.useState(true);
 
   const [members, setMembers] = React.useState<TranslatorTeamMember[]>([
@@ -56,7 +56,7 @@ export default function TranslatorTeamPage() {
     loadPlan();
   }, [user?.$id]);
 
-  const maxMembers = planTier === "plus" ? 10 : planTier === "standard" ? 3 : 1;
+  const maxMembers = planTier === "plus" ? 3 : 0;
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +65,7 @@ export default function TranslatorTeamPage() {
       return;
     }
 
-    if (members.length + 1 >= maxMembers) {
+    if (members.length + 1 > maxMembers) {
       toast({
         title: "Team limit reached",
         description: `Your ${planTier.toUpperCase()} plan is limited to ${maxMembers} team member(s). Please upgrade to add more.`,
@@ -117,7 +117,7 @@ export default function TranslatorTeamPage() {
               Linguist Team & Subcontractors
             </h1>
             <Badge variant="outline" className="bg-teal-500/10 text-teal-600 border-teal-500/20 font-bold text-3xs uppercase py-1 px-2.5 rounded-lg">
-              Tier: {planTier === "plus" ? "Plus" : planTier === "standard" ? "Standard" : "Free Member"}
+              Tier: {planTier === "plus" ? "Plus" : planTier === "standard" || planTier === "pro" ? "Pro" : "Free Member"}
             </Badge>
           </div>
           <p className="text-muted-foreground text-sm mt-1">
@@ -125,7 +125,7 @@ export default function TranslatorTeamPage() {
           </p>
         </div>
 
-        {planTier === "free" ? (
+        {planTier !== "plus" ? (
           <Card className="glass-card border-border/40 p-8 rounded-2xl flex flex-col items-center text-center space-y-6 bg-gradient-to-br from-background/30 to-accent/5">
             <div className="mx-auto h-16 w-16 rounded-3xl bg-amber-500/10 flex items-center justify-center ring-1 ring-amber-500/20">
               <Sparkles className="h-8 w-8 text-amber-500 animate-bounce" />
@@ -133,7 +133,7 @@ export default function TranslatorTeamPage() {
             <div className="max-w-md space-y-2">
               <h2 className="text-lg font-bold text-foreground">Agency Team is Locked</h2>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                The Free Plan is limited to 1 translator (yourself). Upgrade your subscription plan to invite colleagues, associate linguists, or proofreaders to your agency team.
+                The Free and Pro Plans do not support collaborative teams. Upgrade to the Plus Plan to invite colleagues, associate linguists, or proofreaders to your agency team (up to 3 team members).
               </p>
             </div>
             <Button onClick={() => router.push("/dashboard/plans")} className="rounded-xl bg-teal-600 hover:bg-teal-700 text-xs font-bold gap-2">

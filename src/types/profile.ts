@@ -12,6 +12,8 @@ export interface BaseProfile {
   planTier: string;
   trialEndsAt?: string;
   trialStatus?: string;
+  paypalSubscriptionId?: string;
+  paypalEmail?: string;
   createdAt: string;
   updatedAt: string;
 }
