@@ -636,73 +636,77 @@ export default function SearchHubPage() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {filteredTranslators.map((t) => (
-                        <Card key={t.$id} className="bg-card/30 border-border hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
+                        <Card
+                          key={t.$id}
+                          className="bg-card/30 border-border hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden"
+                        >
                           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                          <CardHeader className="pb-2.5">
-                            <div className="flex items-start gap-3.5">
-                              <div className="h-11 w-11 rounded-none bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20 shrink-0">
-                                {t.fullName
-                                  ? t.fullName
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .join("")
-                                      .toUpperCase()
-                                      .slice(0, 2)
-                                  : "?"}
+                          <Link href={`/profile?userId=${t.userId}`} className="block group/link flex-1 flex flex-col">
+                            <CardHeader className="pb-2.5">
+                              <div className="flex items-start gap-3.5">
+                                <div className="h-11 w-11 rounded-none bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20 shrink-0">
+                                  {t.fullName
+                                    ? t.fullName
+                                        .split(" ")
+                                        .map((n: string) => n[0])
+                                        .join("")
+                                        .toUpperCase()
+                                        .slice(0, 2)
+                                    : "?"}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <CardTitle className="text-sm font-bold text-foreground group-hover/link:text-cyan-400 transition-colors truncate">{t.fullName}</CardTitle>
+                                    {t.isVerified && (
+                                      <UserCheck className="h-4 w-4 text-cyan-400 shrink-0" />
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                                    <span className="flex items-center text-amber-400 gap-0.5">
+                                      <Star className="h-3 w-3 fill-current" />
+                                      {t.rating ? t.rating.toFixed(1) : "0.0"}
+                                    </span>
+                                    <span className="text-border">•</span>
+                                    <span className="flex items-center gap-0.5">
+                                      <DollarSign className="h-3 w-3 text-emerald-400" />
+                                      {t.hourlyRate || "0"}/hr
+                                    </span>
+                                    <span className="text-border">•</span>
+                                    <span>{t.yearsOfExperience || "0"} yrs exp</span>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                  <CardTitle className="text-sm font-bold text-foreground truncate">{t.fullName}</CardTitle>
-                                  {t.isVerified && (
-                                    <UserCheck className="h-4 w-4 text-cyan-400 shrink-0" />
+                            </CardHeader>
+                            <CardContent className="pb-3 flex-1">
+                              <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
+                                {t.bio || "No professional overview summary available."}
+                              </p>
+                              
+                              {/* Languages tags */}
+                              {t.languages && t.languages.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-3">
+                                  {t.languages.slice(0, 4).map((lang) => (
+                                    <Badge key={lang} variant="secondary" className="text-[9px] px-1.5 py-0 bg-background border border-border text-muted-foreground rounded-none uppercase">
+                                      {getLanguageName(lang)}
+                                    </Badge>
+                                  ))}
+                                  {t.languages.length > 4 && (
+                                    <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-background border border-border text-muted-foreground/80 rounded-none">
+                                      +{t.languages.length - 4} more
+                                    </Badge>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
-                                  <span className="flex items-center text-amber-400 gap-0.5">
-                                    <Star className="h-3 w-3 fill-current" />
-                                    {t.rating ? t.rating.toFixed(1) : "0.0"}
-                                  </span>
-                                  <span className="text-border">•</span>
-                                  <span className="flex items-center gap-0.5">
-                                    <DollarSign className="h-3 w-3 text-emerald-400" />
-                                    {t.hourlyRate || "0"}/hr
-                                  </span>
-                                  <span className="text-border">•</span>
-                                  <span>{t.yearsOfExperience || "0"} yrs exp</span>
-                                </div>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pb-3 flex-1">
-                            <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
-                              {t.bio || "No professional overview summary available."}
-                            </p>
-                            
-                            {/* Languages tags */}
-                            {t.languages && t.languages.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-3">
-                                {t.languages.slice(0, 4).map((lang) => (
-                                  <Badge key={lang} variant="secondary" className="text-[9px] px-1.5 py-0 bg-background border border-border text-muted-foreground rounded-none uppercase">
-                                    {getLanguageName(lang)}
-                                  </Badge>
-                                ))}
-                                {t.languages.length > 4 && (
-                                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-background border border-border text-muted-foreground/80 rounded-none">
-                                    +{t.languages.length - 4} more
-                                  </Badge>
-                                )}
-                              </div>
-                            )}
-                          </CardContent>
+                              )}
+                            </CardContent>
+                          </Link>
                           <CardFooter className="pt-2 border-t border-border/50 flex items-center justify-between text-2xs text-muted-foreground">
                             <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Translator</span>
-                            <Link 
-                              href={`/profile?userId=${t.userId}`}
-                              className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider transition-colors text-[10px]"
+                            <div 
+                              className="flex items-center gap-1 text-cyan-400 group-hover:text-cyan-300 font-bold uppercase tracking-wider transition-colors text-[10px]"
                             >
                               Inspect Profile
                               <ArrowRight className="h-3 w-3" />
-                            </Link>
+                            </div>
                           </CardFooter>
                         </Card>
                       ))}
@@ -725,37 +729,39 @@ export default function SearchHubPage() {
                       {filteredCompanies.map((c) => (
                         <Card key={c.$id} className="bg-card/30 border-border hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
                           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                          <CardHeader className="pb-2.5">
-                            <div className="flex items-start gap-3.5">
-                              <div className="h-11 w-11 rounded-none bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20 shrink-0">
-                                {c.companyName
-                                  ? c.companyName
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .join("")
-                                      .toUpperCase()
-                                      .slice(0, 2)
-                                  : "?"}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                  <CardTitle className="text-sm font-bold text-foreground truncate">{c.companyName}</CardTitle>
-                                  {c.isVerified && (
-                                    <UserCheck className="h-4 w-4 text-cyan-400 shrink-0" />
-                                  )}
+                          <Link href={`/profile?userId=${c.userId}`} className="block group/link flex-1 flex flex-col">
+                            <CardHeader className="pb-2.5">
+                              <div className="flex items-start gap-3.5">
+                                <div className="h-11 w-11 rounded-none bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20 shrink-0">
+                                  {c.companyName
+                                    ? c.companyName
+                                        .split(" ")
+                                        .map((n: string) => n[0])
+                                        .join("")
+                                        .toUpperCase()
+                                        .slice(0, 2)
+                                    : "?"}
                                 </div>
-                                <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
-                                  <Users className="h-3 w-3 text-muted-foreground" />
-                                  Size: {c.companySize || "1-10"} Employees
-                                </p>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <CardTitle className="text-sm font-bold text-foreground group-hover/link:text-cyan-400 transition-colors truncate">{c.companyName}</CardTitle>
+                                    {c.isVerified && (
+                                      <UserCheck className="h-4 w-4 text-cyan-400 shrink-0" />
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                                    <Users className="h-3 w-3 text-muted-foreground" />
+                                    Size: {c.companySize || "1-10"} Employees
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pb-3 flex-1">
-                            <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
-                              {c.about || "No corporate business summary available."}
-                            </p>
-                          </CardContent>
+                            </CardHeader>
+                            <CardContent className="pb-3 flex-1">
+                              <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
+                                {c.about || "No corporate business summary available."}
+                              </p>
+                            </CardContent>
+                          </Link>
                           <CardFooter className="pt-2 border-t border-border/50 flex items-center justify-between text-2xs text-muted-foreground">
                             <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Company</span>
                             <div className="flex items-center gap-3">
@@ -770,13 +776,12 @@ export default function SearchHubPage() {
                                   <ExternalLink className="h-2.5 w-2.5" />
                                 </a>
                               )}
-                              <Link 
-                                href={`/profile?userId=${c.userId}`}
-                                className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider transition-colors text-[10px]"
+                              <div 
+                                className="flex items-center gap-1 text-cyan-400 group-hover:text-cyan-300 font-bold uppercase tracking-wider transition-colors text-[10px]"
                               >
                                 View Profile
                                 <ArrowRight className="h-3 w-3" />
-                              </Link>
+                              </div>
                             </div>
                           </CardFooter>
                         </Card>
@@ -800,35 +805,36 @@ export default function SearchHubPage() {
                       {filteredJobs.map((j) => (
                         <Card key={j.$id} className="bg-card/30 border-border hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
                           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                          <CardHeader className="pb-2.5">
-                            <div className="min-w-0 flex-1">
-                              <CardTitle className="text-sm font-bold text-foreground truncate">{j.title}</CardTitle>
-                              <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground">
-                                <span className="flex items-center gap-1 text-cyan-400 bg-cyan-950/20 px-1 border border-cyan-500/10 text-[9px] uppercase tracking-wider font-bold">
-                                  <Globe className="h-2.5 w-2.5" />
-                                  {getLanguageName(j.sourceLanguage)} &rarr; {getLanguageName(j.targetLanguage)}
-                                </span>
-                                <span className="text-border">•</span>
-                                <span className="text-emerald-400 font-bold">${j.budget || "0"}</span>
-                                <span className="text-border">•</span>
-                                <span>{j.specializations?.join(", ") || "General"}</span>
+                          <Link href={`/jobs/${j.$id}`} className="block group/link flex-1 flex flex-col">
+                            <CardHeader className="pb-2.5">
+                              <div className="min-w-0 flex-1">
+                                <CardTitle className="text-sm font-bold text-foreground group-hover/link:text-cyan-400 transition-colors truncate">{j.title}</CardTitle>
+                                <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground">
+                                  <span className="flex items-center gap-1 text-cyan-400 bg-cyan-950/20 px-1 border border-cyan-500/10 text-[9px] uppercase tracking-wider font-bold">
+                                    <Globe className="h-2.5 w-2.5" />
+                                    {getLanguageName(j.sourceLanguage)} &rarr; {getLanguageName(j.targetLanguage)}
+                                  </span>
+                                  <span className="text-border">•</span>
+                                  <span className="text-emerald-400 font-bold">${j.budget || "0"}</span>
+                                  <span className="text-border">•</span>
+                                  <span>{j.specializations?.join(", ") || "General"}</span>
+                                </div>
                               </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pb-3 flex-1">
-                            <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
-                              {j.description || "No project parameters description available."}
-                            </p>
-                          </CardContent>
+                            </CardHeader>
+                            <CardContent className="pb-3 flex-1">
+                              <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
+                                {j.description || "No project parameters description available."}
+                              </p>
+                            </CardContent>
+                          </Link>
                           <CardFooter className="pt-2 border-t border-border/50 flex items-center justify-between text-2xs text-muted-foreground">
                             <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Active RFP</span>
-                            <Link 
-                              href={`/jobs/${j.$id}`}
-                              className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider transition-colors text-[10px]"
+                            <div 
+                              className="flex items-center gap-1 text-cyan-400 group-hover:text-cyan-300 font-bold uppercase tracking-wider transition-colors text-[10px]"
                             >
                               Bid on Project
                               <ArrowRight className="h-3 w-3" />
-                            </Link>
+                            </div>
                           </CardFooter>
                         </Card>
                       ))}
