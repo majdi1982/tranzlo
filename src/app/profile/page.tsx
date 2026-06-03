@@ -545,11 +545,6 @@ function ProfileContent() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <Globe className="h-3.5 w-3.5 text-muted-foreground/60" /> {user?.email}
                 </p>
-                {role === "translator" && translatorData.hourlyRate && (
-                  <p className="text-xs text-teal-600 font-semibold flex items-center gap-1">
-                    <DollarSign className="h-3.5 w-3.5" /> {translatorData.hourlyRate}/hr USD
-                  </p>
-                )}
               </div>
             </div>
 
@@ -557,7 +552,7 @@ function ProfileContent() {
               <div className="flex items-center gap-4">
                 <span>Account Status: <strong className="text-emerald-500 font-semibold">Active</strong></span>
                 {role === "translator" && (
-                  <span>Verified: <strong className={translatorData.cvUrl ? "text-teal-500" : "text-amber-500"}>{translatorData.cvUrl ? "Yes" : "Pending CV"}</strong></span>
+                  <span>Verified: <strong className={isVerified ? "text-teal-500" : "text-amber-500"}>{isVerified ? "Yes" : "No"}</strong></span>
                 )}
               </div>
               <Badge variant="outline" className="bg-accent/10 border-accent/20 text-muted-foreground capitalize">
