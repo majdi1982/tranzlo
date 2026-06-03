@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   ArrowUpDown, Briefcase, ChevronDown, Clock, DollarSign, Globe, Star, Search, 
-  SlidersHorizontal, UserCheck, Users, X, ExternalLink, ArrowRight, BookOpen, Settings
+  SlidersHorizontal, UserCheck, Users, X, ExternalLink, ArrowRight, BookOpen, Settings, Check
 } from "lucide-react";
 import { getServices } from "@/services";
 import type { TranslatorProfile, CompanyProfile, Job } from "@/types";
@@ -644,15 +645,28 @@ export default function SearchHubPage() {
                           <Link href={`/profile?userId=${t.userId}`} className="block group/link flex-1 flex flex-col">
                             <CardHeader className="pb-2.5">
                               <div className="flex items-start gap-3.5">
-                                <div className="h-11 w-11 rounded-none bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20 shrink-0">
-                                  {t.fullName
-                                    ? t.fullName
-                                        .split(" ")
-                                        .map((n: string) => n[0])
-                                        .join("")
-                                        .toUpperCase()
-                                        .slice(0, 2)
-                                    : "?"}
+                                <div className="relative h-11 w-11 shrink-0">
+                                  {t.avatarUrl ? (
+                                    <div className="relative h-full w-full overflow-hidden border border-cyan-500/20">
+                                      <Image src={t.avatarUrl} alt={t.fullName} fill className="object-cover" />
+                                    </div>
+                                  ) : (
+                                    <div className="h-full w-full bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20">
+                                      {t.fullName
+                                        ? t.fullName
+                                            .split(" ")
+                                            .map((n: string) => n[0])
+                                            .join("")
+                                            .toUpperCase()
+                                            .slice(0, 2)
+                                        : "?"}
+                                    </div>
+                                  )}
+                                  {t.isVerified && (
+                                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 border border-background shadow-md">
+                                      <Check className="h-2.5 w-2.5 text-white" />
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-1.5">
@@ -732,15 +746,28 @@ export default function SearchHubPage() {
                           <Link href={`/profile?userId=${c.userId}`} className="block group/link flex-1 flex flex-col">
                             <CardHeader className="pb-2.5">
                               <div className="flex items-start gap-3.5">
-                                <div className="h-11 w-11 rounded-none bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20 shrink-0">
-                                  {c.companyName
-                                    ? c.companyName
-                                        .split(" ")
-                                        .map((n: string) => n[0])
-                                        .join("")
-                                        .toUpperCase()
-                                        .slice(0, 2)
-                                    : "?"}
+                                <div className="relative h-11 w-11 shrink-0">
+                                  {c.logoUrl ? (
+                                    <div className="relative h-full w-full overflow-hidden border border-cyan-500/20">
+                                      <Image src={c.logoUrl} alt={c.companyName} fill className="object-cover" />
+                                    </div>
+                                  ) : (
+                                    <div className="h-full w-full bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20">
+                                      {c.companyName
+                                        ? c.companyName
+                                            .split(" ")
+                                            .map((n: string) => n[0])
+                                            .join("")
+                                            .toUpperCase()
+                                            .slice(0, 2)
+                                        : "?"}
+                                    </div>
+                                  )}
+                                  {c.isVerified && (
+                                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 border border-background shadow-md">
+                                      <Check className="h-2.5 w-2.5 text-white" />
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-1.5">

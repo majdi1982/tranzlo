@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpDown, Briefcase, ChevronDown, ExternalLink, Globe, Search, SlidersHorizontal, UserCheck, Users, X } from "lucide-react";
+import Image from "next/image";
+import { ArrowUpDown, Briefcase, ChevronDown, ExternalLink, Globe, Search, SlidersHorizontal, UserCheck, Users, X, Check } from "lucide-react";
 import { getServices } from "@/services";
 import type { CompanyProfile } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -177,15 +178,28 @@ export default function CompaniesPage() {
                   <Card key={c.$id} className="glass-card bg-card/40 border-border hover:border-primary/40 rounded-2xl shadow-lg transition-all duration-300 flex flex-col justify-between">
                     <CardHeader className="pb-3">
                       <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-cyan-950/20 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold text-base ring-1 ring-cyan-500/20 shrink-0">
-                          {c.companyName
-                            ? c.companyName
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()
-                                .slice(0, 2)
-                            : "?"}
+                        <div className="relative h-12 w-12 shrink-0">
+                          {c.logoUrl ? (
+                            <div className="relative h-full w-full overflow-hidden rounded-2xl ring-1 ring-cyan-500/20">
+                              <Image src={c.logoUrl} alt={c.companyName} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="h-full w-full rounded-2xl bg-cyan-950/20 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold text-base ring-1 ring-cyan-500/20">
+                              {c.companyName
+                                ? c.companyName
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()
+                                    .slice(0, 2)
+                                : "?"}
+                            </div>
+                          )}
+                          {c.isVerified && (
+                            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 border-2 border-background shadow-md">
+                              <Check className="h-2 w-2 text-white" />
+                            </span>
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown, Sun, Moon, Monitor, MessageSquare, Bell, Settings, Sparkles } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown, Sun, Moon, Monitor, MessageSquare, Bell, Settings, Sparkles, Check } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession } from "@/providers/session-provider";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
@@ -47,6 +47,7 @@ export function Navbar() {
   const [recentNotifs, setRecentNotifs] = React.useState<any[]>([]);
   const [recentChats, setRecentChats] = React.useState<any[]>([]);
   const [avatarUrl, setAvatarUrl] = React.useState<string>("");
+  const [isVerified, setIsVerified] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     setMounted(true);
@@ -61,9 +62,11 @@ export function Navbar() {
         if (role === "translator") {
           const profile = await services.profile.getTranslatorProfile(user.$id);
           if (profile?.avatarUrl) setAvatarUrl(profile.avatarUrl);
+          if (profile) setIsVerified(profile.isVerified || false);
         } else if (role === "company") {
           const profile = await services.profile.getCompanyProfile(user.$id);
           if (profile?.logoUrl) setAvatarUrl(profile.logoUrl);
+          if (profile) setIsVerified(profile.isVerified || false);
         }
       } catch {
         // ignore
@@ -367,15 +370,22 @@ export function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group ml-1">
-                    <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent group-hover:ring-primary/50 transition-all overflow-hidden rounded-full">
-                      {avatarUrl ? (
-                        <AvatarImage src={avatarUrl} alt={user.name || "User Avatar"} className="object-cover h-full w-full" />
-                      ) : (
-                        <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                          {initials}
-                        </AvatarFallback>
+                    <div className="relative">
+                      <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent group-hover:ring-primary/50 transition-all overflow-hidden rounded-full">
+                        {avatarUrl ? (
+                          <AvatarImage src={avatarUrl} alt={user.name || "User Avatar"} className="object-cover h-full w-full" />
+                        ) : (
+                          <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                            {initials}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      {isVerified && (
+                        <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-teal-500 border border-background shadow-sm">
+                          <Check className="h-2 w-2 text-white" />
+                        </span>
                       )}
-                    </Avatar>
+                    </div>
                     <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                   </button>
                 </DropdownMenuTrigger>

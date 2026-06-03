@@ -93,6 +93,7 @@ function ProfileContent() {
   const [profileExists, setProfileExists] = React.useState(false);
   const [avatarUrl, setAvatarUrl] = React.useState("");
   const [logoUrl, setLogoUrl] = React.useState("");
+  const [isVerified, setIsVerified] = React.useState(false);
 
   // Dynamically set SEO settings based on the currently displayed profile
   useDynamicSEO(role === "translator" ? {
@@ -134,6 +135,7 @@ function ProfileContent() {
           setTargetRole("translator");
           setProfileExists(true);
           setAvatarUrl(translatorProfile.avatarUrl || "");
+          setIsVerified(translatorProfile.isVerified || false);
           
           let parsedPricing: { serviceId: string; rate: number; unit: string }[] = [];
           if (translatorProfile.pricing) {
@@ -171,6 +173,7 @@ function ProfileContent() {
             setTargetRole("company");
             setProfileExists(true);
             setLogoUrl(companyProfile.logoUrl || "");
+            setIsVerified(companyProfile.isVerified || false);
             setCompanyData({
               companyName: companyProfile.companyName || "",
               fullName: companyProfile.fullName || "",
@@ -502,23 +505,30 @@ function ProfileContent() {
           {/* Core Info Banner Card */}
           <Card className="glass-card md:col-span-3 p-6 border-border/40 rounded-2xl flex flex-col justify-between bg-gradient-to-br from-background/30 to-accent/5">
             <div className="flex items-center gap-6">
-              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-teal-500/20 shadow-md">
-                {role === "translator" ? (
-                  avatarUrl ? (
-                    <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
+              <div className="relative h-20 w-20 shrink-0">
+                <div className="relative h-full w-full overflow-hidden rounded-2xl border-2 border-teal-500/20 shadow-md">
+                  {role === "translator" ? (
+                    avatarUrl ? (
+                      <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-muted">
+                        <User className="h-10 w-10 text-muted-foreground" />
+                      </div>
+                    )
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-muted">
-                      <User className="h-10 w-10 text-muted-foreground" />
-                    </div>
-                  )
-                ) : (
-                  logoUrl ? (
-                    <Image src={logoUrl} alt="Logo" fill className="object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-muted">
-                      <Building2 className="h-10 w-10 text-muted-foreground" />
-                    </div>
-                  )
+                    logoUrl ? (
+                      <Image src={logoUrl} alt="Logo" fill className="object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-muted">
+                        <Building2 className="h-10 w-10 text-muted-foreground" />
+                      </div>
+                    )
+                  )}
+                </div>
+                {isVerified && (
+                  <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-teal-500 border-2 border-background shadow-md">
+                    <Check className="h-3.5 w-3.5 text-white" />
+                  </span>
                 )}
               </div>
               

@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpDown, Briefcase, ChevronDown, Clock, DollarSign, Globe, Star, Search, SlidersHorizontal, UserCheck, X } from "lucide-react";
+import Image from "next/image";
+import { ArrowUpDown, Briefcase, ChevronDown, Clock, DollarSign, Globe, Star, Search, SlidersHorizontal, UserCheck, X, Check } from "lucide-react";
 import { getServices } from "@/services";
 import type { TranslatorProfile } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -231,15 +232,28 @@ export default function TranslatorsPage() {
                   <Card key={t.$id} className="glass-card bg-card/40 border-border hover:border-primary/40 rounded-2xl shadow-lg transition-all duration-300 flex flex-col justify-between">
                     <CardHeader className="pb-3">
                       <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base ring-1 ring-primary/20 shrink-0">
-                          {t.fullName
-                            ? t.fullName
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()
-                                .slice(0, 2)
-                            : "?"}
+                        <div className="relative h-12 w-12 shrink-0">
+                          {t.avatarUrl ? (
+                            <div className="relative h-full w-full overflow-hidden rounded-2xl ring-1 ring-primary/20">
+                              <Image src={t.avatarUrl} alt={t.fullName} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="h-full w-full rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base ring-1 ring-primary/20">
+                              {t.fullName
+                                ? t.fullName
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()
+                                    .slice(0, 2)
+                                : "?"}
+                            </div>
+                          )}
+                          {t.isVerified && (
+                            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 border-2 border-background shadow-md">
+                              <Check className="h-2 w-2 text-white" />
+                            </span>
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">

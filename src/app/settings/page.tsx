@@ -14,16 +14,19 @@ import {
   CheckCircle,
   AlertTriangle,
   Loader2,
+  Upload,
+  FileText,
 } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
-import { getAccount, getDatabases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
+import { getAccount, getDatabases, getStorage, ID, BUCKETS, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { AuthGuard } from "@/guards/auth-guard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { Role } from "@/types";
@@ -48,6 +51,11 @@ export default function SettingsPage() {
   
   const role = (user?.prefs?.role as Role) || "translator";
 
+  // Verification states
+  const [verificationStatus, setVerificationStatus] = React.useState<string>("unverified");
+  const [uploadingDoc, setUploadingDoc] = React.useState(false);
+  const [docUploadedUrl, setDocUploadedUrl] = React.useState("");
+
   // Form states
   const [emailInput, setEmailInput] = React.useState({ newEmail: "", password: "" });
   const [passwordInput, setPasswordInput] = React.useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
@@ -62,6 +70,29 @@ export default function SettingsPage() {
   
   // Appwrite states
   const [sessions, setSessions] = React.useState<SessionItem[]>([]);
+
+  // Load verification status
+  const loadVerificationStatus = React.useCallback(async () => {
+    if (!user?.$id) return;
+    try {
+      const services = getServices();
+      if (role === "translator") {
+        const profile = await services.profile.getTranslatorProfile(user.$id);
+        if (profile) {
+          setVerificationStatus(profile.verificationStatus || "unverified");
+          setDocUploadedUrl(profile.cvUrl || "");
+        }
+      } else if (role === "company") {
+        const profile = await services.profile.getCompanyProfile(user.$id);
+        if (profile) {
+          setVerificationStatus(profile.verificationStatus || "unverified");
+          setDocUploadedUrl(profile.registrationDoc || "");
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load verification status:", err);
+    }
+  }, [user?.$id, role]);
 
   // Load active sessions
   const loadSessions = React.useCallback(async () => {
@@ -100,8 +131,9 @@ export default function SettingsPage() {
   React.useEffect(() => {
     if (user?.$id) {
       loadSessions();
+      loadVerificationStatus();
     }
-  }, [user?.$id, loadSessions]);
+  }, [user?.$id, loadSessions, loadVerificationStatus]);
 
   // Handle Email Change
   const handleEmailChange = async (e: React.FormEvent) => {
@@ -209,6 +241,49 @@ export default function SettingsPage() {
     }
   };
 
+  // Upload verification document
+  const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.$id) return;
+
+    setUploadingDoc(true);
+    try {
+      const storage = getStorage();
+      const bucketId = role === "translator" ? BUCKETS.TRANSLATOR_DOCUMENTS : BUCKETS.COMPANY_DOCUMENTS;
+      const uploadedFile = await storage.createFile(bucketId, ID.unique(), file);
+      const fileUrl = `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://appwrite.tranzlo.net/v1"}/storage/buckets/${bucketId}/files/${uploadedFile.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
+      
+      const services = getServices();
+      if (role === "translator") {
+        await services.profile.updateTranslatorProfile(user.$id, {
+          cvUrl: fileUrl,
+          verificationStatus: "pending",
+        });
+      } else if (role === "company") {
+        await services.profile.updateCompanyProfile(user.$id, {
+          registrationDoc: fileUrl,
+          verificationStatus: "pending",
+        } as any);
+      }
+
+      setDocUploadedUrl(fileUrl);
+      setVerificationStatus("pending");
+      toast({
+        title: "Documents uploaded successfully",
+        description: "Your verification request is now pending review.",
+        variant: "success",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Upload failed",
+        description: err.message || "Failed to upload document for verification.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
   // Handle Account Deletion
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,6 +351,87 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6">
+
+          {/* Section 0: Account Verification & Status */}
+          <Card className="rounded-xl border-border/50 bg-card/50 backdrop-blur-xl shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-md font-semibold flex items-center gap-2">
+                <Shield className="h-4.5 w-4.5 text-primary" />
+                Account Verification & Status
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Submit documents to verify your identity/company and unlock exclusive platform benefits.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-border/50 bg-background/50">
+                <div className="space-y-1">
+                  <span className="text-3xs font-semibold text-muted-foreground uppercase tracking-wider block">Current Status</span>
+                  <div className="flex items-center gap-2">
+                    {verificationStatus === "verified" ? (
+                      <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 capitalize font-bold rounded-lg py-1 px-3">
+                        ✓ Verified Account
+                      </Badge>
+                    ) : verificationStatus === "pending" ? (
+                      <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 capitalize font-bold rounded-lg py-1 px-3">
+                        ⚡ Pending Verification
+                      </Badge>
+                    ) : verificationStatus === "rejected" ? (
+                      <Badge className="bg-rose-500/10 text-rose-600 border-rose-500/20 capitalize font-bold rounded-lg py-1 px-3">
+                        ✗ Request Rejected
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-muted text-muted-foreground border-border capitalize font-bold rounded-lg py-1 px-3">
+                        ⚠ Unverified
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground max-w-md">
+                  {verificationStatus === "verified" ? (
+                    <p className="text-emerald-500 font-medium">Your profile has been verified! A verification checkmark badge is displayed on your avatar across the directory.</p>
+                  ) : verificationStatus === "pending" ? (
+                    <p className="text-amber-500 font-medium">Your documents have been submitted and are currently being reviewed by our administrators.</p>
+                  ) : (
+                    <p>To verify your account, please upload your {role === "translator" ? "Curriculum Vitae (CV/Resume) PDF document" : "Official Company Registration Document"}.</p>
+                  )}
+                </div>
+              </div>
+
+              {verificationStatus !== "verified" && (
+                <div className="space-y-3">
+                  <Label className="text-xs font-semibold">Upload Verification Document</Label>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative w-full">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleUploadDoc}
+                        disabled={uploadingDoc}
+                        className="hidden"
+                        id="verification-doc-input"
+                      />
+                      <Label
+                        htmlFor="verification-doc-input"
+                        className="flex items-center justify-center gap-2 border border-dashed border-border hover:border-primary/50 cursor-pointer rounded-lg p-3 text-xs bg-background/50 hover:bg-accent/10 transition-colors w-full"
+                      >
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        {uploadingDoc ? "Uploading..." : docUploadedUrl ? "Re-upload Verification Document" : "Choose Document PDF"}
+                      </Label>
+                    </div>
+                  </div>
+                  {docUploadedUrl && (
+                    <div className="flex items-center gap-2 p-2.5 rounded-lg border border-border/40 bg-accent/5">
+                      <FileText className="h-4 w-4 text-primary shrink-0" />
+                      <a href={docUploadedUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-600 hover:underline truncate">
+                        View Uploaded Verification Document
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Section 1: Credentials Modification */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
