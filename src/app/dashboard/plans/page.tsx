@@ -157,7 +157,10 @@ export default function PlansPage() {
     const plan = userPlans.find((p: any) => p.tier === processingPlan);
     if (!plan || !plan.paypalPlanId) return;
 
-    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5";
+    const mode = process.env.NEXT_PUBLIC_PAYPAL_MODE || "live";
+    const clientId = mode === "live"
+      ? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+      : (process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5");
     const containerId = `paypal-sub-container-${processingPlan}`;
 
     const renderButton = () => {
