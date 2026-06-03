@@ -120,7 +120,7 @@ async function main() {
       await functions.create(
         FUNCTION_ID,
         FUNCTION_NAME,
-        "node-16.0" as any, // Node 16.0 runtime is active on the server
+        "node-18.0" as any, // Node 18.0 runtime
         [], // execute permissions
         TRACKED_EVENTS, // Appwrite Events to listen to
         "", // no CRON schedule needed
@@ -138,7 +138,7 @@ async function main() {
       await functions.update(
         FUNCTION_ID,
         FUNCTION_NAME,
-        "node-16.0" as any,
+        "node-18.0" as any,
         [],
         TRACKED_EVENTS,
         "",

@@ -106,7 +106,7 @@ async function main() {
       await functions.create(
         FUNCTION_ID,
         FUNCTION_NAME,
-        "node-16.0" as any,
+        "node-18.0" as any,
         [], // execute permissions (empty = admin only)
         [], // events
         "0 */12 * * *", // CRON schedule (every 12 hours)
@@ -124,7 +124,7 @@ async function main() {
       await functions.update(
         FUNCTION_ID,
         FUNCTION_NAME,
-        "node-16.0" as any,
+        "node-18.0" as any,
         [],
         [],
         "0 */12 * * *",
