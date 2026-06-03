@@ -430,49 +430,10 @@ function ProfileContent() {
           )}
         </div>
 
-        {/* Dynamic Circular Completion & Header Tracker */}
+        {/* Dynamic Header Tracker */}
         <div className="grid gap-6 md:grid-cols-3">
-          {/* Circular Tracker Widget */}
-          <Card className="glass-card md:col-span-1 flex flex-col justify-center items-center p-6 border-border/40 rounded-2xl relative overflow-hidden bg-gradient-to-br from-background/30 to-accent/5">
-            <div className="relative flex items-center justify-center h-32 w-32">
-              <svg className="absolute w-full h-full transform -rotate-95">
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="52"
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  fill="transparent"
-                  className="text-accent/20"
-                />
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="52"
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  fill="transparent"
-                  strokeDasharray={2 * Math.PI * 52}
-                  strokeDashoffset={2 * Math.PI * 52 * (1 - completionPercentage / 100)}
-                  className="text-teal-500 transition-all duration-1000 ease-out"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="flex flex-col items-center justify-center">
-                <span className="text-3xl font-extrabold text-foreground">{completionPercentage}%</span>
-                <span className="text-4xs uppercase tracking-wider text-muted-foreground font-semibold">Complete</span>
-              </div>
-            </div>
-            <div className="mt-4 text-center space-y-1">
-              <h3 className="font-semibold text-sm">Profile Completion</h3>
-              <p className="text-2xs text-muted-foreground px-2">
-                A completed profile guarantees higher platform visibility and client trust.
-              </p>
-            </div>
-          </Card>
-
           {/* Core Info Banner Card */}
-          <Card className="glass-card md:col-span-2 p-6 border-border/40 rounded-2xl flex flex-col justify-between bg-gradient-to-br from-background/30 to-accent/5">
+          <Card className="glass-card md:col-span-3 p-6 border-border/40 rounded-2xl flex flex-col justify-between bg-gradient-to-br from-background/30 to-accent/5">
             <div className="flex items-center gap-6">
               <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-teal-500/20 shadow-md">
                 {role === "translator" ? (
@@ -722,7 +683,6 @@ function ProfileContent() {
                       </div>
                       <div className="space-y-0.5 text-left">
                         <h4 className="text-xs font-bold text-foreground">CV_Translator_Professional.pdf</h4>
-                        <p className="text-4xs text-muted-foreground">Securely saved on Appwrite TRANSLATOR_DOCUMENTS bucket</p>
                       </div>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
@@ -757,7 +717,6 @@ function ProfileContent() {
                       </div>
                       <div className="space-y-0.5 text-left">
                         <h4 className="text-xs font-bold text-foreground">Corporate_Showcase_Brochure.pdf</h4>
-                        <p className="text-4xs text-muted-foreground">Securely saved on Appwrite COMPANY_DOCUMENTS bucket</p>
                       </div>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
