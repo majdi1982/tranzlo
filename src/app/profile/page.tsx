@@ -25,6 +25,7 @@ import { SPECIALIZATIONS } from "@/data/specializations";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { TranslatorProfile, CompanyProfile, Role } from "@/types";
 import { COUNTRY_CODES } from "@/data/country-codes";
+import { useDynamicSEO } from "@/hooks/use-dynamic-seo";
 
 function ProfileContent() {
   const router = useRouter();
@@ -81,6 +82,17 @@ function ProfileContent() {
   const [profileExists, setProfileExists] = React.useState(false);
   const [avatarUrl, setAvatarUrl] = React.useState("");
   const [logoUrl, setLogoUrl] = React.useState("");
+
+  // Dynamically set SEO settings based on the currently displayed profile
+  useDynamicSEO(role === "translator" ? {
+    isPublic: translatorData.isPublicPlatform,
+    searchEngines: translatorData.searchEngines,
+    seoKeywords: translatorData.seoKeywords,
+  } : {
+    isPublic: companyData.isPublicPlatform,
+    searchEngines: companyData.searchEngines,
+    seoKeywords: companyData.seoKeywords,
+  });
   
   // Uploading indicators
   const [uploading, setUploading] = React.useState(false);

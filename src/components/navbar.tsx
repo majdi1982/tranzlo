@@ -24,7 +24,7 @@ import { getServices } from "@/services";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/jobs", label: "Browse Jobs" },
+  { href: "/search", label: "Search Directory" },
   { href: "/blog", label: "Blog" },
   { href: "/#how-it-works", label: "How it Works" },
   { href: "/#features", label: "Features" },
