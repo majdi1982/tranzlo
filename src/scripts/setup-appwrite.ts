@@ -379,6 +379,22 @@ const SCHEMA: Col[] = [
       { id: "idx_rating_toUserId", type: "key", attributes: ["toUserId"] },
     ],
   },
+  {
+    id: "team_invitations", name: "Team Invitations",
+    attrs: [
+      { key: "email", type: "string", size: 255, required: true },
+      { key: "token", type: "string", size: 255, required: true },
+      { key: "role", type: "string", size: 32, required: true },
+      { key: "profession", type: "string", size: 255, required: true },
+      { key: "permissions", type: "string", size: 64, required: false, array: true },
+      { key: "isUsed", type: "boolean", required: false, default: false },
+      { key: "expiresAt", type: "datetime", required: true },
+    ],
+    indexes: [
+      { id: "idx_invite_token", type: "unique", attributes: ["token"] },
+      { id: "idx_invite_email", type: "key", attributes: ["email"] },
+    ],
+  },
 ];
 
 async function main() {

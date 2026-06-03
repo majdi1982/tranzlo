@@ -68,6 +68,7 @@ export const COLLECTIONS = {
   disputes: "disputes",
   ratings: "ratings",
   plans: "plans",
+  teamInvitations: "team_invitations",
 };
 
 export { ID, Query };

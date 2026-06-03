@@ -1,19 +1,35 @@
 "use client";
 
 import * as React from "react";
-import { UserCheck, CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UserCheck, CheckCircle, XCircle, Loader2, FileText, Shield, User, Building2, ExternalLink } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getServices } from "@/services";
 import type { VerificationRequest } from "@/types";
 
+interface VerificationRequestWithProfile extends VerificationRequest {
+  profile?: {
+    fullName?: string;
+    email?: string;
+    companyName?: string;
+    // Translator docs
+    cvUrl?: string;
+    idUrl?: string;
+    certUrl?: string;
+    // Company docs
+    registrationDoc?: string;
+    taxDoc?: string;
+  }
+}
+
 export default function StaffVerificationsPage() {
   const { toast } = useToast();
-  const [requests, setRequests] = React.useState<VerificationRequest[]>([]);
+  const [requests, setRequests] = React.useState<VerificationRequestWithProfile[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
   const [rejectNotes, setRejectNotes] = React.useState<Record<string, string>>({});
@@ -23,10 +39,57 @@ export default function StaffVerificationsPage() {
   }, []);
 
   async function loadRequests() {
+    setLoading(true);
     try {
       const services = getServices();
       const all = await services.verification.getPendingRequests();
-      setRequests(all);
+      
+      const requestsWithProfiles: VerificationRequestWithProfile[] = await Promise.all(
+        all.map(async (req) => {
+          let profileData = null;
+          try {
+            if (req.role === "translator") {
+              const p = await services.profile.getTranslatorProfile(req.userId);
+              if (p) {
+                let idUrl = "";
+                let certUrl = "";
+                if (p.certificates && p.certificates.length > 0) {
+                  const idItem = p.certificates.find((c) => c.startsWith("id:"));
+                  const certItem = p.certificates.find((c) => c.startsWith("cert:"));
+                  idUrl = idItem ? idItem.replace("id:", "") : "";
+                  certUrl = certItem ? certItem.replace("cert:", "") : (p.certificates[0] && !p.certificates[0].startsWith("id:") ? p.certificates[0] : "");
+                }
+                profileData = {
+                  fullName: p.fullName,
+                  email: p.email,
+                  cvUrl: p.cvUrl,
+                  idUrl,
+                  certUrl,
+                };
+              }
+            } else if (req.role === "company") {
+              const p = await services.profile.getCompanyProfile(req.userId);
+              if (p) {
+                profileData = {
+                  fullName: p.fullName,
+                  companyName: p.companyName,
+                  email: p.email,
+                  registrationDoc: p.registrationDoc,
+                  taxDoc: p.taxDoc,
+                };
+              }
+            }
+          } catch (err) {
+            console.error("Failed to load profile for verification request:", err);
+          }
+          return {
+            ...req,
+            profile: profileData || undefined
+          };
+        })
+      );
+      
+      setRequests(requestsWithProfiles);
     } catch {
       toast({ title: "Failed to load verification requests", variant: "destructive" });
     } finally {
@@ -40,7 +103,7 @@ export default function StaffVerificationsPage() {
       const services = getServices();
       await services.verification.approveRequest(requestId);
       setRequests((prev) => prev.filter((r) => r.$id !== requestId));
-      toast({ title: "Request approved" });
+      toast({ title: "Request approved successfully", variant: "success" });
     } catch {
       toast({ title: "Failed to approve", variant: "destructive" });
     } finally {
@@ -59,7 +122,7 @@ export default function StaffVerificationsPage() {
       const services = getServices();
       await services.verification.rejectRequest(requestId, note);
       setRequests((prev) => prev.filter((r) => r.$id !== requestId));
-      toast({ title: "Request rejected" });
+      toast({ title: "Request rejected successfully", variant: "success" });
     } catch {
       toast({ title: "Failed to reject", variant: "destructive" });
     } finally {
@@ -67,80 +130,234 @@ export default function StaffVerificationsPage() {
     }
   }
 
+  const translatorsRequests = requests.filter(r => r.role === "translator");
+  const companiesRequests = requests.filter(r => r.role === "company");
+
+  const renderRequestCard = (req: VerificationRequestWithProfile) => {
+    const prof = req.profile;
+    return (
+      <div key={req.$id} className="rounded-xl border border-border/60 p-5 bg-background/50 hover:bg-background/80 transition-all space-y-4">
+        
+        {/* User Info Group */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/40">
+          <div>
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+              {req.role === "translator" ? <User className="h-4 w-4 text-cyan-400" /> : <Building2 className="h-4 w-4 text-cyan-400" />}
+              {prof?.fullName || "Loading Name..."} {prof?.companyName ? `(${prof.companyName})` : ""}
+            </h3>
+            <p className="text-xs text-muted-foreground">{prof?.email || req.userId}</p>
+          </div>
+          <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 rounded-md font-bold text-[10px] w-fit">
+            Pending Review
+          </Badge>
+        </div>
+
+        {/* Uploaded Documents Group */}
+        <div className="space-y-2">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Submitted Documents</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {req.role === "translator" ? (
+              <>
+                {/* Translator ID */}
+                <div className="p-3 rounded-lg border border-border/40 bg-card/40 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-2xs font-semibold block truncate">Personal ID / Passport</span>
+                      <span className="text-[9px] text-muted-foreground block">Verification File</span>
+                    </div>
+                  </div>
+                  {prof?.idUrl ? (
+                    <a href={prof.idUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
+                  )}
+                </div>
+
+                {/* Translator Certificate */}
+                <div className="p-3 rounded-lg border border-border/40 bg-card/40 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-2xs font-semibold block truncate">Certificates</span>
+                      <span className="text-[9px] text-muted-foreground block">Degrees/Accreditations</span>
+                    </div>
+                  </div>
+                  {prof?.certUrl ? (
+                    <a href={prof.certUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
+                  )}
+                </div>
+
+                {/* Translator CV */}
+                <div className="p-3 rounded-lg border border-border/40 bg-card/40 flex items-center justify-between gap-2 sm:col-span-2 md:col-span-1">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-2xs font-semibold block truncate">CV / Resume</span>
+                      <span className="text-[9px] text-muted-foreground block">Professional CV</span>
+                    </div>
+                  </div>
+                  {prof?.cvUrl ? (
+                    <a href={prof.cvUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Company Registration license */}
+                <div className="p-3 rounded-lg border border-border/40 bg-card/40 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-2xs font-semibold block truncate">Business Registration</span>
+                      <span className="text-[9px] text-muted-foreground block">Official License</span>
+                    </div>
+                  </div>
+                  {prof?.registrationDoc ? (
+                    <a href={prof.registrationDoc} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
+                  )}
+                </div>
+
+                {/* Company Owner ID */}
+                <div className="p-3 rounded-lg border border-border/40 bg-card/40 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-2xs font-semibold block truncate">Owner / Rep ID</span>
+                      <span className="text-[9px] text-muted-foreground block">ID or Passport</span>
+                    </div>
+                  </div>
+                  {prof?.taxDoc ? (
+                    <a href={prof.taxDoc} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Action Group */}
+        <div className="space-y-2 pt-2">
+          <Textarea
+            placeholder="Provide a reason for rejection (required only if rejecting)..."
+            value={rejectNotes[req.$id] || ""}
+            onChange={(e) =>
+              setRejectNotes((prev) => ({ ...prev, [req.$id]: e.target.value }))
+            }
+            className="min-h-[50px] text-2xs bg-background/50 border-border/50 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50 rounded-lg"
+          />
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="gap-1.5 h-8 text-2xs rounded-lg px-3 bg-cyan-600 hover:bg-cyan-500 font-bold"
+              onClick={() => handleApprove(req.$id)}
+              disabled={actionLoading === req.$id}
+            >
+              {actionLoading === req.$id ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <CheckCircle className="h-3 w-3" />
+              )}
+              Approve & Verify
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="gap-1.5 h-8 text-2xs rounded-lg px-3 font-bold"
+              onClick={() => handleReject(req.$id)}
+              disabled={actionLoading === req.$id}
+            >
+              <XCircle className="h-3 w-3" />
+              Reject Request
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto p-2">
       <div>
-        <h1 className="text-2xl font-bold">Verification Requests</h1>
-        <p className="text-muted-foreground">Review and verify user identities</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <UserCheck className="h-6 w-6 text-primary" />
+          Verification Requests
+        </h1>
+        <p className="text-muted-foreground text-sm">Review, inspect, and approve user verification documents.</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <UserCheck className="h-5 w-5" />
+      <Card className="rounded-xl border-border/50 bg-card/30 backdrop-blur-xl shadow-lg">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-md font-semibold flex items-center gap-2">
+            <UserCheck className="h-4.5 w-4.5 text-primary" />
             Pending Requests ({requests.length})
           </CardTitle>
+          <CardDescription className="text-xs">
+            Toggle tabs below to manage translators and companies verification documents independently.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="h-32 animate-pulse rounded-xl bg-muted/40" />
               ))}
             </div>
           ) : requests.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No pending verification requests.</p>
+            <div className="text-center py-12 text-sm text-muted-foreground">
+              No pending verification requests.
+            </div>
           ) : (
-            <ScrollArea className="h-[60vh]">
-              <div className="space-y-3">
-                {requests.map((req) => (
-                  <div key={req.$id} className="rounded-lg border p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="uppercase text-xs">{req.role}</Badge>
-                        <span className="text-sm font-medium">{req.userId}</span>
-                      </div>
-                      <Badge variant="secondary">Pending</Badge>
+            <Tabs defaultValue="translators" className="space-y-4">
+              <TabsList className="grid grid-cols-2 max-w-[320px] rounded-lg bg-background/50 border border-border/50 p-1">
+                <TabsTrigger value="translators" className="text-xs font-semibold rounded-md py-1.5">
+                  Translators ({translatorsRequests.length})
+                </TabsTrigger>
+                <TabsTrigger value="companies" className="text-xs font-semibold rounded-md py-1.5">
+                  Companies ({companiesRequests.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <ScrollArea className="h-[65vh] pr-2">
+                <TabsContent value="translators" className="space-y-4 outline-none">
+                  {translatorsRequests.length === 0 ? (
+                    <div className="text-center py-12 text-xs text-muted-foreground">
+                      No pending requests for translators.
                     </div>
-                    <div className="space-y-2">
-                      <Textarea
-                        placeholder="Reason for rejection (required for reject)..."
-                        value={rejectNotes[req.$id] || ""}
-                        onChange={(e) =>
-                          setRejectNotes((prev) => ({ ...prev, [req.$id]: e.target.value }))
-                        }
-                        className="min-h-[60px] text-sm"
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleApprove(req.$id)}
-                          disabled={actionLoading === req.$id}
-                        >
-                          {actionLoading === req.$id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4" />
-                          )}
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="gap-1"
-                          onClick={() => handleReject(req.$id)}
-                          disabled={actionLoading === req.$id}
-                        >
-                          <XCircle className="h-4 w-4" />
-                          Reject
-                        </Button>
-                      </div>
+                  ) : (
+                    translatorsRequests.map(renderRequestCard)
+                  )}
+                </TabsContent>
+
+                <TabsContent value="companies" className="space-y-4 outline-none">
+                  {companiesRequests.length === 0 ? (
+                    <div className="text-center py-12 text-xs text-muted-foreground">
+                      No pending requests for companies.
                     </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+                  ) : (
+                    companiesRequests.map(renderRequestCard)
+                  )}
+                </TabsContent>
+              </ScrollArea>
+            </Tabs>
           )}
         </CardContent>
       </Card>

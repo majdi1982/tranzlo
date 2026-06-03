@@ -396,13 +396,28 @@ export const appwriteNotificationService = {
 export const appwriteVerificationService = {
   async submitRequest(userId: string, role: string): Promise<VerificationRequest> {
     const db = getDatabases();
-    const doc = await db.createDocument(DB_ID, COLLECTIONS.verificationRequests, generateId("verificationRequest"), {
-      userId,
-      role,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    
+    // Check if there is already a pending request to prevent duplicates
+    const existing = await db.listDocuments(DB_ID, COLLECTIONS.verificationRequests, [
+      Query.equal("userId", userId),
+      Query.equal("status", "pending"),
+      Query.limit(1)
+    ]);
+
+    let doc;
+    if (existing.documents.length > 0) {
+      doc = await db.updateDocument(DB_ID, COLLECTIONS.verificationRequests, existing.documents[0].$id, {
+        updatedAt: new Date().toISOString(),
+      });
+    } else {
+      doc = await db.createDocument(DB_ID, COLLECTIONS.verificationRequests, generateId("verificationRequest"), {
+        userId,
+        role,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
 
     try {
       const collection = role === "translator" ? COLLECTIONS.translatorProfiles : COLLECTIONS.companyProfiles;

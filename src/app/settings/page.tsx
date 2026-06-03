@@ -300,6 +300,8 @@ export default function SettingsPage() {
           verificationStatus: "pending",
         });
 
+        await services.verification.submitRequest(user.$id, role);
+
         setTranslatorDocs({
           idUrl: newIdUrl,
           certUrl: newCertUrl,
@@ -317,6 +319,8 @@ export default function SettingsPage() {
           taxDoc: newOwnerUrl,
           verificationStatus: "pending",
         } as any);
+
+        await services.verification.submitRequest(user.$id, role);
 
         setCompanyDocs({
           registrationDocUrl: newRegUrl,
