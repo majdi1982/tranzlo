@@ -6,7 +6,7 @@ import Image from "next/image";
 import { 
   Save, ArrowLeft, Loader2, X, Upload, User, Building2, CheckCircle, 
   Edit3, Eye, FileText, Download, Globe, Award, Briefcase, 
-  DollarSign, Key, Settings, ExternalLink, ChevronRight, Check
+  DollarSign, Key, Settings, ExternalLink, ChevronRight, Check, Sparkles
 } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
@@ -26,6 +26,15 @@ import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { TranslatorProfile, CompanyProfile, Role } from "@/types";
 import { COUNTRY_CODES } from "@/data/country-codes";
 import { useDynamicSEO } from "@/hooks/use-dynamic-seo";
+
+const AVAILABLE_SERVICES = [
+  { id: "translation", name: "Translation", defaultUnit: "word" },
+  { id: "proofreading", name: "Proofreading", defaultUnit: "word" },
+  { id: "mtpe", name: "MTPE (Machine Translation Post-Editing)", defaultUnit: "word" },
+  { id: "subtitling", name: "Subtitling", defaultUnit: "minute" },
+  { id: "transcription", name: "Transcription", defaultUnit: "minute" },
+  { id: "localization", name: "Localization", defaultUnit: "word" },
+];
 
 function ProfileContent() {
   const router = useRouter();
@@ -60,6 +69,8 @@ function ProfileContent() {
     isPublicPlatform: true,
     searchEngines: [] as string[],
     seoKeywords: "",
+    planTier: "free",
+    pricing: [] as { serviceId: string; rate: number; unit: string }[],
   });
 
   // Company state
@@ -123,6 +134,18 @@ function ProfileContent() {
           setTargetRole("translator");
           setProfileExists(true);
           setAvatarUrl(translatorProfile.avatarUrl || "");
+          
+          let parsedPricing: { serviceId: string; rate: number; unit: string }[] = [];
+          if (translatorProfile.pricing) {
+            try {
+              parsedPricing = typeof translatorProfile.pricing === "string"
+                ? JSON.parse(translatorProfile.pricing)
+                : translatorProfile.pricing;
+            } catch (e) {
+              console.error("Failed to parse pricing", e);
+            }
+          }
+
           setTranslatorData({
             fullName: translatorProfile.fullName || "",
             bio: translatorProfile.bio || "",
@@ -135,6 +158,8 @@ function ProfileContent() {
             isPublicPlatform: translatorProfile.isPublicPlatform ?? true,
             searchEngines: translatorProfile.searchEngines || [],
             seoKeywords: translatorProfile.seoKeywords || "",
+            planTier: translatorProfile.planTier || "free",
+            pricing: parsedPricing,
           });
           foundProfile = true;
         }
@@ -296,7 +321,8 @@ function ProfileContent() {
           seoKeywords: translatorData.seoKeywords,
           avatarUrl: avatarUrl || undefined,
           email: user.email || "",
-          onboardingComplete: true
+          onboardingComplete: true,
+          pricing: JSON.stringify(translatorData.pricing || []),
         });
       } else if (role === "company") {
         await services.profile.updateCompanyProfile(user.$id, {
@@ -332,12 +358,28 @@ function ProfileContent() {
   }
 
   function toggleLanguage(code: string) {
-    setTranslatorData((prev) => ({
-      ...prev,
-      languages: prev.languages.includes(code)
-        ? prev.languages.filter((l) => l !== code)
-        : [...prev.languages, code],
-    }));
+    setTranslatorData((prev) => {
+      const isSelected = prev.languages.includes(code);
+      if (isSelected) {
+        return {
+          ...prev,
+          languages: prev.languages.filter((l) => l !== code),
+        };
+      }
+      const limit = prev.planTier === "standard" ? 3 : prev.planTier === "plus" ? 10 : 1;
+      if (prev.languages.length >= limit) {
+        toast({
+          title: "Language Limit Reached",
+          description: `Your plan (${prev.planTier === "standard" ? "Standard" : prev.planTier === "plus" ? "Plus" : "Free"}) is limited to ${limit} language(s). Please upgrade to add more.`,
+          variant: "destructive",
+        });
+        return prev;
+      }
+      return {
+        ...prev,
+        languages: [...prev.languages, code],
+      };
+    });
   }
 
   function toggleSpecialization(spec: string) {
@@ -346,6 +388,31 @@ function ProfileContent() {
       specializations: prev.specializations.includes(spec)
         ? prev.specializations.filter((s) => s !== spec)
         : [...prev.specializations, spec],
+    }));
+  }
+
+  function toggleService(serviceId: string, defaultUnit: string) {
+    setTranslatorData((prev) => {
+      const exists = prev.pricing.some((item) => item.serviceId === serviceId);
+      if (exists) {
+        return {
+          ...prev,
+          pricing: prev.pricing.filter((item) => item.serviceId !== serviceId),
+        };
+      }
+      return {
+        ...prev,
+        pricing: [...prev.pricing, { serviceId, rate: 0.05, unit: defaultUnit }],
+      };
+    });
+  }
+
+  function handleServiceRateChange(serviceId: string, rate: number) {
+    setTranslatorData((prev) => ({
+      ...prev,
+      pricing: prev.pricing.map((item) =>
+        item.serviceId === serviceId ? { ...item, rate } : item
+      ),
     }));
   }
 
@@ -745,49 +812,43 @@ function ProfileContent() {
               )}
             </Card>
 
-            {/* SEO & Visibility details showcase */}
-            <Card className="glass-card p-6 border-border/40 rounded-2xl">
-              <div className="flex items-center gap-2 mb-4">
-                <Globe className="h-5 w-5 text-teal-500" />
-                <h3 className="font-bold text-base text-foreground">SEO Indexing & Platform Privacy</h3>
-              </div>
-              <div className="space-y-4 text-xs">
-                <div className="flex justify-between py-1 border-b border-border/10">
-                  <span className="text-muted-foreground">Platform Directory Visibility:</span>
-                  <span className="font-semibold text-foreground">
-                    {((role === "translator" ? translatorData.isPublicPlatform : companyData.isPublicPlatform)) 
-                      ? "Public (Displayed in search directories)" 
-                      : "Private (Hidden from directories)"}
-                  </span>
+            {/* Services Offered & Rates card */}
+            {role === "translator" && (
+              <Card className="glass-card p-6 border-border/40 rounded-2xl bg-gradient-to-br from-background/30 to-teal-500/5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Award className="h-5 w-5 text-teal-500 animate-pulse" />
+                  <h3 className="font-bold text-base text-foreground">Services Offered & Rates</h3>
                 </div>
-                <div className="flex justify-between py-1 border-b border-border/10">
-                  <span className="text-muted-foreground">Permitted Search Engines for Indexing:</span>
-                  <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    {((role === "translator" ? translatorData.searchEngines : companyData.searchEngines)).length > 0 ? (
-                      ((role === "translator" ? translatorData.searchEngines : companyData.searchEngines)).map((e) => (
-                        <Badge key={e} variant="outline" className="text-3xs rounded-md bg-teal-500/5 text-teal-600 border-teal-500/20">{e}</Badge>
-                      ))
-                    ) : (
-                      "No Search Engines Allowed (Indexed block)"
+                {translatorData.pricing && translatorData.pricing.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {translatorData.pricing.map((item) => {
+                      const serviceName = AVAILABLE_SERVICES.find(s => s.id === item.serviceId)?.name || item.serviceId;
+                      return (
+                        <div key={item.serviceId} className="p-4 rounded-xl border border-border/50 bg-background/50 flex items-center justify-between shadow-sm transition-transform hover:scale-[1.01] hover:border-teal-500/30">
+                          <div className="space-y-1">
+                            <span className="font-bold text-xs text-foreground block">{serviceName}</span>
+                            <span className="text-4xs text-muted-foreground uppercase tracking-wider font-semibold">Unit: {item.unit}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-bold text-teal-600">${item.rate}</span>
+                            <span className="text-4xs text-muted-foreground block font-medium">USD / {item.unit}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 border border-dashed border-border/50 rounded-xl bg-background/20">
+                    <p className="text-xs text-muted-foreground">No services declared yet.</p>
+                    {!isViewingOthers && (
+                      <Button size="sm" variant="outline" onClick={() => setViewMode(false)} className="mt-3 rounded-lg text-2xs hover:bg-teal-50/10">
+                        Add Services & Rates
+                      </Button>
                     )}
-                  </span>
-                </div>
-                {((role === "translator" ? translatorData.seoKeywords : companyData.seoKeywords)) && (
-                  <div>
-                    <span className="text-muted-foreground block mb-2">Custom SEO Keywords:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {((role === "translator" ? translatorData.seoKeywords : companyData.seoKeywords))
-                        .split(",")
-                        .map((kw, i) => (
-                          <Badge key={i} className="text-3xs rounded-md bg-accent/20 text-foreground border-border/40 font-medium">
-                            {kw.trim()}
-                          </Badge>
-                        ))}
-                    </div>
                   </div>
                 )}
-              </div>
-            </Card>
+              </Card>
+            )}
 
           </div>
         ) : (
@@ -962,7 +1023,12 @@ function ProfileContent() {
                   </CardHeader>
                   <CardContent className="px-0 pb-0 space-y-6">
                     <div className="space-y-3">
-                      <Label className="text-xs font-semibold">Languages Spoken/Written</Label>
+                      <div className="flex justify-between items-center">
+                        <Label className="text-xs font-semibold">Languages Spoken/Written</Label>
+                        <Badge variant="outline" className="text-4xs uppercase bg-teal-500/5 text-teal-600 border-teal-500/20 font-bold">
+                          Tier: {translatorData.planTier === "standard" ? "Standard (Max 3)" : translatorData.planTier === "plus" ? "Plus (Max 10)" : "Free (Max 1)"}
+                        </Badge>
+                      </div>
                       <div className="flex flex-wrap gap-1.5">
                         {LANGUAGES.map((lang) => {
                           const selected = translatorData.languages.includes(lang.code);
@@ -978,6 +1044,26 @@ function ProfileContent() {
                             </Badge>
                           );
                         })}
+                      </div>
+                      
+                      {/* Dynamic Upgrade CTA when languages limit is active */}
+                      <div className="mt-3 flex items-center justify-between p-3 rounded-xl border border-border/40 bg-accent/5">
+                        <div className="space-y-0.5">
+                          <span className="text-4xs font-bold text-muted-foreground uppercase tracking-wider block">Languages Limit</span>
+                          <span className="text-xs font-bold text-foreground">
+                            {translatorData.languages.length} / {translatorData.planTier === "standard" ? 3 : translatorData.planTier === "plus" ? 10 : 1} Used
+                          </span>
+                        </div>
+                        {translatorData.planTier !== "plus" && (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => router.push("/dashboard/plans")}
+                            className="rounded-lg text-3xs border-teal-500/30 text-teal-600 hover:bg-teal-50/10 gap-1 h-7 px-2.5 py-1 font-semibold"
+                          >
+                            <Sparkles className="h-3 w-3 text-amber-500 animate-bounce" /> Upgrade Plan
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -999,6 +1085,52 @@ function ProfileContent() {
                           );
                         })}
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Services Offered & Rates Editor (Translator) */}
+                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                  <CardHeader className="px-0 pt-0">
+                    <CardTitle className="text-base font-bold">Services Offered & Rates</CardTitle>
+                    <CardDescription className="text-3xs">Enable the services you provide and define your base rates</CardDescription>
+                  </CardHeader>
+                  <CardContent className="px-0 pb-0 space-y-4">
+                    <div className="grid grid-cols-1 gap-3">
+                      {AVAILABLE_SERVICES.map((service) => {
+                        const pricingItem = translatorData.pricing.find((item) => item.serviceId === service.id);
+                        const selected = !!pricingItem;
+                        return (
+                          <div key={service.id} className="p-3 rounded-xl border border-border/40 bg-background/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors hover:border-teal-500/20">
+                            <div className="flex items-center gap-2">
+                              <input
+                                id={`service-${service.id}`}
+                                type="checkbox"
+                                checked={selected}
+                                onChange={() => toggleService(service.id, service.defaultUnit)}
+                                className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                              />
+                              <Label htmlFor={`service-${service.id}`} className="font-bold text-xs cursor-pointer select-none">
+                                {service.name}
+                              </Label>
+                            </div>
+                            {selected && (
+                              <div className="flex items-center gap-2 self-end sm:self-auto">
+                                <span className="text-3xs text-muted-foreground">Rate ($):</span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.001"
+                                  value={pricingItem.rate}
+                                  onChange={(e) => handleServiceRateChange(service.id, Number(e.target.value))}
+                                  className="w-20 h-7 rounded-lg text-xs py-1 px-2 border-border/50"
+                                />
+                                <span className="text-4xs text-muted-foreground uppercase font-semibold">USD / {pricingItem.unit}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
