@@ -281,6 +281,8 @@ export default function SettingsPage() {
       const fileUrl = `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://appwrite.tranzlo.net/v1"}/storage/buckets/${bucketId}/files/${uploadedFile.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
       
       const services = getServices();
+      const isVerificationUpload = type === "translator-id" || type === "translator-cert" || type === "company-reg" || type === "company-owner";
+      
       if (role === "translator") {
         let newIdUrl = translatorDocs.idUrl;
         let newCertUrl = translatorDocs.certUrl;
@@ -294,13 +296,21 @@ export default function SettingsPage() {
         if (newIdUrl) newCertificates.push(`id:${newIdUrl}`);
         if (newCertUrl) newCertificates.push(`cert:${newCertUrl}`);
 
-        await services.profile.updateTranslatorProfile(user.$id, {
+        const updateData: any = {
           cvUrl: newCvUrl,
           certificates: newCertificates,
-          verificationStatus: "pending",
-        });
+        };
 
-        await services.verification.submitRequest(user.$id, role);
+        if (isVerificationUpload) {
+          updateData.verificationStatus = "pending";
+        }
+
+        await services.profile.updateTranslatorProfile(user.$id, updateData);
+
+        if (isVerificationUpload) {
+          await services.verification.submitRequest(user.$id, role);
+          setVerificationStatus("pending");
+        }
 
         setTranslatorDocs({
           idUrl: newIdUrl,
@@ -321,6 +331,7 @@ export default function SettingsPage() {
         } as any);
 
         await services.verification.submitRequest(user.$id, role);
+        setVerificationStatus("pending");
 
         setCompanyDocs({
           registrationDocUrl: newRegUrl,
@@ -328,10 +339,11 @@ export default function SettingsPage() {
         });
       }
 
-      setVerificationStatus("pending");
       toast({
-        title: "Document uploaded successfully",
-        description: "Your verification request is now pending review.",
+        title: type === "translator-cv" ? "CV uploaded successfully" : "Document uploaded successfully",
+        description: type === "translator-cv" 
+          ? "Your resume has been updated on your profile."
+          : "Your verification request is now pending review.",
         variant: "success",
       });
     } catch (err: any) {
