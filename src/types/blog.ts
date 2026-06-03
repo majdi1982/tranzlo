@@ -9,6 +9,8 @@ export interface BlogPost {
   content: string;
   coverImage?: string;
   tags: string[];
+  category?: string;
+  imageAlt?: string;
   status: BlogPostStatus;
   scheduledAt?: string;
   publishedAt?: string;

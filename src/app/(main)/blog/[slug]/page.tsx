@@ -1,10 +1,11 @@
 import * as React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Calendar, Clock, Tag, User, ArrowLeft, Share2 } from "lucide-react";
+import { Calendar, Clock, Tag, User, ArrowLeft, Share2, Sparkles, Briefcase, Globe } from "lucide-react";
 import { appwriteBlogService } from "@/services/appwrite.service";
 import { mockBlogPosts } from "@/data/mock/blog";
 import type { BlogPost } from "@/types";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,14 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Generate rich dynamic metadata for Google crawlers and Social media card previews (OpenGraph/Twitter)
+const CATEGORY_MAP: Record<string, string> = {
+  "translation-tech": "تقنيات الترجمة والذكاء الاصطناعي",
+  "linguistic-guides": "الأدلة اللغوية والإرشادية",
+  "freelance-career": "العمل الحر والمسار المهني",
+  "industry-trends": "اتجاهات صناعة الترجمة",
+  "general": "عام",
+};
+
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
   const slug = params.slug;
@@ -31,7 +39,7 @@ export async function generateMetadata(props: PageProps) {
   if (!post) return {};
 
   const shareUrl = `https://tranzlo.net/blog/${post.slug}`;
-  const ogImg = post.coverImage || "https://tranzlo.net/public/images/og-blog-fallback.jpg"; // Fallback premium social image
+  const ogImg = post.coverImage || "https://tranzlo.net/public/images/og-blog-fallback.jpg";
 
   return {
     title: `${post.title} | Tranzlo Blog`,
@@ -52,7 +60,7 @@ export async function generateMetadata(props: PageProps) {
           url: ogImg,
           width: 1200,
           height: 630,
-          alt: post.title,
+          alt: post.imageAlt || post.title,
         },
       ],
     },
@@ -93,7 +101,9 @@ export default async function BlogPostDetailPage(props: PageProps) {
       })
     : "Draft";
 
-  // Generate dynamic JSON-LD Structured Data Schema markup for Google Rich Snippets
+  const categoryName = CATEGORY_MAP[post.category || "general"] || "عام";
+
+  // JSON-LD Structured Schema Markup (Google Search console indexing optimization)
   const jsonLdSchema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -102,6 +112,7 @@ export default async function BlogPostDetailPage(props: PageProps) {
     "image": post.coverImage || "https://tranzlo.net/public/images/og-blog-fallback.jpg",
     "datePublished": post.publishedAt || post.createdAt,
     "dateModified": post.updatedAt || post.createdAt,
+    "articleSection": categoryName,
     "author": {
       "@type": "Organization",
       "name": "Tranzlo",
@@ -122,47 +133,48 @@ export default async function BlogPostDetailPage(props: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 sm:px-6 lg:px-8 relative bg-grid">
-      {/* Dynamic injection of the Google crawler schema */}
+    <div className="min-h-screen bg-background text-foreground py-12 px-4 sm:px-6 lg:px-8 relative bg-grid">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
       />
 
-      {/* Decorative top-hero visual spotlight */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[400px] bg-hero-glow pointer-events-none" />
 
       <div className="relative max-w-4xl mx-auto z-10 space-y-8">
         {/* Navigation Return Button */}
         <Link
           href="/blog"
-          className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-cyan-400 transition-colors group"
+          className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors group"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
           Back to chronicle
         </Link>
 
         {/* Article Container Card */}
-        <article className="bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-3xl overflow-hidden shadow-2xl shadow-cyan-950/10">
+        <article className="bg-card/40 backdrop-blur-md border border-border rounded-3xl overflow-hidden shadow-2xl shadow-cyan-950/5">
           
           {/* Article Cover Image Spot */}
-          <div className="h-[300px] sm:h-[400px] bg-slate-950 relative flex items-center justify-center border-b border-slate-800">
+          <div className="h-[300px] sm:h-[400px] bg-muted relative flex items-center justify-center border-b border-border">
             {post.coverImage ? (
               <img
                 src={post.coverImage}
-                alt={post.title}
+                alt={post.imageAlt || `Cover image for: ${post.title}`}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-cyan-950/20 flex items-center justify-center p-6 text-center">
-                <Share2 className="h-16 w-16 text-cyan-500/20" />
+              <div className="absolute inset-0 bg-gradient-to-br from-background via-muted to-primary/5 flex items-center justify-center p-6 text-center">
+                <Share2 className="h-16 w-16 text-primary/20" />
               </div>
             )}
             <div className="absolute bottom-6 left-6 flex flex-wrap gap-2">
+              <span className="bg-background/90 text-primary border border-border px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider">
+                {categoryName}
+              </span>
               {post.tags?.map((t) => (
                 <span
                   key={t}
-                  className="bg-slate-950/90 text-cyan-400 border border-slate-800/80 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider"
+                  className="bg-background/90 text-muted-foreground border border-border px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider"
                 >
                   #{t}
                 </span>
@@ -172,30 +184,30 @@ export default async function BlogPostDetailPage(props: PageProps) {
 
           <div className="p-6 sm:p-10 space-y-8">
             {/* Metadata Bar */}
-            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 border-b border-slate-800 pb-6 justify-between">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground border-b border-border pb-6 justify-between">
               <div className="flex flex-wrap items-center gap-4">
                 <span className="flex items-center gap-1.5">
-                  <User className="h-4 w-4 text-cyan-500/70" />
+                  <User className="h-4 w-4 text-primary/70" />
                   Tranzlo Team
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4 text-cyan-500/70" />
+                  <Calendar className="h-4 w-4 text-primary/70" />
                   {formattedDate}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-cyan-500/70" />
+                  <Clock className="h-4 w-4 text-primary/70" />
                   5 min read
                 </span>
               </div>
 
-              {/* Dynamic Social Sharing card trigger buttons */}
+              {/* Dynamic Social Sharing buttons */}
               <div className="flex items-center gap-2">
-                <span className="text-2xs font-bold text-slate-500 uppercase tracking-wide mr-1">Share:</span>
+                <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wide mr-1">Share:</span>
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(shareUrl)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-slate-950/60 border border-slate-800 rounded-lg text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-all duration-300 flex items-center justify-center"
+                  className="p-2 bg-background/60 border border-border rounded-lg text-muted-foreground hover:text-primary hover:border-primary/30 transition-all duration-300 flex items-center justify-center"
                   aria-label="Share on X"
                 >
                   <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
@@ -206,7 +218,7 @@ export default async function BlogPostDetailPage(props: PageProps) {
                   href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-slate-950/60 border border-slate-800 rounded-lg text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-all duration-300 flex items-center justify-center"
+                  className="p-2 bg-background/60 border border-border rounded-lg text-muted-foreground hover:text-primary hover:border-primary/30 transition-all duration-300 flex items-center justify-center"
                   aria-label="Share on Facebook"
                 >
                   <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
@@ -217,7 +229,7 @@ export default async function BlogPostDetailPage(props: PageProps) {
                   href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-slate-950/60 border border-slate-800 rounded-lg text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-all duration-300 flex items-center justify-center"
+                  className="p-2 bg-background/60 border border-border rounded-lg text-muted-foreground hover:text-primary hover:border-primary/30 transition-all duration-300 flex items-center justify-center"
                   aria-label="Share on LinkedIn"
                 >
                   <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
@@ -228,30 +240,29 @@ export default async function BlogPostDetailPage(props: PageProps) {
             </div>
 
             {/* Article Headline */}
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-100 leading-tight">
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
               {post.title}
             </h1>
 
             {/* Structured Content Area for perfect crawlability */}
-            <div className="prose prose-invert prose-cyan max-w-none text-slate-300 text-sm sm:text-base leading-relaxed space-y-6">
+            <div className="prose prose-invert prose-cyan max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed space-y-6">
               {post.content.split("\n\n").map((paragraph, index) => {
-                // If it starts with a heading markdown, render as headings cleanly
                 if (paragraph.startsWith("## ")) {
                   return (
-                    <h2 key={index} className="text-xl sm:text-2xl font-bold text-slate-100 mt-8 mb-4 border-l-2 border-cyan-500 pl-3">
+                    <h2 key={index} className="text-xl sm:text-2xl font-bold text-foreground mt-8 mb-4 border-l-2 border-primary pl-3">
                       {paragraph.replace("## ", "")}
                     </h2>
                   );
                 }
                 if (paragraph.startsWith("### ")) {
                   return (
-                    <h3 key={index} className="text-lg font-bold text-slate-100 mt-6 mb-3">
+                    <h3 key={index} className="text-lg font-bold text-foreground mt-6 mb-3">
                       {paragraph.replace("### ", "")}
                     </h3>
                   );
                 }
                 return (
-                  <p key={index} className="whitespace-pre-line">
+                  <p key={index} className="whitespace-pre-line text-muted-foreground">
                     {paragraph}
                   </p>
                 );
@@ -260,24 +271,25 @@ export default async function BlogPostDetailPage(props: PageProps) {
           </div>
         </article>
 
-        {/* CTA Bottom Spotlight */}
-        <div className="bg-gradient-to-r from-cyan-950/30 via-slate-900/60 to-cyan-950/30 backdrop-blur-md border border-slate-800/80 p-8 rounded-3xl text-center space-y-4">
-          <h3 className="text-lg font-bold text-slate-100">Need Professional Localization Services?</h3>
-          <p className="text-xs text-slate-400 max-w-lg mx-auto leading-relaxed">
-            Connect with our global network of translation experts to seamlessly deploy your business content internationally.
+        {/* CTA Bottom Section linking back to Tranzlo Platform Services */}
+        <div className="bg-gradient-to-r from-primary/5 via-card/60 to-primary/5 backdrop-blur-md border border-border p-8 rounded-3xl text-center space-y-4 shadow-sm">
+          <h3 className="text-lg font-bold text-foreground flex items-center justify-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Grow Your Global Business with Tranzlo
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-lg mx-auto leading-relaxed">
+            Whether you want to hire verified translators, post jobs, or register as a freelance linguist, Tranzlo provides automated localization pipelines.
           </p>
-          <div className="flex justify-center gap-4">
-            <Link
-              href="/signup"
-              className="px-5 py-2 text-xs font-bold bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 rounded-xl transition-all duration-300"
-            >
-              Get Started Now
+          <div className="flex justify-center gap-4 flex-wrap">
+            <Link href="/signup">
+              <Button size="sm" className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/95 rounded-xl">
+                Get Started Free
+              </Button>
             </Link>
-            <Link
-              href="/jobs"
-              className="px-5 py-2 text-xs font-bold bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-xl transition-all duration-300"
-            >
-              Browse Jobs
+            <Link href="/search?category=translators">
+              <Button size="sm" variant="outline" className="px-6 py-2 text-xs font-bold border-border/80 hover:bg-muted text-muted-foreground rounded-xl">
+                Search Translators
+              </Button>
             </Link>
           </div>
         </div>

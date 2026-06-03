@@ -296,6 +296,8 @@ const SCHEMA: Col[] = [
       { key: "content", type: "string", size: 50000, required: true },
       { key: "coverImage", type: "string", size: 512, required: false },
       { key: "tags", type: "string", size: 64, required: false, array: true },
+      { key: "category", type: "string", size: 64, required: false, default: "general" },
+      { key: "imageAlt", type: "string", size: 255, required: false, default: "Translation article cover image" },
       { key: "status", type: "enum", elements: ["draft", "scheduled", "pending_review", "published", "rejected"], required: true },
       { key: "scheduledAt", type: "datetime", required: false },
       { key: "publishedAt", type: "datetime", required: false },

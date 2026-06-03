@@ -35,6 +35,29 @@ function generateSlug(title) {
     .trim();
 }
 
+// Helper to extract cover images from RSS items (media:content, media:thumbnail, enclosure, or img tag)
+function extractCoverImage(xml) {
+  try {
+    // 1. Try media:content or media:thumbnail
+    let match = xml.match(/<(?:media:content|media:thumbnail)[^>]*url=["']([^"']+)["']/i);
+    if (match) return match[1];
+
+    // 2. Try enclosure
+    match = xml.match(/<enclosure[^>]*url=["']([^"']+)["']/i);
+    if (match) return match[1];
+
+    // 3. Try img src inside description/content
+    const desc = extractTag(xml, "description") || extractTag(xml, "content:encoded") || extractTag(xml, "content");
+    if (desc) {
+      match = desc.match(/<img[^>]*src=["']([^"']+)["']/i);
+      if (match) return match[1];
+    }
+  } catch (err) {
+    // ignore
+  }
+  return "";
+}
+
 // Generate high quality post contents & translate using Gemini AI
 async function enrichAndTranslateWithGemini(title, rawContent, geminiApiKey, log, error) {
   if (!geminiApiKey) {
@@ -43,7 +66,9 @@ async function enrichAndTranslateWithGemini(title, rawContent, geminiApiKey, log
       titleAr: title,
       excerptAr: rawContent.slice(0, 150).replace(/<[^>]*>/g, "") + "...",
       contentAr: rawContent,
-      tags: ["news", "general"]
+      tags: ["news", "general"],
+      category: "general",
+      imageAlt: "Translation chronicle cover image"
     };
   }
 
@@ -58,13 +83,22 @@ Task:
 2. Write a professional English summary/excerpt (1-2 sentences, min 15 chars).
 3. Generate a beautifully structured, premium English blog post content in Markdown (min 100 chars), expanding on the topic professionally to keep the readers of a translation/localization/tech platform engaged. Keep it clean, professional, and visually stunning.
 4. Provide 3-5 relevant lowercase tags (e.g. technology, localization, ai, translation).
+5. Categorize this post into one of these exact categories:
+   - "translation-tech" (if the post is about AI translation, LLMs, neural translation, translation tools, CAT tools)
+   - "linguistic-guides" (if it is about language tips, rules, legal/medical translation guides, Arabic formatting)
+   - "freelance-career" (if it is about freelance translation tips, clients, rates, portfolios)
+   - "industry-trends" (if it is about market trends, localization growth, globalization reports)
+   - "general" (if it doesn't fit any of the above)
+6. Write a descriptive, SEO-friendly image alt text (max 120 chars) for this post's cover image.
 
 Return your output STRICTLY as a JSON object with this exact format, with no markdown code block backticks around it:
 {
   "titleAr": "Optimized English title here",
   "excerptAr": "Optimized English excerpt here",
   "contentAr": "Optimized English full content here in Markdown format",
-  "tags": ["tag1", "tag2", "tag3"]
+  "tags": ["tag1", "tag2", "tag3"],
+  "category": "translation-tech",
+  "imageAlt": "Descriptive cover image alt text here"
 }
 `;
 
@@ -93,7 +127,9 @@ Return your output STRICTLY as a JSON object with this exact format, with no mar
       titleAr: `[News] ${title}`,
       excerptAr: `Article summary: ${title} in technology and translation.`,
       contentAr: `### ${title}\n\n${rawContent.replace(/<[^>]*>/g, "")}`,
-      tags: ["news", "translation"]
+      tags: ["news", "translation"],
+      category: "general",
+      imageAlt: "Translation chronicle cover image"
     };
   }
 }
@@ -164,6 +200,9 @@ module.exports = async function (context) {
           error(`   ⚠️ DB check error: ${dbErr.message}`);
         }
 
+        const coverImage = extractCoverImage(itemXml);
+        log(`   📸 Extracted cover image: ${coverImage || "none"}`);
+
         log("   ✨ Translating and generating professional Arabic article with Gemini...");
         const enriched = await enrichAndTranslateWithGemini(originalTitle, originalDesc, geminiApiKey, log, error);
 
@@ -178,7 +217,10 @@ module.exports = async function (context) {
             slug: slug,
             excerpt: enriched.excerptAr.slice(0, 490),
             content: enriched.contentAr.slice(0, 48000),
+            coverImage: coverImage || "",
             tags: enriched.tags,
+            category: enriched.category || "general",
+            imageAlt: enriched.imageAlt || "Translation article cover image",
             status: "published",
             publishedAt: now,
             createdAt: now,
