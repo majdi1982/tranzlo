@@ -91,6 +91,9 @@ if ! docker compose build --no-cache --progress=plain; then
 fi
 docker compose up -d
 
+echo "🧹 Cleaning up dangling/old Docker images..."
+docker image prune -f
+
 # 10. Verify Health
 echo "🩺 Verifying container statuses..."
 sleep 3
