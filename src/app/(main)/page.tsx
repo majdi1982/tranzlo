@@ -79,6 +79,7 @@ const features = [
 
 export default function HomePage() {
   const { user, loading } = useSession();
+  const role = (user?.prefs?.role as Role) || "translator";
 
   if (loading) {
     return (
@@ -113,15 +114,24 @@ export default function HomePage() {
             Tranzlo connects companies with verified language professionals across 50+ languages.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 animate-in animate-in-delay-4">
-            <Link href="/signup">
-              <Button size="lg" className="h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all text-base font-semibold">
-                Get Started Free
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/jobs">
+            {user ? (
+              <Link href={DASHBOARD_ROUTES[role] || "/dashboard"}>
+                <Button size="lg" className="h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all text-base font-semibold">
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/signup">
+                <Button size="lg" className="h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all text-base font-semibold">
+                  Get Started Free
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            )}
+            <Link href="/search">
               <Button size="lg" variant="outline" className="h-12 px-8 rounded-xl border-border/50 hover:bg-accent/50 transition-all text-base">
-                Browse Jobs
+                Search Directory
               </Button>
             </Link>
           </div>
@@ -239,15 +249,24 @@ export default function HomePage() {
             Join thousands of translators and companies already using Tranzlo to connect, collaborate, and deliver exceptional translations.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-            <Link href="/signup">
-              <Button size="lg" className="h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all text-base font-semibold">
-                Create Free Account
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/jobs">
+            {user ? (
+              <Link href={DASHBOARD_ROUTES[role] || "/dashboard"}>
+                <Button size="lg" className="h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all text-base font-semibold">
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/signup">
+                <Button size="lg" className="h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all text-base font-semibold">
+                  Create Free Account
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            )}
+            <Link href="/search">
               <Button size="lg" variant="outline" className="h-12 px-8 rounded-xl border-border/50 hover:bg-accent/50 transition-all text-base">
-                Browse Available Jobs
+                Search Directory
               </Button>
             </Link>
           </div>

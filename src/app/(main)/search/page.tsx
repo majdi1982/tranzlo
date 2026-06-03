@@ -256,7 +256,7 @@ export default function SearchHubPage() {
   const activeFilterCount = getActiveFilterCount();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 sm:px-6 lg:px-8 relative bg-grid">
+    <div className="min-h-screen bg-background text-foreground py-12 px-4 sm:px-6 lg:px-8 relative bg-grid">
       {/* Background glow effects - Pure 0px sharp geometry */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[350px] bg-hero-glow pointer-events-none" />
 
@@ -273,8 +273,8 @@ export default function SearchHubPage() {
           {/* Large Stylized Search Bar Console */}
           <div className="relative max-w-2xl mx-auto mt-6 group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-none blur-sm opacity-25 group-focus-within:opacity-60 transition duration-300" />
-            <div className="relative flex items-center bg-slate-900 border border-slate-800">
-              <Search className="ml-4 h-5 w-5 text-slate-500 shrink-0" />
+            <div className="relative flex items-center bg-card border border-border">
+              <Search className="ml-4 h-5 w-5 text-muted-foreground shrink-0" />
               <Input
                 placeholder={
                   activeTab === "translators" 
@@ -285,7 +285,7 @@ export default function SearchHubPage() {
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-3 pr-4 h-12 bg-transparent border-0 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-slate-200 placeholder-slate-500 text-sm w-full rounded-none"
+                className="pl-3 pr-4 h-12 bg-transparent border-0 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder:text-muted-foreground/60 text-sm w-full rounded-none"
               />
               {searchQuery && (
                 <button 
@@ -300,7 +300,7 @@ export default function SearchHubPage() {
         </div>
 
         {/* Tab switch controller */}
-        <div className="max-w-md mx-auto flex items-center justify-center p-0.5 bg-slate-900 border border-slate-800">
+        <div className="max-w-md mx-auto flex items-center justify-center p-0.5 bg-card border border-border">
           {(["translators", "companies", "jobs"] as const).map((tab) => (
             <button
               key={tab}
@@ -320,8 +320,8 @@ export default function SearchHubPage() {
         </div>
 
         {/* Control bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-900 pb-5">
-          <p className="text-xs text-slate-400 font-medium">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-border pb-5">
+          <p className="text-xs text-muted-foreground font-medium">
             {loading ? (
               "Querying Database..."
             ) : activeTab === "translators" ? (
@@ -337,13 +337,13 @@ export default function SearchHubPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowFiltersMobile(!showFiltersMobile)}
-              className="lg:hidden h-8 text-2xs uppercase tracking-wider rounded-none border-slate-800"
+              className="lg:hidden h-8 text-2xs uppercase tracking-wider rounded-none border-border"
             >
               <SlidersHorizontal className="h-3.5 w-3.5 mr-1" />
               Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
             </Button>
             <div className="flex items-center gap-2">
-              <ArrowUpDown className="h-3.5 w-3.5 text-slate-500" />
+              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               {activeTab === "translators" && (
                 <Select value={sortTranslators} onValueChange={(v) => setSortTranslators(v as any)}>
                   <SelectTrigger className="w-[150px] h-8 text-2xs uppercase tracking-wider bg-slate-900 border-slate-800 rounded-none text-slate-300">
@@ -388,9 +388,9 @@ export default function SearchHubPage() {
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Dynamic Sidebar Filters - Desktop */}
           <aside className={`w-full lg:w-64 shrink-0 space-y-6 ${showFiltersMobile ? "block" : "hidden"} lg:block`}>
-            <div className="bg-slate-900/40 border border-slate-800 p-5 space-y-5 rounded-none">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-2xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+            <div className="bg-card/40 border border-border p-5 space-y-5 rounded-none">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-2xs font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5">
                   <SlidersHorizontal className="h-3.5 w-3.5 text-cyan-400" />
                   Parameters
                 </h3>
@@ -408,12 +408,12 @@ export default function SearchHubPage() {
               {activeTab === "translators" && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Native Language</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Native Language</label>
                     <Select value={nativeLang || "all"} onValueChange={(v) => setNativeLang(v === "all" ? "" : v)}>
-                      <SelectTrigger className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none">
+                      <SelectTrigger className="h-8 text-2xs bg-background border-border rounded-none">
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-200 rounded-none">
+                      <SelectContent className="bg-card border-border text-foreground rounded-none">
                         <SelectItem value="all">Any</SelectItem>
                         {LANGUAGES.map((lang) => (
                           <SelectItem key={lang.code} value={lang.code}>
@@ -425,12 +425,12 @@ export default function SearchHubPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Specialization</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Specialization</label>
                     <Select value={specFilter || "all"} onValueChange={(v) => setSpecFilter(v === "all" ? "" : v)}>
-                      <SelectTrigger className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none">
+                      <SelectTrigger className="h-8 text-2xs bg-background border-border rounded-none">
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-200 rounded-none">
+                      <SelectContent className="bg-card border-border text-foreground rounded-none">
                         <SelectItem value="all">Any</SelectItem>
                         {SPECIALIZATIONS.map((spec) => (
                           <SelectItem key={spec} value={spec}>
@@ -442,56 +442,56 @@ export default function SearchHubPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CAT Tool Skill</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">CAT Tool Skill</label>
                     <Input
                       placeholder="e.g. Trados, MemoQ"
                       value={catToolFilter}
                       onChange={(e) => setCatToolFilter(e.target.value)}
-                      className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
+                      className="h-8 text-2xs bg-background border-border rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hourly Rate Range ($)</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Hourly Rate Range ($)</label>
                     <div className="flex gap-2 items-center">
                       <Input
                         placeholder="Min"
                         type="number"
                         value={rateMin}
                         onChange={(e) => setRateMin(e.target.value)}
-                        className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
+                        className="h-8 text-2xs bg-background border-border rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
                       />
-                      <span className="text-slate-600 text-xs">-</span>
+                      <span className="text-muted-foreground text-xs">-</span>
                       <Input
                         placeholder="Max"
                         type="number"
                         value={rateMax}
                         onChange={(e) => setRateMax(e.target.value)}
-                        className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
+                        className="h-8 text-2xs bg-background border-border rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Years Experience</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Years Experience</label>
                     <Input
                       placeholder="e.g. 5"
                       type="number"
                       value={expMin}
                       onChange={(e) => setExpMin(e.target.value)}
-                      className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
+                      className="h-8 text-2xs bg-background border-border rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
                     />
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60">
+                  <div className="flex items-center gap-2 pt-2 border-t border-border/60">
                     <input
                       type="checkbox"
                       id="verifiedTranslators"
                       checked={verifiedOnlyTranslators}
                       onChange={(e) => setVerifiedOnlyTranslators(e.target.checked)}
-                      className="rounded-none border-slate-800 bg-slate-950 text-cyan-500 focus:ring-0 focus:ring-offset-0"
+                      className="rounded-none border-border bg-background text-cyan-500 focus:ring-0 focus:ring-offset-0"
                     />
-                    <label htmlFor="verifiedTranslators" className="text-[10px] font-bold text-slate-300 uppercase tracking-wider cursor-pointer flex items-center gap-1 select-none">
+                    <label htmlFor="verifiedTranslators" className="text-[10px] font-bold text-foreground uppercase tracking-wider cursor-pointer flex items-center gap-1 select-none">
                       <UserCheck className="h-3 w-3 text-cyan-400" />
                       Verified Only
                     </label>
@@ -503,12 +503,12 @@ export default function SearchHubPage() {
               {activeTab === "companies" && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Company Size</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Company Size</label>
                     <Select value={companySizeFilter || "all"} onValueChange={(v) => setCompanySizeFilter(v === "all" ? "" : v)}>
-                      <SelectTrigger className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none">
+                      <SelectTrigger className="h-8 text-2xs bg-background border-border rounded-none">
                         <SelectValue placeholder="Any size" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-200 rounded-none">
+                      <SelectContent className="bg-card border-border text-foreground rounded-none">
                         <SelectItem value="all">Any Size</SelectItem>
                         <SelectItem value="1-10">1-10 Employees</SelectItem>
                         <SelectItem value="11-50">11-50 Employees</SelectItem>
@@ -518,15 +518,15 @@ export default function SearchHubPage() {
                     </Select>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60">
+                  <div className="flex items-center gap-2 pt-2 border-t border-border/60">
                     <input
                       type="checkbox"
                       id="verifiedCompanies"
                       checked={verifiedOnlyCompanies}
                       onChange={(e) => setVerifiedOnlyCompanies(e.target.checked)}
-                      className="rounded-none border-slate-800 bg-slate-950 text-cyan-500 focus:ring-0 focus:ring-offset-0"
+                      className="rounded-none border-border bg-background text-cyan-500 focus:ring-0 focus:ring-offset-0"
                     />
-                    <label htmlFor="verifiedCompanies" className="text-[10px] font-bold text-slate-300 uppercase tracking-wider cursor-pointer flex items-center gap-1 select-none">
+                    <label htmlFor="verifiedCompanies" className="text-[10px] font-bold text-foreground uppercase tracking-wider cursor-pointer flex items-center gap-1 select-none">
                       <UserCheck className="h-3 w-3 text-cyan-400" />
                       Verified Only
                     </label>
@@ -538,12 +538,12 @@ export default function SearchHubPage() {
               {activeTab === "jobs" && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Source Language</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Source Language</label>
                     <Select value={sourceLang || "all"} onValueChange={(v) => setSourceLang(v === "all" ? "" : v)}>
-                      <SelectTrigger className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none">
+                      <SelectTrigger className="h-8 text-2xs bg-background border-border rounded-none">
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-200 rounded-none">
+                      <SelectContent className="bg-card border-border text-foreground rounded-none">
                         <SelectItem value="all">Any</SelectItem>
                         {LANGUAGES.map((lang) => (
                           <SelectItem key={lang.code} value={lang.code}>
@@ -555,12 +555,12 @@ export default function SearchHubPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Target Language</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Target Language</label>
                     <Select value={targetLang || "all"} onValueChange={(v) => setTargetLang(v === "all" ? "" : v)}>
-                      <SelectTrigger className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none">
+                      <SelectTrigger className="h-8 text-2xs bg-background border-border rounded-none">
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-200 rounded-none">
+                      <SelectContent className="bg-card border-border text-foreground rounded-none">
                         <SelectItem value="all">Any</SelectItem>
                         {LANGUAGES.map((lang) => (
                           <SelectItem key={lang.code} value={lang.code}>
@@ -572,12 +572,12 @@ export default function SearchHubPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Specialization</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Specialization</label>
                     <Select value={jobSpecFilter || "all"} onValueChange={(v) => setJobSpecFilter(v === "all" ? "" : v)}>
-                      <SelectTrigger className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none">
+                      <SelectTrigger className="h-8 text-2xs bg-background border-border rounded-none">
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-200 rounded-none">
+                      <SelectContent className="bg-card border-border text-foreground rounded-none">
                         <SelectItem value="all">Any</SelectItem>
                         {SPECIALIZATIONS.map((spec) => (
                           <SelectItem key={spec} value={spec}>
@@ -589,22 +589,22 @@ export default function SearchHubPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Budget Range ($)</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Budget Range ($)</label>
                     <div className="flex gap-2 items-center">
                       <Input
                         placeholder="Min"
                         type="number"
                         value={budgetMin}
                         onChange={(e) => setBudgetMin(e.target.value)}
-                        className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
+                        className="h-8 text-2xs bg-background border-border rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
                       />
-                      <span className="text-slate-600 text-xs">-</span>
+                      <span className="text-muted-foreground text-xs">-</span>
                       <Input
                         placeholder="Max"
                         type="number"
                         value={budgetMax}
                         onChange={(e) => setBudgetMax(e.target.value)}
-                        className="h-8 text-2xs bg-slate-950 border-slate-850 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
+                        className="h-8 text-2xs bg-background border-border rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-cyan-500/50"
                       />
                     </div>
                   </div>
@@ -618,7 +618,7 @@ export default function SearchHubPage() {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Card key={i} className="bg-slate-900/20 border-slate-800 rounded-none h-48 animate-pulse" />
+                  <Card key={i} className="bg-card/20 border-border rounded-none h-48 animate-pulse" />
                 ))}
               </div>
             ) : (
@@ -626,21 +626,21 @@ export default function SearchHubPage() {
                 {/* Translators Tab view */}
                 {activeTab === "translators" && (
                   filteredTranslators.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-900/10 border border-slate-800 rounded-none space-y-4">
-                      <Globe className="h-10 w-10 mx-auto text-slate-600 animate-pulse" />
-                      <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest">No matching specialists</h3>
-                      <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                    <div className="text-center py-20 bg-card/10 border border-border rounded-none space-y-4">
+                      <Globe className="h-10 w-10 mx-auto text-muted-foreground animate-pulse" />
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">No matching specialists</h3>
+                      <p className="text-xs text-muted-foreground max-w-xs mx-auto">
                         We couldn't find any public language experts fitting these filters. Try broadening your criteria.
                       </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {filteredTranslators.map((t) => (
-                        <Card key={t.$id} className="bg-slate-900/30 border-slate-850 hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
+                        <Card key={t.$id} className="bg-card/30 border-border hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
                           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                           <CardHeader className="pb-2.5">
                             <div className="flex items-start gap-3.5">
-                              <div className="h-11 w-11 rounded-none bg-cyan-950/40 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20 shrink-0">
+                              <div className="h-11 w-11 rounded-none bg-cyan-950/20 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20 shrink-0">
                                 {t.fullName
                                   ? t.fullName
                                       .split(" ")
@@ -652,29 +652,29 @@ export default function SearchHubPage() {
                               </div>
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
-                                  <CardTitle className="text-sm font-bold text-slate-200 truncate">{t.fullName}</CardTitle>
+                                  <CardTitle className="text-sm font-bold text-foreground truncate">{t.fullName}</CardTitle>
                                   {t.isVerified && (
                                     <UserCheck className="h-4 w-4 text-cyan-400 shrink-0" />
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                                <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
                                   <span className="flex items-center text-amber-400 gap-0.5">
                                     <Star className="h-3 w-3 fill-current" />
                                     {t.rating ? t.rating.toFixed(1) : "0.0"}
                                   </span>
-                                  <span className="text-slate-600">•</span>
+                                  <span className="text-border">•</span>
                                   <span className="flex items-center gap-0.5">
                                     <DollarSign className="h-3 w-3 text-emerald-400" />
                                     {t.hourlyRate || "0"}/hr
                                   </span>
-                                  <span className="text-slate-600">•</span>
+                                  <span className="text-border">•</span>
                                   <span>{t.yearsOfExperience || "0"} yrs exp</span>
                                 </div>
                               </div>
                             </div>
                           </CardHeader>
                           <CardContent className="pb-3 flex-1">
-                            <p className="text-2xs text-slate-400 line-clamp-3 leading-relaxed">
+                            <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
                               {t.bio || "No professional overview summary available."}
                             </p>
                             
@@ -682,20 +682,20 @@ export default function SearchHubPage() {
                             {t.languages && t.languages.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-3">
                                 {t.languages.slice(0, 4).map((lang) => (
-                                  <Badge key={lang} variant="secondary" className="text-[9px] px-1.5 py-0 bg-slate-950 border border-slate-800 text-slate-400 rounded-none uppercase">
+                                  <Badge key={lang} variant="secondary" className="text-[9px] px-1.5 py-0 bg-background border border-border text-muted-foreground rounded-none uppercase">
                                     {getLanguageName(lang)}
                                   </Badge>
                                 ))}
                                 {t.languages.length > 4 && (
-                                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-slate-950 border border-slate-800 text-slate-500 rounded-none">
+                                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-background border border-border text-muted-foreground/80 rounded-none">
                                     +{t.languages.length - 4} more
                                   </Badge>
                                 )}
                               </div>
                             )}
                           </CardContent>
-                          <CardFooter className="pt-2 border-t border-slate-900/50 flex items-center justify-between text-2xs text-slate-500">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-600">Translator</span>
+                          <CardFooter className="pt-2 border-t border-border/50 flex items-center justify-between text-2xs text-muted-foreground">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Translator</span>
                             <Link 
                               href={`/profile?userId=${t.userId}`}
                               className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider transition-colors text-[10px]"
@@ -713,17 +713,17 @@ export default function SearchHubPage() {
                 {/* Companies Tab view */}
                 {activeTab === "companies" && (
                   filteredCompanies.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-900/10 border border-slate-800 rounded-none space-y-4">
-                      <Briefcase className="h-10 w-10 mx-auto text-slate-600 animate-pulse" />
-                      <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest">No matching partners</h3>
-                      <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                    <div className="text-center py-20 bg-card/10 border border-border rounded-none space-y-4">
+                      <Briefcase className="h-10 w-10 mx-auto text-muted-foreground animate-pulse" />
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">No matching partners</h3>
+                      <p className="text-xs text-muted-foreground max-w-xs mx-auto">
                         We couldn't find any public directories matching these filter parameters.
                       </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {filteredCompanies.map((c) => (
-                        <Card key={c.$id} className="bg-slate-900/30 border-slate-850 hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
+                        <Card key={c.$id} className="bg-card/30 border-border hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
                           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                           <CardHeader className="pb-2.5">
                             <div className="flex items-start gap-3.5">
@@ -739,32 +739,32 @@ export default function SearchHubPage() {
                               </div>
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
-                                  <CardTitle className="text-sm font-bold text-slate-200 truncate">{c.companyName}</CardTitle>
+                                  <CardTitle className="text-sm font-bold text-foreground truncate">{c.companyName}</CardTitle>
                                   {c.isVerified && (
                                     <UserCheck className="h-4 w-4 text-cyan-400 shrink-0" />
                                   )}
                                 </div>
-                                <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
-                                  <Users className="h-3 w-3 text-slate-600" />
+                                <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                                  <Users className="h-3 w-3 text-muted-foreground" />
                                   Size: {c.companySize || "1-10"} Employees
                                 </p>
                               </div>
                             </div>
                           </CardHeader>
                           <CardContent className="pb-3 flex-1">
-                            <p className="text-2xs text-slate-400 line-clamp-3 leading-relaxed">
+                            <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
                               {c.about || "No corporate business summary available."}
                             </p>
                           </CardContent>
-                          <CardFooter className="pt-2 border-t border-slate-900/50 flex items-center justify-between text-2xs text-slate-500">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-600">Company</span>
+                          <CardFooter className="pt-2 border-t border-border/50 flex items-center justify-between text-2xs text-muted-foreground">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Company</span>
                             <div className="flex items-center gap-3">
                               {c.website && (
                                 <a 
                                   href={c.website}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="text-[10px] font-bold text-slate-400 hover:text-slate-300 flex items-center gap-0.5"
+                                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-0.5"
                                 >
                                   Website
                                   <ExternalLink className="h-2.5 w-2.5" />
@@ -788,40 +788,40 @@ export default function SearchHubPage() {
                 {/* Jobs Tab view */}
                 {activeTab === "jobs" && (
                   filteredJobs.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-900/10 border border-slate-800 rounded-none space-y-4">
-                      <Briefcase className="h-10 w-10 mx-auto text-slate-600 animate-pulse" />
-                      <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest">No active projects</h3>
-                      <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                    <div className="text-center py-20 bg-card/10 border border-border rounded-none space-y-4">
+                      <Briefcase className="h-10 w-10 mx-auto text-muted-foreground animate-pulse" />
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">No active projects</h3>
+                      <p className="text-xs text-muted-foreground max-w-xs mx-auto">
                         No active assignments fit these specific requirements.
                       </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {filteredJobs.map((j) => (
-                        <Card key={j.$id} className="bg-slate-900/30 border-slate-850 hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
+                        <Card key={j.$id} className="bg-card/30 border-border hover:border-cyan-500/30 rounded-none transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
                           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                           <CardHeader className="pb-2.5">
                             <div className="min-w-0 flex-1">
-                              <CardTitle className="text-sm font-bold text-slate-200 truncate">{j.title}</CardTitle>
-                              <div className="flex items-center gap-2 mt-1.5 text-[10px] text-slate-400">
+                              <CardTitle className="text-sm font-bold text-foreground truncate">{j.title}</CardTitle>
+                              <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground">
                                 <span className="flex items-center gap-1 text-cyan-400 bg-cyan-950/20 px-1 border border-cyan-500/10 text-[9px] uppercase tracking-wider font-bold">
                                   <Globe className="h-2.5 w-2.5" />
                                   {getLanguageName(j.sourceLanguage)} &rarr; {getLanguageName(j.targetLanguage)}
                                 </span>
-                                <span className="text-slate-600">•</span>
+                                <span className="text-border">•</span>
                                 <span className="text-emerald-400 font-bold">${j.budget || "0"}</span>
-                                <span className="text-slate-600">•</span>
+                                <span className="text-border">•</span>
                                 <span>{j.specializations?.join(", ") || "General"}</span>
                               </div>
                             </div>
                           </CardHeader>
                           <CardContent className="pb-3 flex-1">
-                            <p className="text-2xs text-slate-400 line-clamp-3 leading-relaxed">
+                            <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">
                               {j.description || "No project parameters description available."}
                             </p>
                           </CardContent>
-                          <CardFooter className="pt-2 border-t border-slate-900/50 flex items-center justify-between text-2xs text-slate-500">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-600">Active RFP</span>
+                          <CardFooter className="pt-2 border-t border-border/50 flex items-center justify-between text-2xs text-muted-foreground">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Active RFP</span>
                             <Link 
                               href={`/jobs/${j.$id}`}
                               className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider transition-colors text-[10px]"
