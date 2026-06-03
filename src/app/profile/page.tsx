@@ -26,6 +26,7 @@ import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { TranslatorProfile, CompanyProfile, Role } from "@/types";
 import { COUNTRY_CODES } from "@/data/country-codes";
 import { useDynamicSEO } from "@/hooks/use-dynamic-seo";
+import { ResponsiveSelect } from "@/components/ui/responsive-select";
 
 const AVAILABLE_SERVICES = [
   { id: "translation", name: "Translation", defaultUnit: "word" },
@@ -933,7 +934,11 @@ function ProfileContent() {
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold">WhatsApp Number</Label>
                       <div className="flex gap-2">
-                        <select
+                        <ResponsiveSelect
+                          options={COUNTRY_CODES.map((c) => ({
+                            value: c.code,
+                            label: `${c.flag} ${c.code} (${c.name})`,
+                          }))}
                           value={(() => {
                             const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
                             for (const c of sortedCodes) {
@@ -941,8 +946,7 @@ function ProfileContent() {
                             }
                             return "+966";
                           })()}
-                          onChange={(e) => {
-                            const newCode = e.target.value;
+                          onChange={(newCode) => {
                             const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
                             let currentNumber = translatorData.phone;
                             for (const c of sortedCodes) {
@@ -953,14 +957,11 @@ function ProfileContent() {
                             }
                             setTranslatorData((p) => ({ ...p, phone: newCode + currentNumber.replace(/^[0]+/g, "") }));
                           }}
-                          className="bg-background border border-border text-foreground h-10 px-3 rounded-xl focus:border-teal-500 text-sm outline-none w-[130px] shrink-0"
-                        >
-                          {COUNTRY_CODES.map((c) => (
-                            <option key={c.code} value={c.code} className="bg-background text-foreground">
-                              {c.flag} {c.code} ({c.name})
-                            </option>
-                          ))}
-                        </select>
+                          placeholder="Select code"
+                          searchPlaceholder="Search country..."
+                          label="Country Code"
+                          className="w-[140px] shrink-0"
+                        />
                         <Input
                           id="phone"
                           type="text"
@@ -1039,22 +1040,45 @@ function ProfileContent() {
                           Tier: {translatorData.planTier === "standard" ? "Standard (Max 3)" : translatorData.planTier === "plus" ? "Plus (Max 10)" : "Free (Max 1)"}
                         </Badge>
                       </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {LANGUAGES.map((lang) => {
-                          const selected = translatorData.languages.includes(lang.code);
-                          return (
-                            <Badge
-                              key={lang.code}
-                              variant={selected ? "default" : "outline"}
-                              className="cursor-pointer select-none transition-all rounded-lg py-1 px-2.5 text-3xs"
-                              onClick={() => toggleLanguage(lang.code)}
-                            >
-                              {lang.name}
-                              {selected && <Check className="ml-1 h-2.5 w-2.5 text-white" />}
-                            </Badge>
-                          );
-                        })}
-                      </div>
+                      <ResponsiveSelect
+                        options={LANGUAGES.map((lang) => ({
+                          value: lang.code,
+                          label: lang.name,
+                        }))}
+                        value={translatorData.languages}
+                        onChange={(selectedCodes: string[]) => {
+                          const prevCodes = translatorData.languages;
+                          if (selectedCodes.length > prevCodes.length) {
+                            const addedCode = selectedCodes.find(c => !prevCodes.includes(c));
+                            if (addedCode) toggleLanguage(addedCode);
+                          } else {
+                            const removedCode = prevCodes.find(c => !selectedCodes.includes(c));
+                            if (removedCode) toggleLanguage(removedCode);
+                          }
+                        }}
+                        multiple={true}
+                        placeholder="Select spoken/written languages"
+                        searchPlaceholder="Search language..."
+                        label="Languages Spoken/Written"
+                      />
+                      {translatorData.languages.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {translatorData.languages.map((code) => {
+                            const name = LANGUAGES.find((l) => l.code === code)?.name || code;
+                            return (
+                              <Badge
+                                key={code}
+                                variant="default"
+                                className="transition-all rounded-lg py-1 px-2.5 text-3xs flex items-center gap-1 cursor-pointer select-none bg-teal-600/90 text-white"
+                                onClick={() => toggleLanguage(code)}
+                              >
+                                {name}
+                                <X className="h-2.5 w-2.5 hover:text-red-200" />
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
                       
                       {/* Dynamic Upgrade CTA when languages limit is active */}
                       <div className="mt-3 flex items-center justify-between p-3 rounded-xl border border-border/40 bg-accent/5">
@@ -1079,22 +1103,42 @@ function ProfileContent() {
 
                     <div className="space-y-3">
                       <Label className="text-xs font-semibold">Translation Specializations</Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {SPECIALIZATIONS.map((spec) => {
-                          const selected = translatorData.specializations.includes(spec);
-                          return (
+                      <ResponsiveSelect
+                        options={SPECIALIZATIONS.map((spec) => ({
+                          value: spec,
+                          label: spec,
+                        }))}
+                        value={translatorData.specializations}
+                        onChange={(selectedSpecs: string[]) => {
+                          const prevSpecs = translatorData.specializations;
+                          if (selectedSpecs.length > prevSpecs.length) {
+                            const addedSpec = selectedSpecs.find(s => !prevSpecs.includes(s));
+                            if (addedSpec) toggleSpecialization(addedSpec);
+                          } else {
+                            const removedSpec = prevSpecs.find(s => !selectedSpecs.includes(s));
+                            if (removedSpec) toggleSpecialization(removedSpec);
+                          }
+                        }}
+                        multiple={true}
+                        placeholder="Select translation specializations"
+                        searchPlaceholder="Search specialization..."
+                        label="Translation Specializations"
+                      />
+                      {translatorData.specializations.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {translatorData.specializations.map((spec) => (
                             <Badge
                               key={spec}
-                              variant={selected ? "default" : "outline"}
-                              className="cursor-pointer select-none transition-all rounded-lg py-1 px-2.5 text-3xs"
+                              variant="default"
+                              className="transition-all rounded-lg py-1 px-2.5 text-3xs flex items-center gap-1 cursor-pointer select-none bg-teal-600/90 text-white"
                               onClick={() => toggleSpecialization(spec)}
                             >
                               {spec}
-                              {selected && <Check className="ml-1 h-2.5 w-2.5 text-white" />}
+                              <X className="h-2.5 w-2.5 hover:text-red-200" />
                             </Badge>
-                          );
-                        })}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1152,22 +1196,42 @@ function ProfileContent() {
                     <CardDescription className="text-3xs">Select the translation software tools you use</CardDescription>
                   </CardHeader>
                   <CardContent className="px-0 pb-0">
-                    <div className="flex flex-wrap gap-1.5">
-                      {CAT_TOOLS_OPTIONS.map((tool) => {
-                        const selected = translatorData.catTools.includes(tool);
-                        return (
+                    <ResponsiveSelect
+                      options={CAT_TOOLS_OPTIONS.map((tool) => ({
+                        value: tool,
+                        label: tool,
+                      }))}
+                      value={translatorData.catTools}
+                      onChange={(selectedTools: string[]) => {
+                        const prevTools = translatorData.catTools;
+                        if (selectedTools.length > prevTools.length) {
+                          const addedTool = selectedTools.find(t => !prevTools.includes(t));
+                          if (addedTool) toggleCatTool(addedTool);
+                        } else {
+                          const removedTool = prevTools.find(t => !selectedTools.includes(t));
+                          if (removedTool) toggleCatTool(removedTool);
+                        }
+                      }}
+                      multiple={true}
+                      placeholder="Select CAT tools"
+                      searchPlaceholder="Search CAT tools..."
+                      label="CAT Tools Integration"
+                    />
+                    {translatorData.catTools.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {translatorData.catTools.map((tool) => (
                           <Badge
                             key={tool}
-                            variant={selected ? "default" : "outline"}
-                            className="cursor-pointer select-none transition-all rounded-lg py-1 px-2.5 text-3xs"
+                            variant="default"
+                            className="transition-all rounded-lg py-1 px-2.5 text-3xs flex items-center gap-1 cursor-pointer select-none bg-teal-600/90 text-white"
                             onClick={() => toggleCatTool(tool)}
                           >
                             {tool}
-                            {selected && <Check className="ml-1 h-2.5 w-2.5 text-white" />}
+                            <X className="h-2.5 w-2.5 hover:text-red-200" />
                           </Badge>
-                        );
-                      })}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -1298,7 +1362,11 @@ function ProfileContent() {
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold">WhatsApp Number</Label>
                       <div className="flex gap-2">
-                        <select
+                        <ResponsiveSelect
+                          options={COUNTRY_CODES.map((c) => ({
+                            value: c.code,
+                            label: `${c.flag} ${c.code} (${c.name})`,
+                          }))}
                           value={(() => {
                             const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
                             for (const c of sortedCodes) {
@@ -1306,8 +1374,7 @@ function ProfileContent() {
                             }
                             return "+966";
                           })()}
-                          onChange={(e) => {
-                            const newCode = e.target.value;
+                          onChange={(newCode) => {
                             const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
                             let currentNumber = companyData.phone;
                             for (const c of sortedCodes) {
@@ -1318,14 +1385,11 @@ function ProfileContent() {
                             }
                             setCompanyData((p) => ({ ...p, phone: newCode + currentNumber.replace(/^[0]+/g, "") }));
                           }}
-                          className="bg-background border border-border text-foreground h-10 px-3 rounded-xl focus:border-teal-500 text-sm outline-none w-[130px] shrink-0"
-                        >
-                          {COUNTRY_CODES.map((c) => (
-                            <option key={c.code} value={c.code} className="bg-background text-foreground">
-                              {c.flag} {c.code} ({c.name})
-                            </option>
-                          ))}
-                        </select>
+                          placeholder="Select code"
+                          searchPlaceholder="Search country..."
+                          label="Country Code"
+                          className="w-[140px] shrink-0"
+                        />
                         <Input
                           id="phone"
                           type="text"
@@ -1378,18 +1442,18 @@ function ProfileContent() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="companySize">Company Size</Label>
-                        <select
-                          id="companySize"
+                        <ResponsiveSelect
+                          options={[
+                            { value: "1-10", label: "1-10 Employees" },
+                            { value: "11-50", label: "11-50 Employees" },
+                            { value: "51-200", label: "51-200 Employees" },
+                            { value: "200+", label: "200+ Employees" },
+                          ]}
                           value={companyData.companySize}
-                          onChange={(e) => setCompanyData((p) => ({ ...p, companySize: e.target.value }))}
-                          className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus-visible:ring-teal-500"
-                        >
-                          <option value="">Select size...</option>
-                          <option value="1-10">1-10 Employees</option>
-                          <option value="11-50">11-50 Employees</option>
-                          <option value="51-200">51-200 Employees</option>
-                          <option value="200+">200+ Employees</option>
-                        </select>
+                          onChange={(val) => setCompanyData((p) => ({ ...p, companySize: val }))}
+                          placeholder="Select size..."
+                          label="Company Size"
+                        />
                       </div>
                     </div>
                     <div className="space-y-2">

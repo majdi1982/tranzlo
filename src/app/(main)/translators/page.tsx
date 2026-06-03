@@ -68,20 +68,26 @@ export default function TranslatorsPage() {
       result = result.filter((t) => t.catTools?.some((c) => c.toLowerCase().includes(catToolFilter.toLowerCase())));
     }
 
-    switch (sort) {
-      case "rating":
-        result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      case "rate_high":
-        result.sort((a, b) => (b.hourlyRate || 0) - (a.hourlyRate || 0));
-        break;
-      case "rate_low":
-        result.sort((a, b) => (a.hourlyRate || 0) - (b.hourlyRate || 0));
-        break;
-      case "experience":
-        result.sort((a, b) => (b.yearsOfExperience || 0) - (a.yearsOfExperience || 0));
-        break;
-    }
+    result.sort((a, b) => {
+      // Priority 1: Verified status first
+      const vA = a.isVerified ? 1 : 0;
+      const vB = b.isVerified ? 1 : 0;
+      if (vA !== vB) return vB - vA;
+
+      // Priority 2: Selected sort option
+      switch (sort) {
+        case "rating":
+          return (b.rating || 0) - (a.rating || 0);
+        case "rate_high":
+          return (b.hourlyRate || 0) - (a.hourlyRate || 0);
+        case "rate_low":
+          return (a.hourlyRate || 0) - (b.hourlyRate || 0);
+        case "experience":
+          return (b.yearsOfExperience || 0) - (a.yearsOfExperience || 0);
+        default:
+          return 0;
+      }
+    });
 
     return result;
   }, [translators, search, nativeLang, specFilter, catToolFilter, sort]);

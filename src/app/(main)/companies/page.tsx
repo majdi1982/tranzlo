@@ -52,14 +52,22 @@ export default function CompaniesPage() {
       result = result.filter((c) => c.companySize === sizeFilter);
     }
 
-    switch (sort) {
-      case "name":
-        result.sort((a, b) => a.companyName.localeCompare(b.companyName));
-        break;
-      case "newest":
-        result.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-        break;
-    }
+    result.sort((a, b) => {
+      // Priority 1: Verified status first
+      const vA = a.isVerified ? 1 : 0;
+      const vB = b.isVerified ? 1 : 0;
+      if (vA !== vB) return vB - vA;
+
+      // Priority 2: Selected sort option
+      switch (sort) {
+        case "name":
+          return a.companyName.localeCompare(b.companyName);
+        case "newest":
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        default:
+          return 0;
+      }
+    });
 
     return result;
   }, [companies, search, sizeFilter, sort]);

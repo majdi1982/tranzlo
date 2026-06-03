@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { ResponsiveSelect } from "@/components/ui/responsive-select";
 import { 
   User, 
   Briefcase, 
@@ -387,31 +388,25 @@ export default function OnboardingPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <span className="text-xs text-muted-foreground mb-1 block">Translate From (Source)</span>
-                        <select
+                        <ResponsiveSelect
+                          options={LANGUAGES.map(l => ({ value: l.code, label: l.name }))}
                           value={sourceLang}
-                          onChange={(e) => setSourceLang(e.target.value)}
-                          className="w-full bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
-                        >
-                          {LANGUAGES.map((l) => (
-                             <option key={l.code} value={l.code} className="bg-background text-foreground">
-                              {l.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={setSourceLang}
+                          placeholder="Select Source Language"
+                          searchPlaceholder="Search language..."
+                          label="Source Language"
+                        />
                       </div>
                       <div>
                         <span className="text-xs text-muted-foreground mb-1 block">Translate To (Target)</span>
-                        <select
+                        <ResponsiveSelect
+                          options={LANGUAGES.map(l => ({ value: l.code, label: l.name }))}
                           value={targetLang}
-                          onChange={(e) => setTargetLang(e.target.value)}
-                          className="w-full bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
-                        >
-                          {LANGUAGES.map((l) => (
-                            <option key={l.code} value={l.code} className="bg-background text-foreground">
-                              {l.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={setTargetLang}
+                          placeholder="Select Target Language"
+                          searchPlaceholder="Search language..."
+                          label="Target Language"
+                        />
                       </div>
                     </div>
                   </div>
@@ -436,7 +431,8 @@ export default function OnboardingPage() {
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">WhatsApp Number</Label>
                     <div className="flex gap-2">
-                      <select
+                      <ResponsiveSelect
+                        options={COUNTRY_CODES.map((c) => ({ value: c.code, label: `${c.flag} ${c.code} (${c.name})` }))}
                         value={(() => {
                           const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
                           for (const c of sortedCodes) {
@@ -444,8 +440,7 @@ export default function OnboardingPage() {
                           }
                           return "+966";
                         })()}
-                        onChange={(e) => {
-                          const newCode = e.target.value;
+                        onChange={(newCode) => {
                           const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
                           let currentNumber = phone;
                           for (const c of sortedCodes) {
@@ -456,14 +451,11 @@ export default function OnboardingPage() {
                           }
                           setPhone(newCode + currentNumber.replace(/^[0]+/g, ""));
                         }}
-                        className="bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none w-[130px] shrink-0"
-                      >
-                        {COUNTRY_CODES.map((c) => (
-                          <option key={c.code} value={c.code} className="bg-background text-foreground">
-                            {c.flag} {c.code} ({c.name})
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="Code"
+                        searchPlaceholder="Search country..."
+                        label="Country Code"
+                        className="w-[140px] shrink-0"
+                      />
                       <Input
                         id="phone"
                         type="text"
@@ -496,26 +488,15 @@ export default function OnboardingPage() {
                   {/* CAT Tools Selector */}
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">CAT Tools Proficiency</Label>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {CAT_TOOLS.map((tool) => {
-                        const active = selectedCatTools.includes(tool);
-                        return (
-                          <button
-                            key={tool}
-                            type="button"
-                            onClick={() => handleToggleCatTool(tool)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
-                              active
-                                ? "bg-primary/20 border-primary text-primary"
-                                : "bg-background border-border hover:border-primary/50 text-muted-foreground"
-                            }`}
-                          >
-                            {tool}
-                            {active && <Check className="inline-block h-3.5 w-3.5 ml-1.5" />}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <ResponsiveSelect
+                      options={CAT_TOOLS.map((tool) => ({ value: tool, label: tool }))}
+                      value={selectedCatTools}
+                      onChange={setSelectedCatTools}
+                      placeholder="Select CAT Tools..."
+                      searchPlaceholder="Search tools..."
+                      multiple={true}
+                      label="CAT Tools"
+                    />
                   </div>
 
                   {/* Professional Summary */}
@@ -560,7 +541,8 @@ export default function OnboardingPage() {
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">WhatsApp Number</Label>
                     <div className="flex gap-2">
-                      <select
+                      <ResponsiveSelect
+                        options={COUNTRY_CODES.map((c) => ({ value: c.code, label: `${c.flag} ${c.code} (${c.name})` }))}
                         value={(() => {
                           const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
                           for (const c of sortedCodes) {
@@ -568,8 +550,7 @@ export default function OnboardingPage() {
                           }
                           return "+966";
                         })()}
-                        onChange={(e) => {
-                          const newCode = e.target.value;
+                        onChange={(newCode) => {
                           const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
                           let currentNumber = phone;
                           for (const c of sortedCodes) {
@@ -580,14 +561,11 @@ export default function OnboardingPage() {
                           }
                           setPhone(newCode + currentNumber.replace(/^[0]+/g, ""));
                         }}
-                        className="bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none w-[130px] shrink-0"
-                      >
-                        {COUNTRY_CODES.map((c) => (
-                          <option key={c.code} value={c.code} className="bg-background text-foreground">
-                            {c.flag} {c.code} ({c.name})
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="Code"
+                        searchPlaceholder="Search country..."
+                        label="Country Code"
+                        className="w-[140px] shrink-0"
+                      />
                       <Input
                         id="companyPhone"
                         type="text"
@@ -619,16 +597,18 @@ export default function OnboardingPage() {
 
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Company Size</Label>
-                    <select
+                    <ResponsiveSelect
+                      options={[
+                        { value: "1-10", label: "1-10 Employees (Startup)" },
+                        { value: "11-50", label: "11-50 Employees (SME)" },
+                        { value: "51-200", label: "51-200 Employees (Medium)" },
+                        { value: "201+", label: "201+ Employees (Enterprise)" }
+                      ]}
                       value={companySize}
-                      onChange={(e) => setCompanySize(e.target.value)}
-                      className="w-full bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
-                    >
-                      <option value="1-10" className="bg-background text-foreground">1-10 Employees (Startup)</option>
-                      <option value="11-50" className="bg-background text-foreground">11-50 Employees (SME)</option>
-                      <option value="51-200" className="bg-background text-foreground">51-200 Employees (Medium)</option>
-                      <option value="201+" className="bg-background text-foreground">201+ Employees (Enterprise)</option>
-                    </select>
+                      onChange={setCompanySize}
+                      placeholder="Select Company Size"
+                      label="Company Size"
+                    />
                   </div>
 
                   <div className="space-y-2">

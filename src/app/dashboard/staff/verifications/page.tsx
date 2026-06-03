@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { UserCheck, CheckCircle, XCircle, Loader2, FileText, Shield, User, Building2, ExternalLink } from "lucide-react";
+import { UserCheck, CheckCircle, XCircle, Loader2, FileText, Shield, User, Building2, ExternalLink, Eye, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,8 @@ export default function StaffVerificationsPage() {
   const [loading, setLoading] = React.useState(true);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
   const [rejectNotes, setRejectNotes] = React.useState<Record<string, string>>({});
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = React.useState<string>("");
 
   React.useEffect(() => {
     loadRequests();
@@ -158,7 +160,7 @@ export default function StaffVerificationsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {req.role === "translator" ? (
               <>
-                {/* Translator ID */}
+                 {/* Translator ID */}
                 <div className="p-3 rounded-lg border border-border/40 bg-card/40 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-cyan-400 shrink-0" />
@@ -168,9 +170,21 @@ export default function StaffVerificationsPage() {
                     </div>
                   </div>
                   {prof?.idUrl ? (
-                    <a href={prof.idUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    <div className="flex gap-1.5 items-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewUrl(prof.idUrl!);
+                          setPreviewTitle("Personal ID / Passport");
+                        }}
+                        className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <a href={prof.idUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-muted-foreground rounded transition-colors">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   ) : (
                     <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
                   )}
@@ -186,9 +200,21 @@ export default function StaffVerificationsPage() {
                     </div>
                   </div>
                   {prof?.certUrl ? (
-                    <a href={prof.certUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    <div className="flex gap-1.5 items-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewUrl(prof.certUrl!);
+                          setPreviewTitle("Degrees/Accreditations Certificate");
+                        }}
+                        className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <a href={prof.certUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-muted-foreground rounded transition-colors">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   ) : (
                     <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
                   )}
@@ -204,9 +230,21 @@ export default function StaffVerificationsPage() {
                     </div>
                   </div>
                   {prof?.cvUrl ? (
-                    <a href={prof.cvUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    <div className="flex gap-1.5 items-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewUrl(prof.cvUrl!);
+                          setPreviewTitle("Linguist CV / Resume");
+                        }}
+                        className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <a href={prof.cvUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-muted-foreground rounded transition-colors">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   ) : (
                     <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
                   )}
@@ -224,9 +262,21 @@ export default function StaffVerificationsPage() {
                     </div>
                   </div>
                   {prof?.registrationDoc ? (
-                    <a href={prof.registrationDoc} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    <div className="flex gap-1.5 items-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewUrl(prof.registrationDoc!);
+                          setPreviewTitle("Business Registration License");
+                        }}
+                        className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <a href={prof.registrationDoc} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-muted-foreground rounded transition-colors">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   ) : (
                     <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
                   )}
@@ -242,9 +292,21 @@ export default function StaffVerificationsPage() {
                     </div>
                   </div>
                   {prof?.taxDoc ? (
-                    <a href={prof.taxDoc} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors shrink-0">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    <div className="flex gap-1.5 items-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewUrl(prof.taxDoc!);
+                          setPreviewTitle("Representative Personal ID / Passport");
+                        }}
+                        className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <a href={prof.taxDoc} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-muted-foreground rounded transition-colors">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   ) : (
                     <span className="text-[9px] text-muted-foreground font-medium shrink-0">Not Provided</span>
                   )}
@@ -361,6 +423,33 @@ export default function StaffVerificationsPage() {
           )}
         </CardContent>
       </Card>
+      {/* Document Preview Modal */}
+      {previewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-4xl h-[85vh] bg-card border border-border/50 rounded-2xl p-4 shadow-2xl flex flex-col gap-3">
+            <div className="flex justify-between items-center pb-2 border-b border-border/30">
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{previewTitle}</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setPreviewUrl(null);
+                  setPreviewTitle("");
+                }}
+                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex-1 w-full h-full bg-black/10 rounded-xl overflow-hidden relative">
+              <iframe
+                src={previewUrl}
+                className="w-full h-full border-0"
+                title={previewTitle}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

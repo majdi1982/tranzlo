@@ -125,16 +125,54 @@ export async function POST(req: Request) {
   }
 }
 
-// GET: Retrieve invitations (for list)
-export async function GET() {
+// GET: Retrieve invitations (for list) or verify a token publicly
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const token = searchParams.get("token");
+    const email = searchParams.get("email");
+
+    const client = getAdminClient();
+    const databases = new Databases(client);
+
+    // Public verification of token (e.g. from register page)
+    if (token && email) {
+      const result = await databases.listDocuments(
+        dbId,
+        "team_invitations",
+        [
+          Query.equal("token", token),
+          Query.equal("email", email),
+          Query.equal("isUsed", false),
+          Query.limit(1)
+        ]
+      );
+
+      if (result.documents.length === 0) {
+        return NextResponse.json({ valid: false, error: "Invalid or already used invitation token." });
+      }
+
+      const invite = result.documents[0];
+      const now = new Date().getTime();
+      const expiry = new Date(invite.expiresAt).getTime();
+
+      if (now > expiry) {
+        return NextResponse.json({ valid: false, error: "This invitation has expired (valid for 48h)." });
+      }
+
+      return NextResponse.json({
+        valid: true,
+        role: invite.role,
+        profession: invite.profession,
+        permissions: invite.permissions
+      });
+    }
+
+    // Require admin session to list all active invitations
     const isAdmin = await verifyAdminUser();
     if (!isAdmin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const client = getAdminClient();
-    const databases = new Databases(client);
 
     const result = await databases.listDocuments(
       dbId,
@@ -144,7 +182,7 @@ export async function GET() {
 
     return NextResponse.json({ invitations: result.documents });
   } catch (err: any) {
-    console.error("Failed to list invitations:", err);
+    console.error("Failed to list/verify invitations:", err);
     return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
   }
 }
