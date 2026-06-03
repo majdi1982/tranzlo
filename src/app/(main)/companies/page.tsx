@@ -223,7 +223,12 @@ export default function CompaniesPage() {
                     </CardContent>
 
                     <CardFooter className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-border/50">
-                      <span className="text-[10px]">Active Partner</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-medium">Active Partner</span>
+                        <Badge variant="outline" className={c.isVerified ? "text-[8px] h-3.5 py-0 px-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 rounded-md font-bold" : "text-[8px] h-3.5 py-0 px-1 bg-muted text-muted-foreground border-border/40 rounded-md font-medium"}>
+                          {c.isVerified ? "Verified" : "Unverified"}
+                        </Badge>
+                      </div>
                       {c.website ? (
                         <a
                           href={c.website}

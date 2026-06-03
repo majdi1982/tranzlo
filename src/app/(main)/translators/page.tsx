@@ -300,12 +300,16 @@ export default function TranslatorsPage() {
                     </CardContent>
 
                     <CardFooter className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-border/50">
-                      <div className="flex items-center gap-1 text-yellow-500">
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                        <span className="font-bold text-foreground">{t.rating || 0}</span>
-                        <span className="text-muted-foreground text-[10px]">({t.ratingCount || 0})</span>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant="outline" className={t.isVerified ? "text-[8px] h-3.5 py-0 px-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 rounded-md font-bold" : "text-[8px] h-3.5 py-0 px-1 bg-muted text-muted-foreground border-border/40 rounded-md font-medium"}>
+                          {t.isVerified ? "Verified" : "Unverified"}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-yellow-500">
+                          <Star className="h-3 w-3 fill-current" />
+                          <span className="font-bold text-foreground text-[10px]">{t.rating || 0}</span>
+                        </div>
                       </div>
-                      <span className="text-[10px]">Exp: {t.yearsOfExperience || 0} yrs</span>
+                      <span className="text-[10px] font-semibold">Exp: {t.yearsOfExperience || 0} yrs</span>
                     </CardFooter>
                   </Card>
                 ))}

@@ -81,9 +81,9 @@ echo "🌐 Building and starting Next.js Frontend stack..."
 cd "$TARGET_FRONTEND"
 docker compose down || true
 
-echo "🧹 Pruning Docker builder cache to ensure clean rebuild..."
+echo "🧹 Pruning unused Docker containers, builder cache, and images..."
 docker builder prune -a -f
-docker image prune -f
+docker system prune -af
 
 if ! docker compose build --no-cache --progress=plain; then
     echo "❌ Build Failed!"
