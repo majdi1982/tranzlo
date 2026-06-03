@@ -18,7 +18,7 @@ export default function VerificationPage() {
   const [status, setStatus] = React.useState<"unverified" | "pending" | "verified" | "rejected">("unverified");
   const [adminNote, setAdminNote] = React.useState("");
 
-  const role = user?.prefs?.role || "translator";
+  const role = (user?.prefs?.role as string) || "translator";
 
   React.useEffect(() => {
     async function loadStatus() {
