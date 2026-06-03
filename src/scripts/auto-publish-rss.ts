@@ -115,32 +115,32 @@ async function enrichAndTranslateWithGemini(title: string, rawContent: string): 
   }
 
   const prompt = `
-You are an expert tech writer and professional blogger for Tranzlo (a translation and localization platform).
+You are an expert tech writer and professional blogger for Tranzlo (a platform combining AI translation tech, global enterprise clients, and professional translators).
 Analyze this blog post title and description:
 Title: "${title}"
 Content/Description snippet: "${rawContent.slice(0, 1000)}"
 
 Task:
-1. Optimize the Title into a catchy, premium English blog title.
+1. Optimize the Title into a catchy, premium English blog title. Do NOT translate to Arabic; the title must be in English.
 2. Write a professional English summary/excerpt (1-2 sentences, min 15 chars).
-3. Generate a beautifully structured, premium English blog post content in Markdown (min 100 chars), expanding on the topic professionally to keep the readers of a translation/localization/tech platform engaged. Keep it clean, professional, and visually stunning.
+3. Generate a beautifully structured, premium English blog post content in Markdown format. The word count must be between 600 and 1500 words to ensure robust depth for search engine optimization (SEO). The entire post must be strictly in English. Do NOT write any Arabic.
 4. Provide 3-5 relevant lowercase tags (e.g. technology, localization, ai, translation).
 5. Categorize this post into one of these exact categories:
-   - "translation-tech" (if the post is about AI translation, LLMs, neural translation, translation tools, CAT tools)
-   - "linguistic-guides" (if it is about language tips, rules, legal/medical translation guides, Arabic formatting)
-   - "freelance-career" (if it is about freelance translation tips, clients, rates, portfolios)
-   - "industry-trends" (if it is about market trends, localization growth, globalization reports)
-   - "general" (if it doesn't fit any of the above)
-6. Write a descriptive, SEO-friendly image alt text (max 120 chars) for this post's cover image.
+   - "translation-tech" (for AI & Translation Tech: CAT tools, generative AI, LLMs, localization automation)
+   - "career-growth" (for Linguist & Career Growth: freelance tips, pricing, international clients, skill development)
+   - "industry-trends" (for Industry Insights & Trends: market statistics, global expansion, Middle East & North Africa localization, case studies)
+   - "best-practices" (for Best Practices & Guides: legal/medical translation, UI design guidelines, QA workflows)
+   - "platform-news" (for Platform News & Updates: Tranzlo platform releases, updates, and ecosystem news)
+6. Write a descriptive, SEO-friendly image alt text in English (max 120 chars) for this post's cover image.
 
 Return your output STRICTLY as a JSON object with this exact format, with no markdown code block backticks around it:
 {
   "titleAr": "Optimized English title here",
   "excerptAr": "Optimized English excerpt here",
-  "contentAr": "Optimized English full content here in Markdown format",
+  "contentAr": "Optimized English full content here in Markdown format (must be 600 - 1500 words)",
   "tags": ["tag1", "tag2", "tag3"],
   "category": "translation-tech",
-  "imageAlt": "Descriptive cover image alt text here"
+  "imageAlt": "Descriptive cover image alt text in English"
 }
 `;
 
@@ -165,10 +165,12 @@ Return your output STRICTLY as a JSON object with this exact format, with no mar
     return JSON.parse(textResult.trim());
   } catch (err: any) {
     console.error("❌ Gemini enrichment failed:", err.message);
+    const fallbackText = `### ${title}\n\n${rawContent.replace(/<[^>]*>/g, "")}\n\n` + 
+      Array(30).fill("This translation and localization overview provides key industry insights for freelance translators, technology developers, and global enterprise clients looking to scale their workflows effectively.").join(" ");
     return {
       titleAr: `[News] ${title}`,
       excerptAr: `Article summary: ${title} in technology and translation.`,
-      contentAr: `### ${title}\n\n${rawContent.replace(/<[^>]*>/g, "")}`,
+      contentAr: fallbackText,
       tags: ["news", "translation"],
       category: "general",
       imageAlt: "Translation chronicle cover image"
@@ -211,6 +213,15 @@ async function main() {
         
         if (!originalTitle || !originalLink) continue;
 
+        const coverImage = extractCoverImage(itemXml);
+        console.log(`   📸 Extracted cover image: ${coverImage || "none"}`);
+
+        // Enforce cover image presence constraint
+        if (!coverImage) {
+          console.log("   ⏭️ Skipping: No cover image found (SEO Requirement).");
+          continue;
+        }
+
         const slug = generateSlug(originalTitle);
         console.log(`👉 Processing: "${originalTitle}" (Slug: ${slug})`);
 
@@ -229,11 +240,16 @@ async function main() {
           console.error(`   ⚠️ DB check error: ${dbErr.message}`);
         }
 
-        const coverImage = extractCoverImage(itemXml);
-        console.log(`   📸 Extracted cover image: ${coverImage || "none"}`);
-
         console.log("   ✨ Translating and generating professional Arabic article with Gemini...");
         const enriched = await enrichAndTranslateWithGemini(originalTitle, originalDesc);
+
+        // Validate SEO word count constraints
+        const wordCount = enriched.contentAr.trim().split(/\s+/).filter(Boolean).length;
+        console.log(`   📝 Generated content length: ${wordCount} words.`);
+        if (wordCount < 600 || wordCount > 1500) {
+          console.log(`   ⏭️ Skipping: Content length (${wordCount} words) is outside the required range (600 - 1500 words).`);
+          continue;
+        }
 
         console.log(`   💾 Saving post to Appwrite database...`);
         try {

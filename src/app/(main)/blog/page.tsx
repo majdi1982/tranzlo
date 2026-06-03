@@ -17,11 +17,12 @@ export const metadata = {
 };
 
 const CATEGORIES = [
-  { id: "all", name: "All Topics", nameAr: "كل المواضيع" },
-  { id: "translation-tech", name: "AI & Tech", nameAr: "تقنيات الترجمة والذكاء الاصطناعي" },
-  { id: "linguistic-guides", name: "Linguistic Guides", nameAr: "الأدلة اللغوية والإرشادية" },
-  { id: "freelance-career", name: "Linguist Career", nameAr: "العمل الحر والمسار المهني" },
-  { id: "industry-trends", name: "Market & Trends", nameAr: "اتجاهات صناعة الترجمة" },
+  { id: "all", name: "All Topics" },
+  { id: "translation-tech", name: "AI & Translation Tech" },
+  { id: "career-growth", name: "Linguist & Career Growth" },
+  { id: "industry-trends", name: "Industry Insights & Trends" },
+  { id: "best-practices", name: "Best Practices & Guides" },
+  { id: "platform-news", name: "Platform News & Updates" },
 ];
 
 export default async function BlogPage(props: {
@@ -97,7 +98,7 @@ export default async function BlogPage(props: {
                       : "bg-background border-border text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {cat.nameAr}
+                  {cat.name}
                 </Link>
               ))}
             </div>
@@ -128,7 +129,7 @@ export default async function BlogPage(props: {
                       })
                     : "Draft";
 
-                  const currentCat = CATEGORIES.find((c) => c.id === post.category) || { nameAr: "عام" };
+                  const currentCat = CATEGORIES.find((c) => c.id === post.category) || { name: "General" };
 
                   return (
                     <Card
@@ -150,7 +151,7 @@ export default async function BlogPage(props: {
                         )}
                         <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
                           <Badge className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-[10px] uppercase font-bold tracking-wider rounded-md">
-                            {currentCat.nameAr}
+                            {currentCat.name}
                           </Badge>
                         </div>
                       </CardHeader>

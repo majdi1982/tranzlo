@@ -14,11 +14,12 @@ interface PageProps {
 }
 
 const CATEGORY_MAP: Record<string, string> = {
-  "translation-tech": "تقنيات الترجمة والذكاء الاصطناعي",
-  "linguistic-guides": "الأدلة اللغوية والإرشادية",
-  "freelance-career": "العمل الحر والمسار المهني",
-  "industry-trends": "اتجاهات صناعة الترجمة",
-  "general": "عام",
+  "translation-tech": "AI & Translation Tech",
+  "career-growth": "Linguist & Career Growth",
+  "industry-trends": "Industry Insights & Trends",
+  "best-practices": "Best Practices & Guides",
+  "platform-news": "Platform News & Updates",
+  "general": "General",
 };
 
 export async function generateMetadata(props: PageProps) {
@@ -101,7 +102,7 @@ export default async function BlogPostDetailPage(props: PageProps) {
       })
     : "Draft";
 
-  const categoryName = CATEGORY_MAP[post.category || "general"] || "عام";
+  const categoryName = CATEGORY_MAP[post.category || "general"] || "General";
 
   // JSON-LD Structured Schema Markup (Google Search console indexing optimization)
   const jsonLdSchema = {
