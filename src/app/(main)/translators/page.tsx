@@ -88,7 +88,7 @@ export default function TranslatorsPage() {
   const activeFilterCount = [nativeLang, specFilter, catToolFilter].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 sm:px-6 lg:px-8 relative bg-grid">
+    <div className="min-h-screen bg-background text-foreground py-12 px-4 sm:px-6 lg:px-8 relative bg-grid">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[300px] bg-hero-glow pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto z-10 space-y-12">
@@ -97,23 +97,23 @@ export default function TranslatorsPage() {
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-500">
             Professional Language Experts
           </h1>
-          <p className="text-lg text-slate-400">
+          <p className="text-lg text-muted-foreground">
             Connect with verified freelance translators, proofreaders, and interpreters across 50+ languages.
           </p>
           <div className="relative max-w-xl mx-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search translators by name, bio, or language..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-11 bg-slate-900 border-slate-800 rounded-xl"
+              className="pl-9 h-11 bg-card border-border rounded-xl"
             />
           </div>
         </div>
 
         {/* Directory Listing Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-900 pb-6">
-          <p className="text-sm text-slate-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-border pb-6">
+          <p className="text-sm text-muted-foreground">
             {loading ? "Loading Specialists..." : `${filtered.length} translator${filtered.length !== 1 ? "s" : ""} found`}
           </p>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
@@ -127,12 +127,12 @@ export default function TranslatorsPage() {
               Filters {activeFilterCount > 0 && ` (${activeFilterCount})`}
             </Button>
             <div className="flex items-center gap-2">
-              <ArrowUpDown className="h-4 w-4 text-slate-500" />
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
               <Select value={sort} onValueChange={(v) => setSort(v as any)}>
-                <SelectTrigger className="w-[160px] h-9 text-xs bg-slate-900 border-slate-800 rounded-md">
+                <SelectTrigger className="w-[160px] h-9 text-xs bg-card border-border rounded-md">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                <SelectContent className="bg-card border-border text-foreground">
                   <SelectItem value="rating">Top Rated</SelectItem>
                   <SelectItem value="rate_high">Rate: High to Low</SelectItem>
                   <SelectItem value="rate_low">Rate: Low to High</SelectItem>
@@ -146,9 +146,9 @@ export default function TranslatorsPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Desktop Filters Sidebar */}
           <aside className={`space-y-6 w-full lg:w-64 shrink-0 ${showFilters ? "block" : "hidden"} lg:block`}>
-            <div className="glass-card bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Filters</h3>
+            <div className="glass-card bg-card/40 border border-border rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Filters</h3>
                 {activeFilterCount > 0 && (
                   <button
                     onClick={() => {
@@ -164,12 +164,12 @@ export default function TranslatorsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-2xs font-bold text-slate-400">Native Language</label>
+                <label className="text-2xs font-bold text-muted-foreground">Native Language</label>
                 <Select value={nativeLang || "all"} onValueChange={(v) => setNativeLang(v === "all" ? "" : v)}>
-                  <SelectTrigger className="h-9 text-xs bg-slate-950 border-slate-850 rounded-md">
+                  <SelectTrigger className="h-9 text-xs bg-background border-border rounded-md">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                  <SelectContent className="bg-card border-border text-foreground">
                     <SelectItem value="all">Any</SelectItem>
                     {LANGUAGES.map((lang) => (
                       <SelectItem key={lang.code} value={lang.code}>
@@ -181,12 +181,12 @@ export default function TranslatorsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-2xs font-bold text-slate-400">Specialization</label>
+                <label className="text-2xs font-bold text-muted-foreground">Specialization</label>
                 <Select value={specFilter || "all"} onValueChange={(v) => setSpecFilter(v === "all" ? "" : v)}>
-                  <SelectTrigger className="h-9 text-xs bg-slate-950 border-slate-850 rounded-md">
+                  <SelectTrigger className="h-9 text-xs bg-background border-border rounded-md">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                  <SelectContent className="bg-card border-border text-foreground">
                     <SelectItem value="all">Any</SelectItem>
                     {SPECIALIZATIONS.map((spec) => (
                       <SelectItem key={spec} value={spec}>
@@ -198,12 +198,12 @@ export default function TranslatorsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-2xs font-bold text-slate-400">CAT Tool Skill</label>
+                <label className="text-2xs font-bold text-muted-foreground">CAT Tool Skill</label>
                 <Input
                   placeholder="e.g. Trados, MemoQ..."
                   value={catToolFilter}
                   onChange={(e) => setCatToolFilter(e.target.value)}
-                  className="h-9 text-xs bg-slate-950 border-slate-850 rounded-md"
+                  className="h-9 text-xs bg-background border-border rounded-md"
                 />
               </div>
             </div>
@@ -214,21 +214,21 @@ export default function TranslatorsPage() {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Card key={i} className="glass-card bg-slate-900/20 border-slate-850 rounded-2xl h-52 animate-pulse" />
+                  <Card key={i} className="glass-card bg-card/20 border-border rounded-2xl h-52 animate-pulse" />
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-20 bg-slate-900/20 border border-slate-850 rounded-2xl space-y-4">
-                <Globe className="h-12 w-12 mx-auto text-slate-600 animate-pulse" />
-                <h3 className="text-lg font-bold text-slate-300">No Specialists Listed</h3>
-                <p className="text-sm text-slate-500 max-w-sm mx-auto">
+              <div className="text-center py-20 bg-card/20 border border-border rounded-2xl space-y-4">
+                <Globe className="h-12 w-12 mx-auto text-muted-foreground animate-pulse" />
+                <h3 className="text-lg font-bold text-foreground">No Specialists Listed</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   No translators have made their profile public yet or completed the onboarding setup.
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {filtered.map((t) => (
-                  <Card key={t.$id} className="glass-card bg-slate-900/40 border-slate-850 hover:border-primary/40 rounded-2xl shadow-lg transition-all duration-300 flex flex-col justify-between">
+                  <Card key={t.$id} className="glass-card bg-card/40 border-border hover:border-primary/40 rounded-2xl shadow-lg transition-all duration-300 flex flex-col justify-between">
                     <CardHeader className="pb-3">
                       <div className="flex items-start gap-4">
                         <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base ring-1 ring-primary/20 shrink-0">
@@ -243,12 +243,12 @@ export default function TranslatorsPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <CardTitle className="text-base font-bold text-slate-200 truncate">{t.fullName}</CardTitle>
+                            <CardTitle className="text-base font-bold text-foreground truncate">{t.fullName}</CardTitle>
                             {t.isVerified && (
                               <UserCheck className="h-4 w-4 text-cyan-400 shrink-0" />
                             )}
                           </div>
-                          <CardDescription className="text-xs text-slate-400 mt-1 truncate">
+                          <CardDescription className="text-xs text-muted-foreground mt-1 truncate">
                             Native: {getLanguageName(t.languages?.[0])}
                           </CardDescription>
                         </div>
@@ -259,7 +259,7 @@ export default function TranslatorsPage() {
                     </CardHeader>
                     
                     <CardContent className="pb-4 space-y-3 flex-1 flex flex-col justify-between">
-                      <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed">
+                      <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
                         {t.bio || "No professional overview available."}
                       </p>
                       
@@ -267,7 +267,7 @@ export default function TranslatorsPage() {
                         {t.catTools && t.catTools.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {t.catTools.map((c) => (
-                              <Badge key={c} variant="secondary" className="text-[10px] py-0.5 px-2 bg-slate-950 border border-slate-850 text-slate-300">
+                              <Badge key={c} variant="secondary" className="text-[10px] py-0.5 px-2 bg-background border border-border text-muted-foreground">
                                 {c}
                               </Badge>
                             ))}
@@ -285,11 +285,11 @@ export default function TranslatorsPage() {
                       </div>
                     </CardContent>
 
-                    <CardFooter className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-900/50">
+                    <CardFooter className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-border/50">
                       <div className="flex items-center gap-1 text-yellow-500">
                         <Star className="h-3.5 w-3.5 fill-current" />
-                        <span className="font-bold text-slate-300">{t.rating || 0}</span>
-                        <span className="text-slate-500 text-[10px]">({t.ratingCount || 0})</span>
+                        <span className="font-bold text-foreground">{t.rating || 0}</span>
+                        <span className="text-muted-foreground text-[10px]">({t.ratingCount || 0})</span>
                       </div>
                       <span className="text-[10px]">Exp: {t.yearsOfExperience || 0} yrs</span>
                     </CardFooter>

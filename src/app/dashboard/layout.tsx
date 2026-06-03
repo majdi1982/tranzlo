@@ -82,7 +82,7 @@ function DashboardSidebar({ role }: { role: Role }) {
               "group relative flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-300",
               isActive
                 ? "bg-gradient-to-r from-primary/15 via-primary/5 to-transparent text-primary glow-sm border-l-2 border-primary font-semibold"
-                : "text-muted-foreground hover:bg-white/[0.03] hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             )}
           >
             <div className={cn(
@@ -146,7 +146,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div>
                 {/* User Info Card */}
                 {user && (
-                  <div className="mb-6 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] shadow-inner flex items-center gap-3">
+                  <div className="mb-6 p-4 rounded-2xl bg-muted/40 border border-border/50 shadow-inner flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-bold text-sm ring-1 ring-primary/30 overflow-hidden relative">
                       {avatarUrl ? (
                         <Image src={avatarUrl} alt={user.name || "User Avatar"} fill className="object-cover" />

@@ -923,10 +923,10 @@ function ProfileContent() {
                             }
                             setTranslatorData((p) => ({ ...p, phone: newCode + currentNumber.replace(/^[0]+/g, "") }));
                           }}
-                          className="bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-xl focus:border-teal-500 text-sm outline-none w-[130px] shrink-0"
+                          className="bg-background border border-border text-foreground h-10 px-3 rounded-xl focus:border-teal-500 text-sm outline-none w-[130px] shrink-0"
                         >
                           {COUNTRY_CODES.map((c) => (
-                            <option key={c.code} value={c.code}>
+                            <option key={c.code} value={c.code} className="bg-background text-foreground">
                               {c.flag} {c.code} ({c.name})
                             </option>
                           ))}
@@ -1217,10 +1217,10 @@ function ProfileContent() {
                             }
                             setCompanyData((p) => ({ ...p, phone: newCode + currentNumber.replace(/^[0]+/g, "") }));
                           }}
-                          className="bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-xl focus:border-teal-500 text-sm outline-none w-[130px] shrink-0"
+                          className="bg-background border border-border text-foreground h-10 px-3 rounded-xl focus:border-teal-500 text-sm outline-none w-[130px] shrink-0"
                         >
                           {COUNTRY_CODES.map((c) => (
-                            <option key={c.code} value={c.code}>
+                            <option key={c.code} value={c.code} className="bg-background text-foreground">
                               {c.flag} {c.code} ({c.name})
                             </option>
                           ))}

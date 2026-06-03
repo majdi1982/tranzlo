@@ -262,11 +262,11 @@ export default function OnboardingPage() {
   const progressPercent = getProgress();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center py-16 px-4 bg-grid relative">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center py-16 px-4 bg-grid relative">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[300px] bg-hero-glow pointer-events-none" />
 
       {/* Floating Circular Progress Widget */}
-      <div className="fixed top-6 right-6 z-50 glass-card bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl p-4 flex items-center gap-3 shadow-xl">
+      <div className="fixed top-6 right-6 z-50 glass-card bg-card/85 backdrop-blur-md border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xl">
         <div className="relative h-12 w-12 flex items-center justify-center">
           <svg className="absolute transform -rotate-90 w-full h-full">
             <circle
@@ -292,14 +292,14 @@ export default function OnboardingPage() {
           <span className="text-xs font-semibold text-primary">{progressPercent}%</span>
         </div>
         <div>
-          <div className="text-xs font-medium text-slate-300">Profile completion</div>
+          <div className="text-xs font-medium text-foreground">Profile completion</div>
           <div className="text-[10px] text-muted-foreground">Increases hiring rates by up to 85%</div>
         </div>
       </div>
 
       <div className="w-full max-w-2xl relative z-10">
         {step === 1 ? (
-          <Card className="glass-card bg-slate-900/30 backdrop-blur-xl border border-slate-800/80 shadow-2xl rounded-2xl">
+          <Card className="glass-card bg-card/30 backdrop-blur-xl border border-border/80 shadow-2xl rounded-2xl">
             <CardHeader className="text-center pb-8">
               <div className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
                 <Settings className="h-6 w-6 text-primary animate-spin-slow" />
@@ -307,7 +307,7 @@ export default function OnboardingPage() {
               <CardTitle className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-500">
                 Let's Customize Your Experience
               </CardTitle>
-              <CardDescription className="text-slate-400 mt-2 text-base">
+              <CardDescription className="text-muted-foreground mt-2 text-base">
                 How would you like to use Tranzlo? Choose your role below.
               </CardDescription>
             </CardHeader>
@@ -318,16 +318,16 @@ export default function OnboardingPage() {
                 className={`flex flex-col items-center text-center gap-3 rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 ${
                   role === "translator"
                     ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/5"
-                    : "border-slate-800 hover:border-slate-700 bg-slate-900/40 hover:bg-slate-900/60"
+                    : "border-border hover:border-primary/50 bg-card/40 hover:bg-card/60"
                 }`}
               >
                 <div className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-colors ${
-                  role === "translator" ? "bg-primary/20 text-cyan-400" : "bg-slate-800 text-slate-400"
+                  role === "translator" ? "bg-primary/20 text-cyan-400" : "bg-muted text-muted-foreground"
                 }`}>
                   <Briefcase className="h-7 w-7" />
                 </div>
                 <h3 className="text-lg font-bold">Linguist / Translator</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Offer professional translation services, set your own pricing, and connect with global organizations.
                 </p>
               </button>
@@ -338,22 +338,22 @@ export default function OnboardingPage() {
                 className={`flex flex-col items-center text-center gap-3 rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 ${
                   role === "company"
                     ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/5"
-                    : "border-slate-800 hover:border-slate-700 bg-slate-900/40 hover:bg-slate-900/60"
+                    : "border-border hover:border-primary/50 bg-card/40 hover:bg-card/60"
                 }`}
               >
                 <div className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-colors ${
-                  role === "company" ? "bg-primary/20 text-cyan-400" : "bg-slate-800 text-slate-400"
+                  role === "company" ? "bg-primary/20 text-cyan-400" : "bg-muted text-muted-foreground"
                 }`}>
                   <User className="h-7 w-7" />
                 </div>
                 <h3 className="text-lg font-bold">Employer / Company</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Post dynamic translation jobs, review linguists, hire certified specialists, and manage localization tasks.
                 </p>
               </button>
             </CardContent>
-            <CardFooter className="flex justify-between pt-6 border-t border-slate-900 mt-4">
-              <Button variant="ghost" onClick={handleSkip} className="hover:bg-slate-800/50">
+            <CardFooter className="flex justify-between pt-6 border-t border-border mt-4">
+              <Button variant="ghost" onClick={handleSkip} className="hover:bg-muted/50">
                 Skip for now
               </Button>
               <Button
@@ -367,12 +367,12 @@ export default function OnboardingPage() {
             </CardFooter>
           </Card>
         ) : (
-          <Card className="glass-card bg-slate-900/30 backdrop-blur-xl border border-slate-800/80 shadow-2xl rounded-2xl">
-            <CardHeader className="border-b border-slate-900 pb-6 mb-6">
+          <Card className="glass-card bg-card/30 backdrop-blur-xl border border-border/80 shadow-2xl rounded-2xl">
+            <CardHeader className="border-b border-border pb-6 mb-6">
               <CardTitle className="text-2xl font-bold">
                 {role === "translator" ? "Linguist Profile Details" : "Company Profile Details"}
               </CardTitle>
-              <CardDescription className="text-slate-400 mt-1">
+              <CardDescription className="text-muted-foreground mt-1">
                 Tell us about yourself to increase your platform visibility and matches.
               </CardDescription>
             </CardHeader>
@@ -386,28 +386,28 @@ export default function OnboardingPage() {
                     <Label className="text-sm font-semibold">Language Profile Setup</Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <span className="text-xs text-slate-400 mb-1 block">Translate From (Source)</span>
+                        <span className="text-xs text-muted-foreground mb-1 block">Translate From (Source)</span>
                         <select
                           value={sourceLang}
                           onChange={(e) => setSourceLang(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
+                          className="w-full bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
                         >
                           {LANGUAGES.map((l) => (
-                            <option key={l.code} value={l.code}>
+                             <option key={l.code} value={l.code} className="bg-background text-foreground">
                               {l.name}
                             </option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <span className="text-xs text-slate-400 mb-1 block">Translate To (Target)</span>
+                        <span className="text-xs text-muted-foreground mb-1 block">Translate To (Target)</span>
                         <select
                           value={targetLang}
                           onChange={(e) => setTargetLang(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
+                          className="w-full bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
                         >
                           {LANGUAGES.map((l) => (
-                            <option key={l.code} value={l.code}>
+                            <option key={l.code} value={l.code} className="bg-background text-foreground">
                               {l.name}
                             </option>
                           ))}
@@ -420,14 +420,14 @@ export default function OnboardingPage() {
                   <div className="space-y-2">
                     <Label htmlFor="hourlyRate" className="text-sm font-semibold">Base Hourly Rate ($ USD)</Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium text-sm">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">$</span>
                       <Input
                         id="hourlyRate"
                         type="number"
                         placeholder="25"
                         value={hourlyRate}
                         onChange={(e) => setHourlyRate(e.target.value)}
-                        className="pl-8 bg-slate-950 border-slate-800 rounded-md"
+                        className="pl-8 bg-background border-border rounded-md"
                       />
                     </div>
                   </div>
@@ -456,10 +456,10 @@ export default function OnboardingPage() {
                           }
                           setPhone(newCode + currentNumber.replace(/^[0]+/g, ""));
                         }}
-                        className="bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-md focus:border-primary text-sm outline-none w-[130px] shrink-0"
+                        className="bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none w-[130px] shrink-0"
                       >
                         {COUNTRY_CODES.map((c) => (
-                          <option key={c.code} value={c.code}>
+                          <option key={c.code} value={c.code} className="bg-background text-foreground">
                             {c.flag} {c.code} ({c.name})
                           </option>
                         ))}
@@ -487,10 +487,10 @@ export default function OnboardingPage() {
                           }
                           setPhone(activeCode + val.replace(/^[0]+/g, "")); // Remove leading zeros for clean format
                         }}
-                        className="bg-slate-950 border-slate-800 rounded-md flex-1"
+                        className="bg-background border-border rounded-md flex-1"
                       />
                     </div>
-                    <p className="text-2xs text-slate-500 leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
+                    <p className="text-2xs text-muted-foreground leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
                   </div>
 
                   {/* CAT Tools Selector */}
@@ -507,7 +507,7 @@ export default function OnboardingPage() {
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
                               active
                                 ? "bg-primary/20 border-primary text-primary"
-                                : "bg-slate-950 border-slate-850 hover:border-slate-700 text-slate-400"
+                                : "bg-background border-border hover:border-primary/50 text-muted-foreground"
                             }`}
                           >
                             {tool}
@@ -527,7 +527,7 @@ export default function OnboardingPage() {
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                       rows={4}
-                      className="bg-slate-950 border-slate-800 rounded-md resize-none"
+                      className="bg-background border-border rounded-md resize-none"
                     />
                   </div>
                 </div>
@@ -541,7 +541,7 @@ export default function OnboardingPage() {
                       placeholder="Tranzlo Enterprise"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      className="bg-slate-950 border-slate-800 rounded-md"
+                      className="bg-background border-border rounded-md"
                     />
                   </div>
 
@@ -552,7 +552,7 @@ export default function OnboardingPage() {
                       placeholder="https://example.com"
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
-                      className="bg-slate-950 border-slate-800 rounded-md"
+                      className="bg-background border-border rounded-md"
                     />
                   </div>
 
@@ -580,10 +580,10 @@ export default function OnboardingPage() {
                           }
                           setPhone(newCode + currentNumber.replace(/^[0]+/g, ""));
                         }}
-                        className="bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-md focus:border-primary text-sm outline-none w-[130px] shrink-0"
+                        className="bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none w-[130px] shrink-0"
                       >
                         {COUNTRY_CODES.map((c) => (
-                          <option key={c.code} value={c.code}>
+                          <option key={c.code} value={c.code} className="bg-background text-foreground">
                             {c.flag} {c.code} ({c.name})
                           </option>
                         ))}
@@ -611,10 +611,10 @@ export default function OnboardingPage() {
                           }
                           setPhone(activeCode + val.replace(/^[0]+/g, "")); // Remove leading zeros for clean format
                         }}
-                        className="bg-slate-950 border-slate-800 rounded-md flex-1"
+                        className="bg-background border-border rounded-md flex-1"
                       />
                     </div>
-                    <p className="text-2xs text-slate-500 leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
+                    <p className="text-2xs text-muted-foreground leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
                   </div>
 
                   <div className="space-y-2">
@@ -622,12 +622,12 @@ export default function OnboardingPage() {
                     <select
                       value={companySize}
                       onChange={(e) => setCompanySize(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 text-slate-200 h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
+                      className="w-full bg-background border border-border text-foreground h-10 px-3 rounded-md focus:border-primary text-sm outline-none"
                     >
-                      <option value="1-10">1-10 Employees (Startup)</option>
-                      <option value="11-50">11-50 Employees (SME)</option>
-                      <option value="51-200">51-200 Employees (Medium)</option>
-                      <option value="201+">201+ Employees (Enterprise)</option>
+                      <option value="1-10" className="bg-background text-foreground">1-10 Employees (Startup)</option>
+                      <option value="11-50" className="bg-background text-foreground">11-50 Employees (SME)</option>
+                      <option value="51-200" className="bg-background text-foreground">51-200 Employees (Medium)</option>
+                      <option value="201+" className="bg-background text-foreground">201+ Employees (Enterprise)</option>
                     </select>
                   </div>
 
@@ -639,20 +639,20 @@ export default function OnboardingPage() {
                       value={about}
                       onChange={(e) => setAbout(e.target.value)}
                       rows={4}
-                      className="bg-slate-950 border-slate-800 rounded-md resize-none"
+                      className="bg-background border-border rounded-md resize-none"
                     />
                   </div>
                 </div>
               )}
 
               {/* Shared Platform Visibility and SEO Indexing Controls */}
-              <div className="border-t border-slate-900 pt-6 mt-6 space-y-4">
-                <h3 className="text-sm font-bold text-slate-300">Privacy & Search Engine Indexing Settings</h3>
+              <div className="border-t border-border pt-6 mt-6 space-y-4">
+                <h3 className="text-sm font-bold text-foreground">Privacy & Search Engine Indexing Settings</h3>
                 
                 {/* Internal Directory Toggle */}
-                <div className="flex items-start justify-between gap-4 p-4 rounded-xl border border-slate-800/80 bg-slate-900/20">
+                <div className="flex items-start justify-between gap-4 p-4 rounded-xl border border-border/80 bg-muted/20">
                   <div className="space-y-1">
-                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5 text-foreground">
                       <Globe className="h-4 w-4 text-cyan-400" />
                       Publish profile inside Tranzlo platform directory?
                     </Label>
@@ -664,7 +664,7 @@ export default function OnboardingPage() {
                     type="button"
                     onClick={() => setIsPublicPlatform(!isPublicPlatform)}
                     className={`h-6 w-11 rounded-full p-0.5 transition-colors duration-200 focus:outline-none ${
-                      isPublicPlatform ? "bg-primary" : "bg-slate-800"
+                      isPublicPlatform ? "bg-primary" : "bg-muted"
                     }`}
                   >
                     <div
@@ -676,9 +676,9 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* External Search Engine Selector Box */}
-                <div className="flex flex-col gap-3 p-4 rounded-xl border border-slate-800/80 bg-slate-900/20">
+                <div className="flex flex-col gap-3 p-4 rounded-xl border border-border/80 bg-muted/20">
                   <div className="space-y-1">
-                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5 text-foreground">
                       <Search className="h-4 w-4 text-cyan-400" />
                       Publish on external Search Engines?
                     </Label>
@@ -698,7 +698,7 @@ export default function OnboardingPage() {
                           className={`flex items-center gap-2.5 p-3 rounded-lg border text-sm font-semibold transition-all ${
                             active
                               ? "bg-primary/10 border-primary text-primary"
-                              : "bg-slate-950 border-slate-850 hover:border-slate-800 text-slate-400"
+                              : "bg-background border-border hover:border-primary/50 text-muted-foreground"
                           }`}
                         >
                           <span className="text-base">{engine.icon}</span>
@@ -706,7 +706,7 @@ export default function OnboardingPage() {
                           {active ? (
                             <CheckSquare className="h-4 w-4 text-primary shrink-0" />
                           ) : (
-                            <Square className="h-4 w-4 text-slate-700 shrink-0" />
+                            <Square className="h-4 w-4 text-muted-foreground/60 shrink-0" />
                           )}
                         </button>
                       );
@@ -715,8 +715,8 @@ export default function OnboardingPage() {
 
                   {/* Custom SEO Keywords - dynamic expand based on search engine selection */}
                   {selectedSearchEngines.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-slate-900 space-y-2 animate-fade-in">
-                      <Label htmlFor="keywords" className="text-xs font-bold text-slate-300">
+                    <div className="mt-4 pt-4 border-t border-border space-y-2 animate-fade-in">
+                      <Label htmlFor="keywords" className="text-xs font-bold text-foreground">
                         Enter custom SEO keywords to boost your ranking on selected engines
                       </Label>
                       <p className="text-[10px] text-muted-foreground">
@@ -729,7 +729,7 @@ export default function OnboardingPage() {
                         value={seoKeywordsInput}
                         onChange={(e) => setSeoKeywordsInput(e.target.value)}
                         onKeyDown={handleAddKeyword}
-                        className="bg-slate-950 border-slate-850 rounded-md h-9 text-xs"
+                        className="bg-background border-border rounded-md h-9 text-xs"
                       />
 
                       {seoKeywords.length > 0 && (
@@ -737,7 +737,7 @@ export default function OnboardingPage() {
                           {seoKeywords.map((kw) => (
                             <span
                               key={kw}
-                              className="inline-flex items-center gap-1 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-[10px] font-semibold text-slate-300"
+                              className="inline-flex items-center gap-1 bg-muted border border-border px-2 py-0.5 rounded text-[10px] font-semibold text-foreground"
                             >
                               {kw}
                               <button
@@ -757,11 +757,11 @@ export default function OnboardingPage() {
               </div>
             </CardContent>
 
-            <CardFooter className="flex justify-between border-t border-slate-900 mt-4 pt-6">
+            <CardFooter className="flex justify-between border-t border-border mt-4 pt-6">
               <Button
                 variant="ghost"
                 onClick={() => setStep(1)}
-                className="hover:bg-slate-800/50"
+                className="hover:bg-muted/50"
               >
                 Back
               </Button>

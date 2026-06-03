@@ -260,7 +260,7 @@ export default function SettingsPage() {
             variant="ghost"
             size="icon"
             onClick={() => router.push(DASHBOARD_ROUTES[role] || "/")}
-            className="hover:bg-white/5 rounded-md"
+            className="hover:bg-muted/50 rounded-md"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                       type="text"
                       disabled
                       value={user?.email || ""}
-                      className="bg-white/[0.02] border-border/50 rounded-md text-xs text-muted-foreground"
+                      className="bg-background border-border/50 rounded-md text-xs text-muted-foreground"
                     />
                     {!user?.emailVerification && (
                       <div className="flex flex-col gap-2.5 text-2xs text-amber-500 bg-amber-500/10 p-3 rounded-md mt-1 border border-amber-500/20">
@@ -331,7 +331,7 @@ export default function SettingsPage() {
                       placeholder="enter new email"
                       value={emailInput.newEmail}
                       onChange={(e) => setEmailInput({ ...emailInput, newEmail: e.target.value })}
-                      className="bg-white/[0.02] border-border/50 focus:border-primary rounded-md text-xs"
+                      className="bg-background border-border/50 focus:border-primary rounded-md text-xs"
                     />
                   </div>
                   <div className="space-y-2">
@@ -343,7 +343,7 @@ export default function SettingsPage() {
                       placeholder="••••••••"
                       value={emailInput.password}
                       onChange={(e) => setEmailInput({ ...emailInput, password: e.target.value })}
-                      className="bg-white/[0.02] border-border/50 focus:border-primary rounded-md text-xs"
+                      className="bg-background border-border/50 focus:border-primary rounded-md text-xs"
                     />
                   </div>
                   <Button
@@ -380,7 +380,7 @@ export default function SettingsPage() {
                       placeholder="••••••••"
                       value={passwordInput.currentPassword}
                       onChange={(e) => setPasswordInput({ ...passwordInput, currentPassword: e.target.value })}
-                      className="bg-white/[0.02] border-border/50 focus:border-primary rounded-md text-xs"
+                      className="bg-background border-border/50 focus:border-primary rounded-md text-xs"
                     />
                   </div>
                   <div className="space-y-2">
@@ -392,7 +392,7 @@ export default function SettingsPage() {
                       placeholder="••••••••"
                       value={passwordInput.newPassword}
                       onChange={(e) => setPasswordInput({ ...passwordInput, newPassword: e.target.value })}
-                      className="bg-white/[0.02] border-border/50 focus:border-primary rounded-md text-xs"
+                      className="bg-background border-border/50 focus:border-primary rounded-md text-xs"
                     />
                   </div>
                   <div className="space-y-2">
@@ -404,7 +404,7 @@ export default function SettingsPage() {
                       placeholder="••••••••"
                       value={passwordInput.confirmPassword}
                       onChange={(e) => setPasswordInput({ ...passwordInput, confirmPassword: e.target.value })}
-                      className="bg-white/[0.02] border-border/50 focus:border-primary rounded-md text-xs"
+                      className="bg-background border-border/50 focus:border-primary rounded-md text-xs"
                     />
                   </div>
                   <Button
@@ -436,7 +436,7 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 onClick={() => handleOAuthLink("google")}
-                className="flex-1 border-border/50 hover:bg-white/5 rounded-md flex items-center justify-center gap-3 py-3"
+                className="flex-1 border-border/50 hover:bg-muted/50 rounded-md flex items-center justify-center gap-3 py-3"
               >
                 <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -449,7 +449,7 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 onClick={() => handleOAuthLink("linkedin")}
-                className="flex-1 border-border/50 hover:bg-white/5 rounded-md flex items-center justify-center gap-3 py-3"
+                className="flex-1 border-border/50 hover:bg-muted/50 rounded-md flex items-center justify-center gap-3 py-3"
               >
                 <svg className="h-4 w-4 shrink-0" fill="#0A66C2" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
@@ -491,7 +491,7 @@ export default function SettingsPage() {
                   {sessions.map((session) => (
                     <div key={session.$id} className="flex items-center justify-between py-4">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-white/5 rounded-lg border border-border/30 mt-0.5">
+                        <div className="p-2 bg-muted rounded-lg border border-border/30 mt-0.5">
                           <Smartphone className="h-4.5 w-4.5 text-primary" />
                         </div>
                         <div>
