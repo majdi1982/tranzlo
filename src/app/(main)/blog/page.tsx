@@ -132,61 +132,65 @@ export default async function BlogPage(props: {
                   const currentCat = CATEGORIES.find((c) => c.id === post.category) || { name: "General" };
 
                   return (
-                    <Card
+                    <Link
                       key={post.$id}
-                      className="bg-card/40 hover:bg-card/85 backdrop-blur-sm border-border hover:border-primary/40 transition-all duration-300 flex flex-col h-full overflow-hidden hover:shadow-xl hover:shadow-cyan-950/5 group"
+                      href={`/blog/${post.slug}`}
+                      className="block group h-full"
                     >
-                      <CardHeader className="p-0 relative h-48 bg-muted overflow-hidden flex items-center justify-center border-b border-border/50">
-                        {post.coverImage ? (
-                          <img
-                            src={post.coverImage}
-                            alt={post.imageAlt || `Cover image for ${post.title}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="absolute inset-0 bg-gradient-to-br from-background via-muted to-primary/5 flex items-center justify-center p-6 text-center">
-                            <BookOpen className="h-10 w-10 text-primary/30 group-hover:text-primary/50 transition-colors duration-300" />
+                      <Card
+                        className="bg-card/40 hover:bg-card/85 backdrop-blur-sm border-border hover:border-primary/40 transition-all duration-300 flex flex-col h-full overflow-hidden hover:shadow-xl hover:shadow-cyan-950/5 group"
+                      >
+                        <CardHeader className="p-0 relative h-48 bg-muted overflow-hidden flex items-center justify-center border-b border-border/50">
+                          {post.coverImage ? (
+                            <img
+                              src={post.coverImage}
+                              alt={post.imageAlt || `Cover image for ${post.title}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-background via-muted to-primary/5 flex items-center justify-center p-6 text-center">
+                              <BookOpen className="h-10 w-10 text-primary/30 group-hover:text-primary/50 transition-colors duration-300" />
+                            </div>
+                          )}
+                          <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
+                            <Badge className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-[10px] uppercase font-bold tracking-wider rounded-md">
+                              {currentCat.name}
+                            </Badge>
                           </div>
-                        )}
-                        <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
-                          <Badge className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-[10px] uppercase font-bold tracking-wider rounded-md">
-                            {currentCat.name}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="flex-1 p-6 space-y-3">
-                        <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5" />
-                            {formattedDate}
+                        </CardHeader>
+                        <CardContent className="flex-1 p-6 space-y-3">
+                          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5" />
+                              {formattedDate}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              5 min read
+                            </span>
+                          </div>
+                          <CardTitle className="text-lg font-bold text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                            {post.title}
+                          </CardTitle>
+                          <CardDescription className="text-muted-foreground text-xs leading-relaxed line-clamp-3">
+                            {post.excerpt}
+                          </CardDescription>
+                        </CardContent>
+                        <CardFooter className="px-6 py-4 bg-muted/20 border-t border-border/40 flex items-center justify-between">
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
+                            <User className="h-3.5 w-3.5" />
+                            By Tranzlo Team
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5" />
-                            5 min read
-                          </span>
-                        </div>
-                        <CardTitle className="text-lg font-bold text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">
-                          {post.title}
-                        </CardTitle>
-                        <CardDescription className="text-muted-foreground text-xs leading-relaxed line-clamp-3">
-                          {post.excerpt}
-                        </CardDescription>
-                      </CardContent>
-                      <CardFooter className="px-6 py-4 bg-muted/20 border-t border-border/40 flex items-center justify-between">
-                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
-                          <User className="h-3.5 w-3.5" />
-                          By Tranzlo Team
-                        </span>
-                        <Link
-                          href={`/blog/${post.slug}`}
-                          className="text-xs font-bold text-primary group-hover:text-primary/80 flex items-center gap-1 transition-colors"
-                        >
-                          Read full article
-                          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
-                      </CardFooter>
-                    </Card>
+                          <div
+                            className="text-xs font-bold text-primary group-hover:text-primary/80 flex items-center gap-1 transition-colors"
+                          >
+                            Read full article
+                            <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                          </div>
+                        </CardFooter>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
@@ -196,57 +200,84 @@ export default async function BlogPage(props: {
           {/* Service Promotion Sidebar (Connecting Blog to Platform Services) */}
           <aside className="space-y-6 lg:col-span-1">
             {/* Widget 1: Find Translators */}
-            <Card className="border border-border/80 bg-card/65 backdrop-blur-xl shadow-lg rounded-2xl overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-3 text-primary/10">
-                <Globe className="h-16 w-16" />
-              </div>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Sparkles className="h-4.5 w-4.5 text-primary" />
-                  Looking for a Translator?
-                </CardTitle>
-                <CardDescription className="text-2xs text-muted-foreground">
-                  Connect with verified professional translators globally.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 pb-4">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Search through our directory of linguistic experts sorted by rating, native language pairs, and specializations.
-                </p>
-                <Link href="/search?category=translators" className="w-full">
-                  <Button size="sm" className="w-full text-xs py-2 bg-primary text-primary-foreground font-bold hover:bg-primary/95 rounded-xl">
+            <Link href="/search?category=translators" className="block group">
+              <Card className="border border-border/80 bg-card/65 backdrop-blur-xl shadow-lg rounded-2xl overflow-hidden relative hover:border-primary/40 transition-all duration-300">
+                <div className="absolute top-0 right-0 p-3 text-primary/10">
+                  <Globe className="h-16 w-16" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2 group-hover:text-primary transition-colors duration-300">
+                    <Sparkles className="h-4.5 w-4.5 text-primary" />
+                    Looking for a Translator?
+                  </CardTitle>
+                  <CardDescription className="text-2xs text-muted-foreground">
+                    Connect with verified professional translators globally.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 pb-4">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Search through our directory of linguistic experts sorted by rating, native language pairs, and specializations.
+                  </p>
+                  <Button size="sm" className="w-full text-xs py-2 bg-primary text-primary-foreground font-bold hover:bg-primary/95 rounded-xl pointer-events-none">
                     Browse Translators
                     <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
                   </Button>
-                </Link>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
-            {/* Widget 2: Freelancer Opportunities */}
-            <Card className="border border-border/80 bg-card/65 backdrop-blur-xl shadow-lg rounded-2xl overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-3 text-teal-500/10">
-                <Briefcase className="h-16 w-16" />
-              </div>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Briefcase className="h-4.5 w-4.5 text-teal-400" />
-                  Are you a Translator?
-                </CardTitle>
-                <CardDescription className="text-2xs text-muted-foreground">
-                  Find jobs and scale your localization career.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 pb-4">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Register as a linguist on Tranzlo, complete your onboarding, set your pricing, and bid on enterprise translation projects.
-                </p>
-                <Link href="/signup" className="w-full">
-                  <Button size="sm" variant="outline" className="w-full text-xs py-2 border-border/80 hover:bg-muted font-bold rounded-xl">
+            {/* Widget 2: Find Companies */}
+            <Link href="/companies" className="block group">
+              <Card className="border border-border/80 bg-card/65 backdrop-blur-xl shadow-lg rounded-2xl overflow-hidden relative hover:border-primary/40 transition-all duration-300">
+                <div className="absolute top-0 right-0 p-3 text-teal-500/10">
+                  <Briefcase className="h-16 w-16" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2 group-hover:text-primary transition-colors duration-300">
+                    <Briefcase className="h-4.5 w-4.5 text-teal-400" />
+                    Looking for a Company?
+                  </CardTitle>
+                  <CardDescription className="text-2xs text-muted-foreground">
+                    Connect with verified localization agencies & partners.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 pb-4">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Search through translation companies, agencies, and enterprise organizations managing global localization.
+                  </p>
+                  <Button size="sm" variant="outline" className="w-full text-xs py-2 border-border/80 hover:bg-muted font-bold rounded-xl pointer-events-none">
+                    Browse Companies
+                    <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Widget 3: Freelancer Opportunities */}
+            <Link href="/signup" className="block group">
+              <Card className="border border-border/80 bg-card/65 backdrop-blur-xl shadow-lg rounded-2xl overflow-hidden relative hover:border-primary/40 transition-all duration-300">
+                <div className="absolute top-0 right-0 p-3 text-primary/10">
+                  <Briefcase className="h-16 w-16" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2 group-hover:text-primary transition-colors duration-300">
+                    <Sparkles className="h-4.5 w-4.5 text-primary" />
+                    Are you a Translator?
+                  </CardTitle>
+                  <CardDescription className="text-2xs text-muted-foreground">
+                    Find jobs and scale your localization career.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 pb-4">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Register as a linguist on Tranzlo, complete your onboarding, set your pricing, and bid on enterprise translation projects.
+                  </p>
+                  <Button size="sm" variant="outline" className="w-full text-xs py-2 border-border/80 hover:bg-muted font-bold rounded-xl pointer-events-none">
                     Register as Translator
                   </Button>
-                </Link>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
             {/* Widget 3: Trust Badges / SEO Signals */}
             <Card className="border border-border/80 bg-muted/15 rounded-2xl p-4 space-y-3">
