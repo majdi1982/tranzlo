@@ -501,6 +501,15 @@ export const mockVerificationService = {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    if (role === "translator") {
+      const p = mockTranslatorProfiles.find((x) => x.userId === userId);
+      if (p) p.verificationStatus = "pending";
+    } else {
+      const p = mockCompanyProfiles.find((x) => x.userId === userId);
+      if (p) p.verificationStatus = "pending";
+    }
+
     return req;
   },
 
@@ -509,10 +518,28 @@ export const mockVerificationService = {
   },
 
   async approveRequest(requestId: string, note?: string): Promise<VerificationRequest> {
+    // In mock data, find the request if we were storing it, otherwise we just mock it.
+    // For simplicity, since the dashboard calls this with a requestId, we can toggle the mock users
+    mockTranslatorProfiles.forEach(p => {
+      p.isVerified = true;
+      p.verificationStatus = "verified";
+    });
+    mockCompanyProfiles.forEach(p => {
+      p.isVerified = true;
+      p.verificationStatus = "verified";
+    });
     return { $id: requestId, userId: "", role: "translator", status: "verified", adminNote: note, reviewedAt: new Date().toISOString(), createdAt: "", updatedAt: "" } as VerificationRequest;
   },
 
   async rejectRequest(requestId: string, note: string): Promise<VerificationRequest> {
+    mockTranslatorProfiles.forEach(p => {
+      p.isVerified = false;
+      p.verificationStatus = "rejected";
+    });
+    mockCompanyProfiles.forEach(p => {
+      p.isVerified = false;
+      p.verificationStatus = "rejected";
+    });
     return { $id: requestId, userId: "", role: "translator", status: "rejected", adminNote: note, reviewedAt: new Date().toISOString(), createdAt: "", updatedAt: "" } as VerificationRequest;
   },
 };

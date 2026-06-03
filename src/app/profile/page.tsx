@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { 
   Save, ArrowLeft, Loader2, X, Upload, User, Building2, CheckCircle, 
@@ -28,13 +28,23 @@ import { COUNTRY_CODES } from "@/data/country-codes";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useSession();
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [viewMode, setViewMode] = React.useState(true);
 
-  const role = (user?.prefs?.role as Role) || "translator";
+  const targetUserId = searchParams.get("userId") || user?.$id;
+  const isViewingOthers = targetUserId !== user?.$id;
+  const [targetRole, setTargetRole] = React.useState<Role>("translator");
+  const role = isViewingOthers ? targetRole : ((user?.prefs?.role as Role) || "translator");
+
+  React.useEffect(() => {
+    if (isViewingOthers) {
+      setViewMode(true);
+    }
+  }, [isViewingOthers]);
 
   // Translator state
   const [translatorData, setTranslatorData] = React.useState({
@@ -90,50 +100,63 @@ export default function ProfilePage() {
 
   React.useEffect(() => {
     async function load() {
-      if (!user?.$id) return;
+      if (!targetUserId) return;
       try {
         const services = getServices();
-        if (role === "translator") {
-          const profile = await services.profile.getTranslatorProfile(user.$id);
-          if (profile) {
+        let foundProfile = false;
+
+        // If viewing others, check translator profile first
+        const translatorProfile = await services.profile.getTranslatorProfile(targetUserId);
+        if (translatorProfile) {
+          setTargetRole("translator");
+          setProfileExists(true);
+          setAvatarUrl(translatorProfile.avatarUrl || "");
+          setTranslatorData({
+            fullName: translatorProfile.fullName || "",
+            bio: translatorProfile.bio || "",
+            hourlyRate: translatorProfile.hourlyRate?.toString() || "",
+            phone: translatorProfile.phone || "",
+            languages: translatorProfile.languages || [],
+            specializations: translatorProfile.specializations || [],
+            catTools: translatorProfile.catTools || [],
+            cvUrl: translatorProfile.cvUrl || "",
+            isPublicPlatform: translatorProfile.isPublicPlatform ?? true,
+            searchEngines: translatorProfile.searchEngines || [],
+            seoKeywords: translatorProfile.seoKeywords || "",
+          });
+          foundProfile = true;
+        }
+
+        // If not a translator profile, check company profile next
+        if (!foundProfile) {
+          const companyProfile = await services.profile.getCompanyProfile(targetUserId);
+          if (companyProfile) {
+            setTargetRole("company");
             setProfileExists(true);
-            setAvatarUrl(profile.avatarUrl || "");
-            setTranslatorData({
-              fullName: profile.fullName || user.name || "",
-              bio: profile.bio || "",
-              hourlyRate: profile.hourlyRate?.toString() || "",
-              phone: profile.phone || "",
-              languages: profile.languages || [],
-              specializations: profile.specializations || [],
-              catTools: profile.catTools || [],
-              cvUrl: profile.cvUrl || "",
-              isPublicPlatform: profile.isPublicPlatform ?? true,
-              searchEngines: profile.searchEngines || [],
-              seoKeywords: profile.seoKeywords || "",
-            });
-          } else {
-            setTranslatorData((prev) => ({ ...prev, fullName: user.name || "" }));
-          }
-        } else if (role === "company") {
-          const profile = await services.profile.getCompanyProfile(user.$id);
-          if (profile) {
-            setProfileExists(true);
-            setLogoUrl(profile.logoUrl || "");
+            setLogoUrl(companyProfile.logoUrl || "");
             setCompanyData({
-              companyName: profile.companyName || "",
-              fullName: profile.fullName || user.name || "",
-              contactPerson: profile.contactPerson || "",
-              phone: profile.phone || "",
-              website: profile.website || "",
-              companySize: profile.companySize || "",
-              about: profile.about || "",
-              registrationDoc: profile.registrationDoc || "",
-              taxDoc: profile.taxDoc || "",
-              brochureUrl: (profile as any).brochureUrl || "",
-              isPublicPlatform: profile.isPublicPlatform ?? true,
-              searchEngines: profile.searchEngines || [],
-              seoKeywords: profile.seoKeywords || "",
+              companyName: companyProfile.companyName || "",
+              fullName: companyProfile.fullName || "",
+              contactPerson: companyProfile.contactPerson || "",
+              phone: companyProfile.phone || "",
+              website: companyProfile.website || "",
+              companySize: companyProfile.companySize || "",
+              about: companyProfile.about || "",
+              registrationDoc: companyProfile.registrationDoc || "",
+              taxDoc: companyProfile.taxDoc || "",
+              brochureUrl: (companyProfile as any).brochureUrl || "",
+              isPublicPlatform: companyProfile.isPublicPlatform ?? true,
+              searchEngines: companyProfile.searchEngines || [],
+              seoKeywords: companyProfile.seoKeywords || "",
             });
+            foundProfile = true;
+          }
+        }
+
+        // Fallback for self profile onboarding
+        if (!foundProfile && !isViewingOthers && user) {
+          if (role === "translator") {
+            setTranslatorData((prev) => ({ ...prev, fullName: user.name || "" }));
           } else {
             setCompanyData((prev) => ({ ...prev, fullName: user.name || "" }));
           }
@@ -145,7 +168,7 @@ export default function ProfilePage() {
       }
     }
     load();
-  }, [user?.$id, role, user?.name, toast]);
+  }, [targetUserId, role, user, isViewingOthers, toast]);
 
   // Profile completion calculation
   const completionPercentage = React.useMemo(() => {
@@ -376,21 +399,23 @@ export default function ProfilePage() {
             </div>
           </div>
           
-          <Button
-            onClick={() => setViewMode(!viewMode)}
-            variant={viewMode ? "default" : "outline"}
-            className="rounded-xl gap-2 font-medium shadow-sm transition-all"
-          >
-            {viewMode ? (
-              <>
-                <Edit3 className="h-4 w-4" /> Edit Profile
-              </>
-            ) : (
-              <>
-                <Eye className="h-4 w-4" /> View Showcase
-              </>
-            )}
-          </Button>
+          {!isViewingOthers && (
+            <Button
+              onClick={() => setViewMode(!viewMode)}
+              variant={viewMode ? "default" : "outline"}
+              className="rounded-xl gap-2 font-medium shadow-sm transition-all"
+            >
+              {viewMode ? (
+                <>
+                  <Edit3 className="h-4 w-4" /> Edit Profile
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4" /> View Showcase
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Dynamic Circular Completion & Header Tracker */}

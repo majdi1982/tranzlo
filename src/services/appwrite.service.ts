@@ -403,6 +403,23 @@ export const appwriteVerificationService = {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
+
+    try {
+      const collection = role === "translator" ? COLLECTIONS.translatorProfiles : COLLECTIONS.companyProfiles;
+      const profileDocs = await db.listDocuments(DB_ID, collection, [
+        Query.equal("userId", userId),
+        Query.limit(1)
+      ]);
+      if (profileDocs.documents.length > 0) {
+        await db.updateDocument(DB_ID, collection, profileDocs.documents[0].$id, {
+          verificationStatus: "pending",
+          updatedAt: new Date().toISOString()
+        });
+      }
+    } catch (err) {
+      console.error("Failed to update profile verification status on submit:", err);
+    }
+
     return mapDoc<VerificationRequest>(doc as Record<string, unknown>);
   },
 
@@ -421,6 +438,26 @@ export const appwriteVerificationService = {
       adminNote: note || "",
       reviewedAt: new Date().toISOString(),
     });
+
+    try {
+      const role = (doc as any).role;
+      const userId = (doc as any).userId;
+      const collection = role === "translator" ? COLLECTIONS.translatorProfiles : COLLECTIONS.companyProfiles;
+      const profileDocs = await db.listDocuments(DB_ID, collection, [
+        Query.equal("userId", userId),
+        Query.limit(1)
+      ]);
+      if (profileDocs.documents.length > 0) {
+        await db.updateDocument(DB_ID, collection, profileDocs.documents[0].$id, {
+          isVerified: true,
+          verificationStatus: "verified",
+          updatedAt: new Date().toISOString()
+        });
+      }
+    } catch (err) {
+      console.error("Failed to update profile verification status on approve:", err);
+    }
+
     return mapDoc<VerificationRequest>(doc as Record<string, unknown>);
   },
 
@@ -431,6 +468,26 @@ export const appwriteVerificationService = {
       adminNote: note,
       reviewedAt: new Date().toISOString(),
     });
+
+    try {
+      const role = (doc as any).role;
+      const userId = (doc as any).userId;
+      const collection = role === "translator" ? COLLECTIONS.translatorProfiles : COLLECTIONS.companyProfiles;
+      const profileDocs = await db.listDocuments(DB_ID, collection, [
+        Query.equal("userId", userId),
+        Query.limit(1)
+      ]);
+      if (profileDocs.documents.length > 0) {
+        await db.updateDocument(DB_ID, collection, profileDocs.documents[0].$id, {
+          isVerified: false,
+          verificationStatus: "rejected",
+          updatedAt: new Date().toISOString()
+        });
+      }
+    } catch (err) {
+      console.error("Failed to update profile verification status on reject:", err);
+    }
+
     return mapDoc<VerificationRequest>(doc as Record<string, unknown>);
   },
 };

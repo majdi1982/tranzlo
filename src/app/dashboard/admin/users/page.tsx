@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Users, Search, Ban, CheckCircle, MoreHorizontal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import { getDatabases, DB_ID, COLLECTIONS, Query } from "@/lib/appwrite";
 import type { User } from "@/types";
 
 export default function AdminUsersPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [users, setUsers] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -161,6 +163,9 @@ export default function AdminUsersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => router.push(`/profile?userId=${u.$id}`)}>
+                            <Users className="h-4 w-4 mr-2" /> View Profile
+                          </DropdownMenuItem>
                           {u.status ? (
                             <DropdownMenuItem onClick={() => setSuspendTarget(u.$id)}>
                               <Ban className="h-4 w-4 mr-2" /> Suspend

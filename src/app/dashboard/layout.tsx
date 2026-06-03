@@ -39,12 +39,14 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/translator", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/translator/jobs", label: "Browse Jobs", icon: Briefcase },
     { href: "/dashboard/translator/applications", label: "My Applications", icon: FileText },
+    { href: "/dashboard/verification", label: "Verification", icon: Shield },
     { href: "/profile", label: "Profile", icon: User },
   ],
   company: [
     { href: "/dashboard/company", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/company/jobs", label: "My Jobs", icon: Briefcase },
     { href: "/dashboard/company/post", label: "Post a Job", icon: FileText },
+    { href: "/dashboard/verification", label: "Verification", icon: Shield },
     { href: "/profile", label: "Profile", icon: User },
   ],
   admin: [
@@ -58,6 +60,7 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/staff", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/staff/verifications", label: "Verifications", icon: UserCheck },
     { href: "/dashboard/staff/complaints", label: "Complaints", icon: Shield },
+    { href: "/dashboard/verification", label: "Verification", icon: Shield },
     { href: "/profile", label: "Profile", icon: User },
   ],
 };
