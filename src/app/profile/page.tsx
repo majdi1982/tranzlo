@@ -64,6 +64,8 @@ function ProfileContent() {
     hourlyRate: "",
     phone: "",
     languages: [] as string[],
+    nativeLanguage: "",
+    activePairs: [] as string[],
     specializations: [] as string[],
     catTools: [] as string[],
     cvUrl: "",
@@ -151,12 +153,28 @@ function ProfileContent() {
             }
           }
 
+          let parsedPairs: string[] = [];
+          if (translatorProfile.languagePairs) {
+            try {
+              const pairs = typeof translatorProfile.languagePairs === "string"
+                ? JSON.parse(translatorProfile.languagePairs)
+                : translatorProfile.languagePairs;
+              if (Array.isArray(pairs)) {
+                parsedPairs = pairs.map((p: any) => `${p.source}-${p.target}`);
+              }
+            } catch (e) {
+              console.error("Failed to parse language pairs", e);
+            }
+          }
+
           setTranslatorData({
             fullName: translatorProfile.fullName || "",
             bio: translatorProfile.bio || "",
-            hourlyRate: translatorProfile.hourlyRate?.toString() || "",
+            hourlyRate: "",
             phone: translatorProfile.phone || "",
             languages: translatorProfile.languages || [],
+            nativeLanguage: translatorProfile.nativeLanguage || "",
+            activePairs: parsedPairs,
             specializations: translatorProfile.specializations || [],
             catTools: translatorProfile.catTools || [],
             cvUrl: translatorProfile.cvUrl || "",
@@ -223,8 +241,7 @@ function ProfileContent() {
       if (avatarUrl) score += 15;
       if (translatorData.phone) score += 10;
       if (translatorData.bio) score += 15;
-      if (translatorData.hourlyRate) score += 10;
-      if (translatorData.languages.length > 0) score += 15;
+      if (translatorData.languages.length > 0) score += 25;
       if (translatorData.specializations.length > 0) score += 10;
       if (translatorData.cvUrl) score += 10;
       return score;
@@ -318,9 +335,16 @@ function ProfileContent() {
         await services.profile.updateTranslatorProfile(user.$id, {
           fullName: translatorData.fullName,
           bio: translatorData.bio,
-          hourlyRate: translatorData.hourlyRate ? Number(translatorData.hourlyRate) : undefined,
+          hourlyRate: 0,
           phone: translatorData.phone,
           languages: translatorData.languages,
+          nativeLanguage: translatorData.nativeLanguage,
+          languagePairs: JSON.stringify(
+            translatorData.activePairs.map((p) => {
+              const [src, tgt] = p.split("-");
+              return { source: src, target: tgt, level: "advanced" };
+            })
+          ) as any,
           specializations: translatorData.specializations,
           catTools: translatorData.catTools,
           cvUrl: translatorData.cvUrl,
@@ -375,7 +399,7 @@ function ProfileContent() {
           languages: prev.languages.filter((l) => l !== code),
         };
       }
-      const limit = prev.planTier === "standard" || prev.planTier === "pro" ? 5 : prev.planTier === "plus" ? 10 : 1;
+      const limit = prev.planTier === "standard" || prev.planTier === "pro" ? 5 : prev.planTier === "plus" ? 10 : 2;
       if (prev.languages.length >= limit) {
         toast({
           title: "Language Limit Reached",
@@ -397,6 +421,15 @@ function ProfileContent() {
       specializations: prev.specializations.includes(spec)
         ? prev.specializations.filter((s) => s !== spec)
         : [...prev.specializations, spec],
+    }));
+  }
+
+  function toggleActivePair(pair: string) {
+    setTranslatorData((prev) => ({
+      ...prev,
+      activePairs: prev.activePairs.includes(pair)
+        ? prev.activePairs.filter((p) => p !== pair)
+        : [...prev.activePairs, pair],
     }));
   }
 
@@ -1008,8 +1041,8 @@ function ProfileContent() {
                 {/* Professional Info (Translator) */}
                 <Card className="glass-card border-border/40 rounded-2xl p-6">
                   <CardHeader className="px-0 pt-0">
-                    <CardTitle className="text-base font-bold">Professional Biography & Rates</CardTitle>
-                    <CardDescription className="text-3xs">Details about hourly rate billing, experience, and profile bio</CardDescription>
+                    <CardTitle className="text-base font-bold">Professional Biography</CardTitle>
+                    <CardDescription className="text-3xs">Provide details about your experience and profile bio</CardDescription>
                   </CardHeader>
                   <CardContent className="px-0 pb-0 space-y-4">
                     <div className="space-y-2">
@@ -1022,19 +1055,6 @@ function ProfileContent() {
                         className="min-h-[110px] rounded-xl border-border/50"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="hourlyRate">Hourly Rate (USD)</Label>
-                      <Input
-                        id="hourlyRate"
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={translatorData.hourlyRate}
-                        onChange={(e) => setTranslatorData((p) => ({ ...p, hourlyRate: e.target.value }))}
-                        placeholder="25.00"
-                        className="rounded-xl border-border/50"
-                      />
-                    </div>
                   </CardContent>
                 </Card>
 
@@ -1045,51 +1065,95 @@ function ProfileContent() {
                     <CardDescription className="text-3xs">Choose spoken/written languages and specialization branches</CardDescription>
                   </CardHeader>
                   <CardContent className="px-0 pb-0 space-y-6">
+                    {/* Native Language Select */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold">Native Language (اللغة الأم - الحد الأقصى 1)</Label>
+                      {profileExists && translatorData.nativeLanguage ? (
+                        <div className="p-3 bg-muted/40 rounded-xl border border-border text-xs text-foreground">
+                          {LANGUAGES.find(l => l.code === translatorData.nativeLanguage)?.name || translatorData.nativeLanguage}
+                        </div>
+                      ) : (
+                        <ResponsiveSelect
+                          options={LANGUAGES.map(l => ({ value: l.code, label: l.name }))}
+                          value={translatorData.nativeLanguage}
+                          onChange={(val: string) => {
+                            setTranslatorData(prev => ({ ...prev, nativeLanguage: val }));
+                          }}
+                          placeholder="Select Native Language"
+                          searchPlaceholder="Search language..."
+                          label="Native Language"
+                        />
+                      )}
+                    </div>
+
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <Label className="text-xs font-semibold">Languages Spoken/Written</Label>
                         <Badge variant="outline" className="text-4xs uppercase bg-teal-500/5 text-teal-600 border-teal-500/20 font-bold">
-                          Tier: {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? "Pro (Max 5)" : translatorData.planTier === "plus" ? "Plus (Max 10)" : "Free (Max 1)"}
+                          Tier: {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? "Pro (Max 5)" : translatorData.planTier === "plus" ? "Plus (Max 10)" : "Free (Max 2)"}
                         </Badge>
                       </div>
-                      <ResponsiveSelect
-                        options={LANGUAGES.map((lang) => ({
-                          value: lang.code,
-                          label: lang.name,
-                        }))}
-                        value={translatorData.languages}
-                        onChange={(selectedCodes: string[]) => {
-                          const prevCodes = translatorData.languages;
-                          if (selectedCodes.length > prevCodes.length) {
-                            const addedCode = selectedCodes.find(c => !prevCodes.includes(c));
-                            if (addedCode) toggleLanguage(addedCode);
-                          } else {
-                            const removedCode = prevCodes.find(c => !selectedCodes.includes(c));
-                            if (removedCode) toggleLanguage(removedCode);
-                          }
-                        }}
-                        multiple={true}
-                        placeholder="Select spoken/written languages"
-                        searchPlaceholder="Search language..."
-                        label="Languages Spoken/Written"
-                      />
-                      {translatorData.languages.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {translatorData.languages.map((code) => {
-                            const name = LANGUAGES.find((l) => l.code === code)?.name || code;
-                            return (
-                              <Badge
-                                key={code}
-                                variant="default"
-                                className="transition-all rounded-lg py-1 px-2.5 text-3xs flex items-center gap-1 cursor-pointer select-none bg-teal-600/90 text-white"
-                                onClick={() => toggleLanguage(code)}
-                              >
-                                {name}
-                                <X className="h-2.5 w-2.5 hover:text-red-200" />
-                              </Badge>
-                            );
-                          })}
+
+                      {profileExists && translatorData.languages.length > 0 ? (
+                        <div className="space-y-2 p-4 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-600">
+                          <p className="text-xs font-bold flex items-center gap-1.5">
+                            ⚠️ تم قفل تعديل اللغات (Languages Change Locked)
+                          </p>
+                          <p className="text-2xs leading-relaxed">
+                            لتغيير لغات العمل أو اللغة الأم الخاصة بك، يرجى تقديم طلب تغيير لغة من خلال مركز الدعم الفني.
+                          </p>
+                          <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            onClick={() => router.push("/support")}
+                            className="p-0 h-auto text-xs text-amber-700 underline font-bold"
+                          >
+                            انتقل إلى مركز الدعم الفني لتقديم طلب تغيير لغة
+                          </Button>
                         </div>
+                      ) : (
+                        <>
+                          <ResponsiveSelect
+                            options={LANGUAGES.map((lang) => ({
+                              value: lang.code,
+                              label: lang.name,
+                            }))}
+                            value={translatorData.languages}
+                            onChange={(selectedCodes: string[]) => {
+                              const prevCodes = translatorData.languages;
+                              if (selectedCodes.length > prevCodes.length) {
+                                const addedCode = selectedCodes.find(c => !prevCodes.includes(c));
+                                if (addedCode) toggleLanguage(addedCode);
+                              } else {
+                                const removedCode = prevCodes.find(c => !selectedCodes.includes(c));
+                                if (removedCode) toggleLanguage(removedCode);
+                              }
+                            }}
+                            multiple={true}
+                            placeholder="Select spoken/written languages"
+                            searchPlaceholder="Search language..."
+                            label="Languages Spoken/Written"
+                          />
+                          {translatorData.languages.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {translatorData.languages.map((code) => {
+                                const name = LANGUAGES.find((l) => l.code === code)?.name || code;
+                                return (
+                                  <Badge
+                                    key={code}
+                                    variant="default"
+                                    className="transition-all rounded-lg py-1 px-2.5 text-3xs flex items-center gap-1 cursor-pointer select-none bg-teal-600/90 text-white"
+                                    onClick={() => toggleLanguage(code)}
+                                  >
+                                    {name}
+                                    <X className="h-2.5 w-2.5 hover:text-red-200" />
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </>
                       )}
                       
                       {/* Dynamic Upgrade CTA when languages limit is active */}
@@ -1097,7 +1161,7 @@ function ProfileContent() {
                         <div className="space-y-0.5">
                           <span className="text-4xs font-bold text-muted-foreground uppercase tracking-wider block">Languages Limit</span>
                           <span className="text-xs font-bold text-foreground">
-                            {translatorData.languages.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 10 : 1} Used
+                            {translatorData.languages.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 10 : 2} Used
                           </span>
                         </div>
                         {translatorData.planTier !== "plus" && (
@@ -1112,6 +1176,53 @@ function ProfileContent() {
                         )}
                       </div>
                     </div>
+
+                    {/* Dynamic Language Pairs List (Rendered below languages select in Edit Mode) */}
+                    {translatorData.languages.length > 0 && (
+                      <div className="p-4 rounded-xl border border-border/40 bg-muted/10 space-y-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs font-bold text-foreground">Select Working Language Pairs (أزواج لغات العمل المتولدة)</Label>
+                          <p className="text-[10px] text-muted-foreground">Select the translation pairs you want to activate in your profile.</p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {(() => {
+                            const pairsList: { id: string; label: string }[] = [];
+                            translatorData.languages.forEach(src => {
+                              translatorData.languages.forEach(tgt => {
+                                if (src !== tgt) {
+                                  const nameSrc = LANGUAGES.find(l => l.code === src)?.name || src;
+                                  const nameTgt = LANGUAGES.find(l => l.code === tgt)?.name || tgt;
+                                  pairsList.push({
+                                    id: `${src}-${tgt}`,
+                                    label: `${nameSrc} → ${nameTgt}`
+                                  });
+                                }
+                              });
+                            });
+                            
+                            return pairsList.map(pair => {
+                              const isActive = translatorData.activePairs.includes(pair.id);
+                              return (
+                                <div
+                                  key={pair.id}
+                                  onClick={() => toggleActivePair(pair.id)}
+                                  className={`p-3 rounded-lg border cursor-pointer select-none transition-all flex items-center justify-between ${
+                                    isActive
+                                      ? "border-teal-500 bg-teal-500/10 shadow-[0_0_10px_rgba(20,184,166,0.15)] text-teal-600 font-bold"
+                                      : "border-border/60 hover:border-border hover:bg-accent/30 text-muted-foreground"
+                                  }`}
+                                >
+                                  <span className="text-xs">{pair.label}</span>
+                                  <div className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${isActive ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"}`}>
+                                    {isActive && <Check className="h-2.5 w-2.5" />}
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <Label className="text-xs font-semibold">Translation Specializations</Label>

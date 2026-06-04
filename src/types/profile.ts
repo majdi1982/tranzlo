@@ -23,6 +23,7 @@ export interface TranslatorProfile extends BaseProfile {
   fullName: string;
   bio?: string;
   languages: string[];
+  nativeLanguage?: string;
   languagePairs?: { source: string; target: string; level: "beginner" | "intermediate" | "advanced" | "native" }[];
   specializations: string[];
   catTools?: string[];

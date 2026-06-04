@@ -30,6 +30,7 @@ export default function JobDetailPage() {
   const [application, setApplication] = React.useState<Application | null>(null);
   const [coverLetter, setCoverLetter] = React.useState("");
   const [bidAmount, setBidAmount] = React.useState("");
+  const [selectedPair, setSelectedPair] = React.useState("");
   const [testSolutionUrl, setTestSolutionUrl] = React.useState("");
   const [testSolutionUploading, setTestSolutionUploading] = React.useState(false);
   const testSolutionFileInputRef = React.useRef<HTMLInputElement>(null);
@@ -44,7 +45,13 @@ export default function JobDetailPage() {
         const jobData = await services.job.getJob(params.id as string);
         if (!jobData) return;
         setJob(jobData);
-        setBidAmount(String(jobData.budget));
+        setBidAmount(String(jobData.budgetMax || jobData.budget));
+
+        const targetLangs = jobData.targetLanguage ? jobData.targetLanguage.split(",").map((t) => t.trim()) : [];
+        const sourceLangs = jobData.sourceLanguage ? jobData.sourceLanguage.split(",").map((s) => s.trim()) : [];
+        if (sourceLangs.length > 0 && targetLangs.length > 0) {
+          setSelectedPair(`${sourceLangs[0]}-${targetLangs[0]}`);
+        }
 
         const [companyData, myApps] = await Promise.all([
           services.profile.getCompanyProfile(jobData.companyId),
@@ -91,14 +98,33 @@ export default function JobDetailPage() {
       toast({ title: "Please complete and upload the required test solution file.", variant: "destructive" });
       return;
     }
+    
+    // Validate bid amount range
+    const min = job.budgetMin || 0;
+    const max = job.budgetMax || job.budget;
+    const bidVal = bidAmount ? Number(bidAmount) : 0;
+    if (bidVal < min || bidVal > max) {
+      toast({ title: `Your bid must be between $${min} and $${max} USD.`, variant: "destructive" });
+      return;
+    }
+
+    if (!selectedPair) {
+      toast({ title: "Please select a language pair.", variant: "destructive" });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const services = getServices();
+      const [src, tgt] = selectedPair.split("-");
+      const friendlyPair = `${src.toUpperCase()} → ${tgt.toUpperCase()}`;
+
       await services.application.apply({
         jobId: job!.$id,
         coverLetter,
         translatorId: user.$id,
-        bidAmount: bidAmount ? Number(bidAmount) : undefined,
+        bidAmount: bidVal,
+        languagePair: friendlyPair,
         testSolutionUrl: job.requiresTest ? testSolutionUrl : undefined,
         testStatus: job.requiresTest ? "pending" : "none",
         testSubmittedAt: job.requiresTest ? new Date().toISOString() : undefined,
@@ -163,7 +189,12 @@ export default function JobDetailPage() {
                 {getLanguageName(job.sourceLanguage)} → {getLanguageName(job.targetLanguage)}
               </p>
             </div>
-            <p className="text-3xl font-bold text-primary shrink-0">${job.budget.toLocaleString()}</p>
+            <div className="text-right shrink-0">
+              <p className="text-2xl font-bold text-primary">
+                ${(job.budgetMin || job.budget).toLocaleString()} - ${(job.budgetMax || job.budget).toLocaleString()}
+              </p>
+              <span className="text-xs text-muted-foreground font-semibold uppercase">Budget Range</span>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-muted-foreground">
@@ -320,6 +351,56 @@ export default function JobDetailPage() {
                 </div>
               )}
 
+              {/* Language Pair Selector */}
+              {isTranslator && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Select Language Pair</label>
+                  <p className="text-xs text-muted-foreground">Choose the language pair you will translate. Pairs matching your profile languages are highlighted with a glowing border.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {(() => {
+                      const list: any[] = [];
+                      jobSourceLangs.forEach(src => {
+                        jobTargetLangs.forEach(tgt => {
+                          const pairId = `${src}-${tgt}`;
+                          const matchesProfile = transLangs.includes(src) && transLangs.includes(tgt);
+                          list.push({ id: pairId, src, tgt, matchesProfile });
+                        });
+                      });
+                      return list.map((p) => {
+                        const isSelected = selectedPair === p.id;
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={() => isProfileMatch && setSelectedPair(p.id)}
+                            className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 relative overflow-hidden select-none flex items-center justify-between ${
+                              isSelected
+                                ? "border-teal-500 bg-teal-500/10 shadow-[0_0_15px_rgba(20,184,166,0.2)]"
+                                : p.matchesProfile
+                                ? "border-teal-500 bg-teal-500/5 hover:border-teal-500/80 shadow-[0_0_12px_rgba(20,184,166,0.3)] animate-pulse"
+                                : "border-border/60 hover:border-border hover:bg-accent/40"
+                            }`}
+                          >
+                            <div>
+                              <span className="text-sm font-bold text-foreground">
+                                {getLanguageName(p.src)} → {getLanguageName(p.tgt)}
+                              </span>
+                              {p.matchesProfile && (
+                                <span className="block text-[10px] text-teal-600 font-semibold mt-1">
+                                  ✨ Fits Profile (مطابق)
+                                </span>
+                              )}
+                            </div>
+                            <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"}`}>
+                              {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Proposed Bid Price (USD)</label>
                 <Input
@@ -330,7 +411,12 @@ export default function JobDetailPage() {
                   disabled={!isProfileMatch}
                   className="h-11 rounded-xl bg-background"
                 />
-                <p className="text-xs text-muted-foreground">You can negotiate the price by proposing your preferred bid amount (client budget: ${job.budget.toLocaleString()}).</p>
+                <p className="text-xs text-muted-foreground">
+                  You must propose a bid amount within the client's budget range:{" "}
+                  <span className="font-semibold text-foreground">
+                    ${job.budgetMin || 0} - ${job.budgetMax || job.budget} USD
+                  </span>.
+                </p>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Cover Letter</label>

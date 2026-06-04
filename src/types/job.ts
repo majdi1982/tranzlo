@@ -10,6 +10,8 @@ export interface Job {
   country?: string;
   workType: "onsite" | "online";
   budget: number;
+  budgetMin?: number;
+  budgetMax?: number;
   deadline: string;
   specializations: string[];
   services: string; // JSON: { serviceId: string; quantity: number; unit: string; rate?: number }[]
@@ -18,6 +20,8 @@ export interface Job {
   testFileUrl?: string;
   testDuration?: number;
   testWordCount?: number;
+  maxTestApplicants?: number;
+  maxHires?: number;
   reviewerType: "company" | "translator";
   activeTranslatorId?: string;
   status: JobStatus;

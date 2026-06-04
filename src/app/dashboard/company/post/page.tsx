@@ -62,6 +62,8 @@ export default function PostJobPage() {
   const testFileInputRef = React.useRef<HTMLInputElement>(null);
   const [reviewerType, setReviewerType] = React.useState<"company" | "translator">("company");
   const [selectedAiReviewer, setSelectedAiReviewer] = React.useState("gpt4o");
+  const [budgetMin, setBudgetMin] = React.useState("50");
+  const [budgetMax, setBudgetMax] = React.useState("300");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   const availableServiceTypes = SERVICE_TYPES.filter(
@@ -154,6 +156,19 @@ export default function PostJobPage() {
       }
     }
 
+    if (!budgetMin || Number(budgetMin) <= 0) {
+      setErrors((prev) => ({ ...prev, budgetMin: "Minimum budget must be positive." }));
+      return;
+    }
+    if (!budgetMax || Number(budgetMax) <= 0) {
+      setErrors((prev) => ({ ...prev, budgetMax: "Maximum budget must be positive." }));
+      return;
+    }
+    if (Number(budgetMin) > Number(budgetMax)) {
+      setErrors((prev) => ({ ...prev, budgetMin: "Minimum budget cannot exceed maximum budget." }));
+      return;
+    }
+
     const formData = {
       title,
       description,
@@ -161,7 +176,9 @@ export default function PostJobPage() {
       targetLanguage: targetLanguages.join(", "),
       country: (workType === "onsite" || workType === "hybrid") ? country : undefined,
       workType,
-      budget: Math.round(totalBudget),
+      budget: Number(budgetMax),
+      budgetMin: Number(budgetMin),
+      budgetMax: Number(budgetMax),
       deadline,
       specializations,
       services: services.map((s) => ({ serviceId: s.serviceId, quantity: s.quantity, unit: s.unit, rate: s.rate })),
@@ -196,7 +213,9 @@ export default function PostJobPage() {
       await svc.job.createJob({
         ...parsed.data,
         services: JSON.stringify(parsed.data.services),
-        budget: Math.round(totalBudget),
+        budget: Number(budgetMax),
+        budgetMin: Number(budgetMin),
+        budgetMax: Number(budgetMax),
         companyId: user?.$id || "",
       });
       toast({ title: "Job posted successfully!", variant: "success" });
@@ -696,15 +715,45 @@ export default function PostJobPage() {
                 <CardHeader>
                   <CardTitle>Budget & Timeline</CardTitle>
                 </CardHeader>
-                <CardContent className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Total Budget (USD)</Label>
-                    <div className="h-10 flex items-center text-lg font-bold px-3 border rounded-md bg-muted/50">${Math.round(totalBudget).toLocaleString()}</div>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="budgetMin">Minimum Budget (USD)</Label>
+                      <Input
+                        id="budgetMin"
+                        type="number"
+                        min="1"
+                        value={budgetMin}
+                        onChange={(e) => setBudgetMin(e.target.value)}
+                        placeholder="e.g. 50"
+                      />
+                      {errors.budgetMin && <p className="text-xs text-destructive">{errors.budgetMin}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="budgetMax">Maximum Budget (USD)</Label>
+                      <Input
+                        id="budgetMax"
+                        type="number"
+                        min="1"
+                        value={budgetMax}
+                        onChange={(e) => setBudgetMax(e.target.value)}
+                        placeholder="e.g. 300"
+                      />
+                      {errors.budgetMax && <p className="text-xs text-destructive">{errors.budgetMax}</p>}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="deadline">Deadline</Label>
-                    <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
-                    {errors.deadline && <p className="text-xs text-destructive">{errors.deadline}</p>}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="deadline">Deadline</Label>
+                      <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+                      {errors.deadline && <p className="text-xs text-destructive">{errors.deadline}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Est. Services Budget (Reference)</Label>
+                      <div className="h-10 flex items-center text-sm font-semibold px-3 border rounded-md bg-muted/30">
+                        ${Math.round(totalBudget).toLocaleString()} USD
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

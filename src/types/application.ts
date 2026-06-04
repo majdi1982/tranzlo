@@ -11,6 +11,7 @@ export interface Application {
   testSubmittedAt?: string;
   testStatus?: "none" | "pending" | "passed" | "failed";
   testGradedAt?: string;
+  languagePair?: string;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;

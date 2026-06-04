@@ -146,6 +146,8 @@ function JobCard({
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = React.useState<string>("");
   const [gradingLoading, setGradingLoading] = React.useState<string | null>(null);
+  const [profiles, setProfiles] = React.useState<Record<string, any>>({});
+  const [selectedProfile, setSelectedProfile] = React.useState<any | null>(null);
   const { toast } = useToast();
 
   async function handleGradeTest(applicationId: string, testStatus: "passed" | "failed") {
@@ -172,6 +174,19 @@ function JobCard({
         const services = getServices();
         const results = await services.application.getApplications(job.$id);
         setApps(results);
+        
+        const profileMap: Record<string, any> = {};
+        await Promise.all(
+          results.map(async (app) => {
+            if (!profileMap[app.translatorId]) {
+              try {
+                const profile = await services.profile.getTranslatorProfile(app.translatorId);
+                if (profile) profileMap[app.translatorId] = profile;
+              } catch {}
+            }
+          })
+        );
+        setProfiles(profileMap);
       } catch {
         // ignore
       } finally {
@@ -290,8 +305,8 @@ function JobCard({
 
         {/* Applicants Sub-Panel */}
         {showApplicants && (
-          <div className="mt-5 pt-5 border-t border-border/30 space-y-4">
-            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Candidate Proposals</h4>
+          <div className="mt-5 pt-5 border-t border-border/30 space-y-5">
+            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Candidate Proposals Grouped by Language Pair</h4>
             
             {loadingApps ? (
               <div className="flex items-center justify-center py-6 text-sm text-muted-foreground gap-2">
@@ -301,132 +316,248 @@ function JobCard({
             ) : apps.length === 0 ? (
               <p className="text-xs text-muted-foreground py-3 text-center">No proposals submitted for this project yet.</p>
             ) : (
-              <div className="space-y-3">
-                {apps.map((app) => (
-                  <div
-                    key={app.$id}
-                    className="p-4 rounded-xl border border-border/30 bg-accent/5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:bg-accent/10"
-                  >
-                    <div className="min-w-0 flex-1 space-y-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-bold text-foreground">Candidate ID: {app.translatorId.slice(-6).toUpperCase()}</span>
-                        <Badge variant={app.status === "accepted" ? "success" : app.status === "rejected" ? "destructive" : "secondary"}>
-                          {app.status}
-                        </Badge>
-                        {job.requiresTest && (
-                          <Badge variant={app.testStatus === "passed" ? "success" : app.testStatus === "failed" ? "destructive" : "warning"} className="font-bold text-[10px]">
-                            Test: {app.testStatus || "pending"}
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                        "{app.coverLetter}"
-                      </p>
+              <div className="space-y-6">
+                {(() => {
+                  const getJobPairs = () => {
+                    const targets = job.targetLanguage ? job.targetLanguage.split(",").map(t => t.trim().toUpperCase()) : [];
+                    const sources = job.sourceLanguage ? job.sourceLanguage.split(",").map(s => s.trim().toUpperCase()) : [];
+                    if (sources.length === 0 || targets.length === 0) {
+                      return ["Default Pair"];
+                    }
+                    const res: string[] = [];
+                    sources.forEach(s => {
+                      targets.forEach(t => {
+                        res.push(`${s} → ${t}`);
+                      });
+                    });
+                    return res;
+                  };
 
-                      {/* Test Section */}
-                      {job.requiresTest && app.testSolutionUrl && (
-                        <div className="p-3 rounded-lg border border-border/40 bg-card/40 space-y-2 mt-2">
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-cyan-400" />
-                              <span className="text-2xs font-semibold">Test Solution Document</span>
-                            </div>
-                            <div className="flex gap-1.5 items-center">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setPreviewUrl(app.testSolutionUrl!);
-                                  setPreviewTitle(`Test Solution - Candidate ${app.translatorId.slice(-6).toUpperCase()}`);
-                                }}
-                                className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors text-2xs flex items-center gap-1 font-semibold"
-                              >
-                                <Eye className="h-3 w-3" />
-                                <span>Preview</span>
-                              </button>
-                              <a href={app.testSolutionUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-muted-foreground rounded transition-colors">
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            </div>
-                          </div>
+                  const jobPairs = getJobPairs();
+                  return jobPairs.map((pair) => {
+                    const pairApps = apps.filter((app) => {
+                      if (!app.languagePair) return true; // fallback
+                      const normalizedAppPair = app.languagePair.replace(/\s+/g, "").toUpperCase();
+                      const normalizedJobPair = pair.replace(/\s+/g, "").toUpperCase();
+                      return normalizedAppPair === normalizedJobPair || normalizedAppPair.includes(normalizedJobPair) || normalizedJobPair.includes(normalizedAppPair);
+                    });
 
-                          {/* 48-Hour SLA Countdown */}
-                          {app.testSubmittedAt && app.testStatus === "pending" && (
-                            (() => {
-                              const remainingHours = Math.max(0, Math.ceil((new Date(app.testSubmittedAt).getTime() + 48 * 60 * 60 * 1000 - Date.now()) / (3600 * 1000)));
-                              const isBreached = remainingHours <= 0;
-                              return (
-                                <div className="flex items-center gap-1.5 text-2xs mt-1">
-                                  {isBreached ? (
-                                    <span className="text-rose-500 font-bold flex items-center gap-1">
-                                      <ShieldAlert className="h-3.5 w-3.5" />
-                                      48h Response SLA Breached (احتيال محتمل)
-                                    </span>
-                                  ) : (
-                                    <span className="text-amber-500 font-semibold flex items-center gap-1 animate-pulse">
-                                      ⏳ {remainingHours} hours left to respond
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            })()
-                          )}
+                    const activeApp = pairApps.find(a => a.status === "accepted");
 
-                          {/* Grading Buttons */}
-                          {app.testStatus === "pending" && (
-                            <div className="flex items-center gap-2 mt-2 pt-1 border-t border-border/10">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={gradingLoading === app.$id}
-                                onClick={() => handleGradeTest(app.$id, "passed")}
-                                className="h-7 text-3xs font-bold text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/10 rounded-md py-0 px-2"
-                              >
-                                {gradingLoading === app.$id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                                Pass Test (نجح)
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={gradingLoading === app.$id}
-                                onClick={() => handleGradeTest(app.$id, "failed")}
-                                className="h-7 text-3xs font-bold text-rose-500 border-rose-500/20 hover:bg-rose-500/10 rounded-md py-0 px-2"
-                              >
-                                Fail Test (رفض)
-                              </Button>
-                            </div>
+                    return (
+                      <div key={pair} className="p-4 border border-border/30 rounded-2xl bg-card/20 space-y-4">
+                        <div className="flex items-center justify-between border-b border-border/30 pb-2">
+                          <span className="text-xs font-bold text-teal-600 bg-teal-500/10 px-2.5 py-1 rounded-md uppercase tracking-wider">
+                            Language Pair: {pair}
+                          </span>
+                          {activeApp && (
+                            <Badge variant="success" className="text-3xs uppercase font-bold px-2 py-0.5">
+                              Active Translator Hired
+                            </Badge>
                           )}
                         </div>
-                      )}
 
-                      {app.financialFileId && (
-                        <p className="text-3xs text-emerald-500 font-semibold mt-1">
-                          Escrow Secured: {app.financialFileId}
-                        </p>
-                      )}
-                    </div>
+                        {pairApps.length === 0 ? (
+                          <p className="text-xs text-muted-foreground py-2 italic text-center">No proposals submitted for this language pair yet.</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {pairApps.map((app) => {
+                              const profile = profiles[app.translatorId];
+                              const isActive = app.status === "accepted";
+                              
+                              return (
+                                <div
+                                  key={app.$id}
+                                  className={`p-4 rounded-xl border border-border/30 bg-accent/5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:bg-accent/10 ${
+                                    isActive ? "border-teal-500/30 bg-teal-500/[0.02]" : ""
+                                  }`}
+                                >
+                                  <div className="min-w-0 flex-1 space-y-3">
+                                    <div className="flex items-center justify-between flex-wrap gap-2">
+                                      <div
+                                        onClick={() => profile && setSelectedProfile(profile)}
+                                        className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity select-none group"
+                                      >
+                                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0 uppercase border border-primary/20 group-hover:border-primary">
+                                          {profile?.fullName?.slice(0, 2) || "TR"}
+                                        </div>
+                                        <div>
+                                          <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                                            {profile?.fullName || `Translator (${app.translatorId.slice(-6).toUpperCase()})`}
+                                          </p>
+                                          <div className="flex items-center gap-1.5 mt-0.5">
+                                            <span className="text-[10px] text-amber-500 font-semibold flex items-center gap-0.5">
+                                              ★ {profile?.rating || "4.8"}
+                                            </span>
+                                            <Badge variant="outline" className="text-[9px] py-0 px-1 font-semibold capitalize bg-background">
+                                              {profile?.planTier || "Pro"} Member
+                                            </Badge>
+                                          </div>
+                                        </div>
+                                      </div>
 
-                    <div className="flex items-center gap-4 shrink-0 justify-between md:justify-end">
-                      <div className="text-right">
-                        <span className="text-sm font-bold text-primary flex items-center justify-end">
-                          <DollarSign className="h-3.5 w-3.5" />
-                          {app.bidAmount || job.budget}
-                        </span>
-                        <span className="text-3xs text-muted-foreground uppercase font-semibold">Proposed Bid</span>
+                                      <div className="flex items-center gap-1.5">
+                                        <Badge variant={isActive ? "success" : app.status === "rejected" ? "destructive" : "secondary"}>
+                                          {app.status}
+                                        </Badge>
+                                        {job.requiresTest && (
+                                          <Badge variant={app.testStatus === "passed" ? "success" : app.testStatus === "failed" ? "destructive" : "warning"} className="font-bold text-[10px]">
+                                            Test: {app.testStatus || "pending"}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                      "{app.coverLetter}"
+                                    </p>
+
+                                    {/* Test Section */}
+                                    {job.requiresTest && app.testSolutionUrl && (
+                                      <div className="p-3 rounded-lg border border-border/40 bg-card/40 space-y-2 mt-2">
+                                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                                          <div className="flex items-center gap-2">
+                                            <FileText className="h-4 w-4 text-cyan-400" />
+                                            <span className="text-2xs font-semibold">Test Solution Document</span>
+                                          </div>
+                                          <div className="flex gap-1.5 items-center">
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setPreviewUrl(app.testSolutionUrl!);
+                                                setPreviewTitle(`Test Solution - Candidate ${app.translatorId.slice(-6).toUpperCase()}`);
+                                              }}
+                                              className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors text-2xs flex items-center gap-1 font-semibold"
+                                            >
+                                              <Eye className="h-3 w-3" />
+                                              <span>Preview</span>
+                                            </button>
+                                            <a href={app.testSolutionUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-muted-foreground rounded transition-colors">
+                                              <ExternalLink className="h-3 w-3" />
+                                            </a>
+                                          </div>
+                                        </div>
+
+                                        {/* 48-Hour SLA Countdown */}
+                                        {app.testSubmittedAt && app.testStatus === "pending" && (
+                                          (() => {
+                                            const remainingHours = Math.max(0, Math.ceil((new Date(app.testSubmittedAt).getTime() + 48 * 60 * 60 * 1000 - Date.now()) / (3600 * 1000)));
+                                            const isBreached = remainingHours <= 0;
+                                            return (
+                                              <div className="flex items-center gap-1.5 text-2xs mt-1">
+                                                {isBreached ? (
+                                                  <span className="text-rose-500 font-bold flex items-center gap-1">
+                                                    <ShieldAlert className="h-3.5 w-3.5" />
+                                                    48h Response SLA Breached (احتيال محتمل)
+                                                  </span>
+                                                ) : (
+                                                  <span className="text-amber-500 font-semibold flex items-center gap-1 animate-pulse">
+                                                    ⏳ {remainingHours} hours left to respond
+                                                  </span>
+                                                )}
+                                              </div>
+                                            );
+                                          })()
+                                        )}
+
+                                        {/* Grading Buttons */}
+                                        {app.testStatus === "pending" && (
+                                          <div className="flex items-center gap-2 mt-2 pt-1 border-t border-border/10">
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              disabled={gradingLoading === app.$id}
+                                              onClick={() => handleGradeTest(app.$id, "passed")}
+                                              className="h-7 text-3xs font-bold text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/10 rounded-md py-0 px-2"
+                                            >
+                                              {gradingLoading === app.$id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                                              Pass Test (نجح)
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              disabled={gradingLoading === app.$id}
+                                              onClick={() => handleGradeTest(app.$id, "failed")}
+                                              className="h-7 text-3xs font-bold text-rose-500 border-rose-500/20 hover:bg-rose-500/10 rounded-md py-0 px-2"
+                                            >
+                                              {gradingLoading === app.$id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                                              Fail Test (رفض)
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* Hired active translator detailed progress workflow (Diagram mapping) */}
+                                    {isActive && (
+                                      <div className="p-3 rounded-lg border border-teal-500/20 bg-teal-500/[0.03] space-y-2 mt-2">
+                                        <span className="text-[10px] text-teal-600 font-bold uppercase tracking-wider block">Active Translator Workflow Controls</span>
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                          {/* Action 1: Message */}
+                                          <Link href="/messages">
+                                            <Button size="sm" variant="outline" className="h-8 text-3xs font-bold border-teal-500/20 hover:bg-teal-500/10 text-teal-600 bg-background rounded-md">
+                                              💬 Message Translator
+                                            </Button>
+                                          </Link>
+
+                                          {/* Action 2: Deposit */}
+                                          {app.financialFileId ? (
+                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/10 select-none">
+                                              💵 Paid / Deposited (${app.bidAmount || job.budget})
+                                            </span>
+                                          ) : (
+                                            <Button
+                                              size="sm"
+                                              onClick={() => setHiringApp(app)}
+                                              className="h-8 text-3xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-md"
+                                            >
+                                              💳 Escrow Deposit Payout
+                                            </Button>
+                                          )}
+
+                                          {/* Action 3: Escrow */}
+                                          {app.financialFileId ? (
+                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-cyan-600 bg-cyan-500/10 px-2.5 py-1.5 rounded-md border border-cyan-500/10 select-none">
+                                              🔒 Platform Escrow Hold ({app.financialFileId.slice(0, 8)})
+                                            </span>
+                                          ) : (
+                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-muted-foreground bg-accent/40 px-2.5 py-1.5 rounded-md border select-none">
+                                              🔒 Escrow Pending
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-4 shrink-0 justify-between md:justify-end">
+                                    <div className="text-right">
+                                      <span className="text-sm font-bold text-primary flex items-center justify-end">
+                                        <DollarSign className="h-3.5 w-3.5" />
+                                        {app.bidAmount || job.budget}
+                                      </span>
+                                      <span className="text-3xs text-muted-foreground uppercase font-semibold">Proposed Bid</span>
+                                    </div>
+
+                                    {!activeApp && app.status === "submitted" && (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => setHiringApp(app)}
+                                        className="h-8 rounded-md font-semibold text-xs shadow-md shadow-primary/10"
+                                      >
+                                        Hire & Pay
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-
-                      {app.status === "submitted" && (
-                        <Button
-                          size="sm"
-                          onClick={() => setHiringApp(app)}
-                          className="h-8 rounded-md font-semibold text-xs shadow-md shadow-primary/10"
-                        >
-                          Hire & Pay
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
@@ -518,6 +649,64 @@ function JobCard({
               </div>
             </div>
           </div>
+        )}
+        {/* Translator Profile Detail Modal */}
+        {selectedProfile && (
+          <Dialog open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
+            <DialogContent className="max-w-md bg-card border border-border/50">
+              <DialogHeader>
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0 uppercase border border-primary/20">
+                    {selectedProfile.fullName?.slice(0, 2) || "TR"}
+                  </div>
+                  <div>
+                    <DialogTitle>{selectedProfile.fullName}</DialogTitle>
+                    <DialogDescription className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-amber-500 font-semibold">★ {selectedProfile.rating || "4.8"}</span>
+                      <span>({selectedProfile.completedJobs || 12} projects completed)</span>
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="space-y-4 my-4 text-sm">
+                <div className="space-y-1.5">
+                  <span className="text-xs text-muted-foreground font-semibold uppercase">Bio</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{selectedProfile.bio || "No biography provided."}</p>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-xs text-muted-foreground font-semibold uppercase">Language Capabilities</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedProfile.languages?.map((lang: string) => (
+                      <Badge key={lang} variant="outline" className="text-xs">{getLanguageName(lang)}</Badge>
+                    )) || <span className="text-xs text-muted-foreground">No languages registered.</span>}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-xs text-muted-foreground font-semibold uppercase">Specializations</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedProfile.specializations?.map((spec: string) => (
+                      <Badge key={spec} variant="secondary" className="text-xs">{spec}</Badge>
+                    )) || <span className="text-xs text-muted-foreground">None listed.</span>}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 border-t border-border/20 pt-3">
+                  <div>
+                    <span className="text-xs text-muted-foreground block font-semibold uppercase">Hourly Rate</span>
+                    <span className="text-sm font-bold text-primary">${selectedProfile.hourlyRate || 30}/hr</span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block font-semibold uppercase">Plan Level</span>
+                    <span className="text-sm font-bold text-foreground capitalize">{selectedProfile.planTier || "Pro"} Member</span>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" size="sm" onClick={() => setSelectedProfile(null)} className="w-full">
+                  Close Profile
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         )}
       </CardContent>
     </Card>

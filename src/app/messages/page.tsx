@@ -25,6 +25,8 @@ export default function MessagesPage() {
   const [loading, setLoading] = React.useState(true);
   const [sending, setSending] = React.useState(false);
   const [showList, setShowList] = React.useState(true);
+  const [jobs, setJobs] = React.useState<any[]>([]);
+  const [applications, setApplications] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     async function load() {
@@ -37,6 +39,21 @@ export default function MessagesPage() {
           const bTime = b.lastMessageAt || b.createdAt;
           return new Date(bTime).getTime() - new Date(aTime).getTime();
         }));
+
+        const allJobs = await services.job.getJobs();
+        setJobs(allJobs);
+
+        let allApps: any[] = [];
+        try {
+          if (user.prefs?.role === "translator") {
+            allApps = await services.application.getMyApplications(user.$id);
+          } else {
+            const myJobs = allJobs.filter(j => j.companyId === user.$id);
+            const appsList = await Promise.all(myJobs.map(j => services.application.getApplications(j.$id)));
+            allApps = appsList.flat();
+          }
+        } catch {}
+        setApplications(allApps);
       } catch {
         // ignore
       } finally {
@@ -45,6 +62,15 @@ export default function MessagesPage() {
     }
     load();
   }, [user?.$id]);
+
+  const getConvJob = (conv: Conversation) => jobs.find((j) => j.$id === conv.jobId);
+  const getConvLanguagePair = (conv: Conversation) => {
+    const job = getConvJob(conv);
+    if (!job) return null;
+    const transId = conv.participants.find(p => p !== user?.$id);
+    const app = applications.find(a => a.jobId === job.$id && (a.translatorId === user?.$id || a.translatorId === transId));
+    return app?.languagePair || (job.targetLanguage ? `${job.sourceLanguage.toUpperCase()} → ${job.targetLanguage.split(",")[0].trim().toUpperCase()}` : "");
+  };
 
   React.useEffect(() => {
     async function loadMessages() {
@@ -144,6 +170,11 @@ export default function MessagesPage() {
                             <p className="text-sm font-medium truncate">
                               {otherParticipantId(conv)}
                             </p>
+                            {getConvJob(conv) && (
+                              <p className="text-[10px] text-teal-600 font-bold uppercase truncate mt-0.5">
+                                {getConvJob(conv)?.title} • {getConvLanguagePair(conv)}
+                              </p>
+                            )}
                             {conv.lastMessagePreview && (
                               <p className="text-xs text-muted-foreground truncate mt-0.5">
                                 {conv.lastMessagePreview}
@@ -166,13 +197,24 @@ export default function MessagesPage() {
               <div className={`flex-1 flex flex-col ${!showList ? "block" : "hidden sm:flex"}`}>
                 {selectedConv ? (
                   <>
-                    <div className="flex items-center gap-2 p-3 border-b sm:hidden">
-                      <Button variant="ghost" size="icon" onClick={() => setShowList(true)}>
+                    {/* Responsive Chat Header */}
+                    <div className="flex items-center gap-3 p-3 border-b bg-muted/10">
+                      <Button variant="ghost" size="icon" onClick={() => setShowList(true)} className="sm:hidden">
                         <ArrowLeft className="h-4 w-4" />
                       </Button>
-                      <p className="text-sm font-medium truncate">
-                        {otherParticipantId(conversations.find((c) => c.$id === selectedConv)!)}
-                      </p>
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold truncate">
+                          {otherParticipantId(conversations.find((c) => c.$id === selectedConv)!)}
+                        </p>
+                        {getConvJob(conversations.find((c) => c.$id === selectedConv)!) && (
+                          <p className="text-[10px] text-teal-600 font-bold uppercase truncate mt-0.5">
+                            {getConvJob(conversations.find((c) => c.$id === selectedConv)!)?.title} • {getConvLanguagePair(conversations.find((c) => c.$id === selectedConv)!)}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <ScrollArea className="flex-1 p-4">

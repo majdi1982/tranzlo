@@ -54,9 +54,8 @@ export default function OnboardingPage() {
 
   // Translator Form State
   const [nativeLang, setNativeLang] = React.useState("en");
-  const [sourceLang, setSourceLang] = React.useState("en");
-  const [targetLang, setTargetLang] = React.useState("ar");
-  const [hourlyRate, setHourlyRate] = React.useState("25");
+  const [selectedLangs, setSelectedLangs] = React.useState<string[]>(["en", "ar"]);
+  const [activePairs, setActivePairs] = React.useState<string[]>([]);
   const [bio, setBio] = React.useState("");
   const [selectedCatTools, setSelectedCatTools] = React.useState<string[]>([]);
   const [isPublicPlatform, setIsPublicPlatform] = React.useState(true);
@@ -103,8 +102,8 @@ export default function OnboardingPage() {
 
     let score = 40; // 20% registration + 20% role selection
     if (role === "translator") {
-      if (sourceLang !== targetLang) score += 20; // +20% Language Pairs
-      if (hourlyRate) score += 15; // +15% pricing
+      if (selectedLangs.length > 0) score += 20; // +20% Selected Languages
+      if (activePairs.length > 0) score += 15; // +15% pricing / language pairs
       if (bio.trim().length > 10) score += 15; // +15% bio
       if (selectedCatTools.length > 0) score += 15; // +15% CAT Tools
       if (seoKeywords.length > 0 || !isPublicPlatform) score += 10; // +10% SEO Settings
@@ -146,9 +145,15 @@ export default function OnboardingPage() {
         await services.profile.updateTranslatorProfile(user?.$id || "", {
           fullName: user?.name || "Linguist Pro",
           email: user?.email || "",
-          languages: [nativeLang],
-          languagePairs: JSON.stringify([{ source: sourceLang, target: targetLang, level: "advanced" }]) as any,
-          hourlyRate: parseFloat(hourlyRate) || 0,
+          languages: selectedLangs,
+          nativeLanguage: nativeLang,
+          languagePairs: JSON.stringify(
+            activePairs.map((p) => {
+              const [src, tgt] = p.split("-");
+              return { source: src, target: tgt, level: "advanced" };
+            })
+          ) as any,
+          hourlyRate: 0,
           bio: bio || "Professional language specialist.",
           phone,
           catTools: selectedCatTools,
@@ -382,49 +387,108 @@ export default function OnboardingPage() {
               {role === "translator" ? (
                 // Translator Specific Form Fields
                 <div className="space-y-6">
-                  {/* Language Pairs */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Language Profile Setup</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-xs text-muted-foreground mb-1 block">Translate From (Source)</span>
-                        <ResponsiveSelect
-                          options={LANGUAGES.map(l => ({ value: l.code, label: l.name }))}
-                          value={sourceLang}
-                          onChange={setSourceLang}
-                          placeholder="Select Source Language"
-                          searchPlaceholder="Search language..."
-                          label="Source Language"
-                        />
-                      </div>
-                      <div>
-                        <span className="text-xs text-muted-foreground mb-1 block">Translate To (Target)</span>
-                        <ResponsiveSelect
-                          options={LANGUAGES.map(l => ({ value: l.code, label: l.name }))}
-                          value={targetLang}
-                          onChange={setTargetLang}
-                          placeholder="Select Target Language"
-                          searchPlaceholder="Search language..."
-                          label="Target Language"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hourly Rate */}
-                  <div className="space-y-2">
-                    <Label htmlFor="hourlyRate" className="text-sm font-semibold">Base Hourly Rate ($ USD)</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">$</span>
-                      <Input
-                        id="hourlyRate"
-                        type="number"
-                        placeholder="25"
-                        value={hourlyRate}
-                        onChange={(e) => setHourlyRate(e.target.value)}
-                        className="pl-8 bg-background border-border rounded-md"
+                  {/* Language Profile Setup */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Native Language (اللغة الأم - الحد الأقصى 1)</Label>
+                      <ResponsiveSelect
+                        options={LANGUAGES.map(l => ({ value: l.code, label: l.name }))}
+                        value={nativeLang}
+                        onChange={setNativeLang}
+                        placeholder="Select Native Language"
+                        searchPlaceholder="Search language..."
+                        label="Native Language"
                       />
                     </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-sm font-semibold">Languages Spoken/Written (الحد الأقصى 2 للمجاني)</Label>
+                        <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold uppercase">Free Tier Cap</span>
+                      </div>
+                      <ResponsiveSelect
+                        options={LANGUAGES.map((lang) => ({
+                          value: lang.code,
+                          label: lang.name,
+                        }))}
+                        value={selectedLangs}
+                        onChange={(selectedCodes: string[]) => {
+                          if (selectedCodes.length > 2) {
+                            toast({ title: "Free plan is limited to 2 languages.", variant: "destructive" });
+                            return;
+                          }
+                          setSelectedLangs(selectedCodes);
+                          
+                          // Auto suggest pairs when languages update
+                          const newPairs: string[] = [];
+                          selectedCodes.forEach(src => {
+                            selectedCodes.forEach(tgt => {
+                              if (src !== tgt) {
+                                newPairs.push(`${src}-${tgt}`);
+                              }
+                            });
+                          });
+                          setActivePairs(newPairs);
+                        }}
+                        multiple={true}
+                        placeholder="Select languages (Max 2)"
+                        searchPlaceholder="Search language..."
+                        label="Languages Spoken/Written"
+                      />
+                    </div>
+
+                    {/* Dynamic Language Pairs List */}
+                    {selectedLangs.length > 0 && (
+                      <div className="p-4 rounded-xl border border-border/40 bg-muted/10 space-y-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs font-bold text-foreground">Select Working Language Pairs (أزواج لغات العمل المتولدة)</Label>
+                          <p className="text-[10px] text-muted-foreground">Select the specific translation pairs you want to activate and verify in your profile.</p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {(() => {
+                            const pairsList: { id: string; label: string }[] = [];
+                            selectedLangs.forEach(src => {
+                              selectedLangs.forEach(tgt => {
+                                if (src !== tgt) {
+                                  const nameSrc = LANGUAGES.find(l => l.code === src)?.name || src;
+                                  const nameTgt = LANGUAGES.find(l => l.code === tgt)?.name || tgt;
+                                  pairsList.push({
+                                    id: `${src}-${tgt}`,
+                                    label: `${nameSrc} → ${nameTgt}`
+                                  });
+                                }
+                              });
+                            });
+                            
+                            return pairsList.map(pair => {
+                              const isActive = activePairs.includes(pair.id);
+                              return (
+                                <div
+                                  key={pair.id}
+                                  onClick={() => {
+                                    if (isActive) {
+                                      setActivePairs(activePairs.filter(p => p !== pair.id));
+                                    } else {
+                                      setActivePairs([...activePairs, pair.id]);
+                                    }
+                                  }}
+                                  className={`p-3 rounded-lg border cursor-pointer select-none transition-all flex items-center justify-between ${
+                                    isActive
+                                      ? "border-teal-500 bg-teal-500/10 shadow-[0_0_10px_rgba(20,184,166,0.15)] text-teal-600 font-bold"
+                                      : "border-border/60 hover:border-border hover:bg-accent/30 text-muted-foreground"
+                                  }`}
+                                >
+                                  <span className="text-xs">{pair.label}</span>
+                                  <div className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${isActive ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"}`}>
+                                    {isActive && <Check className="h-2.5 w-2.5" />}
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* WhatsApp Number */}

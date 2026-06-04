@@ -15,6 +15,8 @@ export const createJobSchema = z.object({
   country: z.string().optional(),
   workType: z.enum(["onsite", "online", "hybrid"]),
   budget: z.number().positive("Budget must be positive"),
+  budgetMin: z.number().positive("Minimum budget must be positive").optional(),
+  budgetMax: z.number().positive("Maximum budget must be positive").optional(),
   deadline: z.string().min(1, "Deadline is required"),
   specializations: z.array(z.string()).min(1, "At least one specialization is required"),
   services: z.array(serviceEntrySchema).min(1, "At least one service is required"),
@@ -23,6 +25,8 @@ export const createJobSchema = z.object({
   testFileUrl: z.string().optional(),
   testDuration: z.number().positive("Duration must be positive").optional(),
   testWordCount: z.number().positive("Word count must be positive").max(250, "Word count must be at most 250 words").optional(),
+  maxTestApplicants: z.number().positive("Maximum test applicants must be positive").optional(),
+  maxHires: z.number().positive("Maximum hires must be positive").optional(),
   reviewerType: z.enum(["company", "translator"]),
 });
 
