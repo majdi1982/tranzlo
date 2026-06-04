@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 interface FAQItem {
   question: string;
   answer: string;
-  category: "general" | "account" | "translation" | "billing";
+  category: "general" | "account" | "translation" | "billing" | "verification";
 }
 
 const FAQS: FAQItem[] = [
@@ -54,12 +54,23 @@ const FAQS: FAQItem[] = [
     question: "How do payouts work for translators?",
     answer: "Payouts are processed automatically via PayPal. Standard accounts have a 30-day payout holding period, while Pro and Plus translators benefit from automatic payouts immediately upon project approval.",
     category: "billing"
+  },
+  // Verification
+  {
+    question: "How do I verify my account?",
+    answer: "To verify your account, navigate to the Dashboard and click on 'Verification' in the left menu. You will need to upload a valid government-issued ID and professional translation credentials. Our team reviews all submissions within 24-48 hours.",
+    category: "verification"
+  },
+  {
+    question: "What are the benefits of a verified account?",
+    answer: "Verified translators receive a 'Verified Pro Translator' badge, gain priority sorting in customer search results, and are eligible to apply for high-value enterprise jobs that require verified credentials.",
+    category: "verification"
   }
 ];
 
 export default function SupportPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [selectedCategory, setSelectedCategory] = React.useState<"all" | "general" | "account" | "translation" | "billing">("all");
+  const [selectedCategory, setSelectedCategory] = React.useState<"all" | "general" | "account" | "translation" | "billing" | "verification">("all");
   const [openFaqIndex, setOpenFaqIndex] = React.useState<number | null>(null);
 
   // Form states
@@ -146,7 +157,7 @@ export default function SupportPage() {
               
               {/* Category Filter Tabs */}
               <div className="flex flex-wrap gap-2">
-                {(["all", "general", "account", "translation", "billing"] as const).map((cat) => (
+                {(["all", "general", "account", "translation", "billing", "verification"] as const).map((cat) => (
                   <button
                     key={cat}
                     onClick={() => {
@@ -289,6 +300,7 @@ export default function SupportPage() {
                     <option value="account">Account & Teams</option>
                     <option value="translation">Translation & Jobs</option>
                     <option value="billing">Billing & Subscriptions</option>
+                    <option value="verification">Account Verification</option>
                   </select>
                 </div>
 
