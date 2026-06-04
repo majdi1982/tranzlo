@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { CookieBanner } from "@/components/cookie-banner";
 
 export const metadata: Metadata = {
   title: "Tranzlo - Translation Marketplace",
@@ -19,7 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-background antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <CookieBanner />
+        </Providers>
       </body>
     </html>
   );
