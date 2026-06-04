@@ -13,7 +13,7 @@ const footerLinks = {
     { href: "/login", label: "Sign In" },
     { href: "/signup", label: "Get Started" },
     { href: "/blog", label: "Blog" },
-    { href: "/contact", label: "Contact" },
+    { href: "/support", label: "Support & FAQ" },
   ],
   legal: [
     { href: "/privacy", label: "Privacy Policy" },
