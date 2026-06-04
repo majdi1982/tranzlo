@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowLeft,
   Shield,
@@ -16,6 +17,7 @@ import {
   Loader2,
   Upload,
   FileText,
+  ExternalLink,
 } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
@@ -472,284 +474,15 @@ export default function SettingsPage() {
               </div>
 
               {verificationStatus !== "verified" && (
-                <div className="space-y-4">
-                  <Label className="text-sm font-semibold text-foreground">Upload Verification Documents</Label>
-                  <p className="text-xs text-muted-foreground -mt-1">
-                    Please upload the required documents in PDF, DOC, DOCX, or image formats. Max file size: 10MB.
+                <div className="space-y-4 pt-2">
+                  <p className="text-xs text-muted-foreground">
+                    To upload verification documents (such as Identity Cards, Commercial Registrations, Tax Certificates, and language credentials) and submit a request, please visit the verification dashboard.
                   </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {role === "translator" ? (
-                      <>
-                        {/* Translator ID */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl border border-border/50 bg-background/30 hover:bg-background/50 transition-all space-y-3">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
-                              <Shield className="h-5 w-5" />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-xs font-semibold text-foreground block">Personal ID / Passport</span>
-                              <span className="text-3xs text-muted-foreground block">Official government-issued ID</span>
-                            </div>
-                          </div>
-                          <div className="space-y-2 mt-auto">
-                            {translatorDocs.idUrl && (
-                              <a
-                                href={translatorDocs.idUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-2xs text-emerald-600 dark:text-emerald-400 hover:underline"
-                              >
-                                <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                                View Uploaded ID
-                              </a>
-                            )}
-                            <div className="relative">
-                              <input
-                                type="file"
-                                accept=".pdf,.doc,.docx,image/*"
-                                onChange={(e) => handleUploadDocType(e, "translator-id")}
-                                disabled={uploadingDocType !== null}
-                                className="hidden"
-                                id="translator-id-input"
-                              />
-                              <Label
-                                htmlFor="translator-id-input"
-                                className="flex items-center justify-center gap-2 border border-border/50 hover:border-primary/50 cursor-pointer rounded-lg py-2 px-3 text-xs bg-background/50 hover:bg-accent/10 transition-colors w-full"
-                              >
-                                {uploadingDocType === "translator-id" ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                                ) : (
-                                  <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                                )}
-                                <span className="text-2xs font-medium">
-                                  {uploadingDocType === "translator-id"
-                                    ? "Uploading..."
-                                    : translatorDocs.idUrl
-                                    ? "Replace ID Document"
-                                    : "Upload ID Document"}
-                                </span>
-                              </Label>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Translator Certs */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl border border-border/50 bg-background/30 hover:bg-background/50 transition-all space-y-3">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
-                              <FileText className="h-5 w-5" />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-xs font-semibold text-foreground block">Professional Certificates</span>
-                              <span className="text-3xs text-muted-foreground block">Accreditations, degrees, or certifications</span>
-                            </div>
-                          </div>
-                          <div className="space-y-2 mt-auto">
-                            {translatorDocs.certUrl && (
-                              <a
-                                href={translatorDocs.certUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-2xs text-emerald-600 dark:text-emerald-400 hover:underline"
-                              >
-                                <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                                View Uploaded Certificate
-                              </a>
-                            )}
-                            <div className="relative">
-                              <input
-                                type="file"
-                                accept=".pdf,.doc,.docx,image/*"
-                                onChange={(e) => handleUploadDocType(e, "translator-cert")}
-                                disabled={uploadingDocType !== null}
-                                className="hidden"
-                                id="translator-cert-input"
-                              />
-                              <Label
-                                htmlFor="translator-cert-input"
-                                className="flex items-center justify-center gap-2 border border-border/50 hover:border-primary/50 cursor-pointer rounded-lg py-2 px-3 text-xs bg-background/50 hover:bg-accent/10 transition-colors w-full"
-                              >
-                                {uploadingDocType === "translator-cert" ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                                ) : (
-                                  <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                                )}
-                                <span className="text-2xs font-medium">
-                                  {uploadingDocType === "translator-cert"
-                                    ? "Uploading..."
-                                    : translatorDocs.certUrl
-                                    ? "Replace Certificate"
-                                    : "Upload Certificate"}
-                                </span>
-                              </Label>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Translator CV */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl border border-border/50 bg-background/30 hover:bg-background/50 transition-all space-y-3 md:col-span-2">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
-                              <FileText className="h-5 w-5" />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-xs font-semibold text-foreground block">Curriculum Vitae (CV) / Resume</span>
-                              <span className="text-3xs text-muted-foreground block">Detailed resume outlining your professional experience</span>
-                            </div>
-                          </div>
-                          <div className="space-y-2 mt-auto">
-                            {translatorDocs.cvUrl && (
-                              <a
-                                href={translatorDocs.cvUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-2xs text-emerald-600 dark:text-emerald-400 hover:underline"
-                              >
-                                <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                                View Uploaded CV
-                              </a>
-                            )}
-                            <div className="relative">
-                              <input
-                                type="file"
-                                accept=".pdf,.doc,.docx"
-                                onChange={(e) => handleUploadDocType(e, "translator-cv")}
-                                disabled={uploadingDocType !== null}
-                                className="hidden"
-                                id="translator-cv-input"
-                              />
-                              <Label
-                                htmlFor="translator-cv-input"
-                                className="flex items-center justify-center gap-2 border border-border/50 hover:border-primary/50 cursor-pointer rounded-lg py-2 px-3 text-xs bg-background/50 hover:bg-accent/10 transition-colors w-full"
-                              >
-                                {uploadingDocType === "translator-cv" ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                                ) : (
-                                  <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                                )}
-                                <span className="text-2xs font-medium">
-                                  {uploadingDocType === "translator-cv"
-                                    ? "Uploading..."
-                                    : translatorDocs.cvUrl
-                                    ? "Replace CV / Resume"
-                                    : "Upload CV / Resume"}
-                                </span>
-                              </Label>
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        {/* Company Registration */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl border border-border/50 bg-background/30 hover:bg-background/50 transition-all space-y-3">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
-                              <FileText className="h-5 w-5" />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-xs font-semibold text-foreground block">Business Registration / License</span>
-                              <span className="text-3xs text-muted-foreground block">Official business establishment certificate</span>
-                            </div>
-                          </div>
-                          <div className="space-y-2 mt-auto">
-                            {companyDocs.registrationDocUrl && (
-                              <a
-                                href={companyDocs.registrationDocUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-2xs text-emerald-600 dark:text-emerald-400 hover:underline"
-                              >
-                                <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                                View Uploaded Registration Doc
-                              </a>
-                            )}
-                            <div className="relative">
-                              <input
-                                type="file"
-                                accept=".pdf,.doc,.docx,image/*"
-                                onChange={(e) => handleUploadDocType(e, "company-reg")}
-                                disabled={uploadingDocType !== null}
-                                className="hidden"
-                                id="company-reg-input"
-                              />
-                              <Label
-                                htmlFor="company-reg-input"
-                                className="flex items-center justify-center gap-2 border border-border/50 hover:border-primary/50 cursor-pointer rounded-lg py-2 px-3 text-xs bg-background/50 hover:bg-accent/10 transition-colors w-full"
-                              >
-                                {uploadingDocType === "company-reg" ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                                ) : (
-                                  <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                                )}
-                                <span className="text-2xs font-medium">
-                                  {uploadingDocType === "company-reg"
-                                    ? "Uploading..."
-                                    : companyDocs.registrationDocUrl
-                                    ? "Replace Registration Doc"
-                                    : "Upload Registration Doc"}
-                                </span>
-                              </Label>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Owner ID */}
-                        <div className="flex flex-col justify-between p-4 rounded-xl border border-border/50 bg-background/30 hover:bg-background/50 transition-all space-y-3">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
-                              <Shield className="h-5 w-5" />
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-xs font-semibold text-foreground block">Owner / Representative ID</span>
-                              <span className="text-3xs text-muted-foreground block">ID or Passport of owner or legal representative</span>
-                            </div>
-                          </div>
-                          <div className="space-y-2 mt-auto">
-                            {companyDocs.ownerIdUrl && (
-                              <a
-                                href={companyDocs.ownerIdUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-2xs text-emerald-600 dark:text-emerald-400 hover:underline"
-                              >
-                                <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                                View Uploaded Owner ID
-                              </a>
-                            )}
-                            <div className="relative">
-                              <input
-                                type="file"
-                                accept=".pdf,.doc,.docx,image/*"
-                                onChange={(e) => handleUploadDocType(e, "company-owner")}
-                                disabled={uploadingDocType !== null}
-                                className="hidden"
-                                id="company-owner-input"
-                              />
-                              <Label
-                                htmlFor="company-owner-input"
-                                className="flex items-center justify-center gap-2 border border-border/50 hover:border-primary/50 cursor-pointer rounded-lg py-2 px-3 text-xs bg-background/50 hover:bg-accent/10 transition-colors w-full"
-                              >
-                                {uploadingDocType === "company-owner" ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                                ) : (
-                                  <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                                )}
-                                <span className="text-2xs font-medium">
-                                  {uploadingDocType === "company-owner"
-                                    ? "Uploading..."
-                                    : companyDocs.ownerIdUrl
-                                    ? "Replace Owner ID"
-                                    : "Upload Owner ID"}
-                                </span>
-                              </Label>
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  <Link href="/dashboard/verification">
+                    <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs gap-1.5 font-semibold">
+                      Go to Verification Dashboard <ExternalLink className="h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
                 </div>
               )}
             </CardContent>

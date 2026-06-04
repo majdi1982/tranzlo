@@ -34,6 +34,8 @@ export interface TranslatorProfile extends BaseProfile {
   ratingCount: number;
   cvUrl?: string;
   certificates?: string[];
+  nationalIdUrl?: string;
+  languageCertificates?: string; // JSON: {pairId: string; pairLabel: string; certUrl: string}[]
   linkedIn?: string;
   yearsOfExperience?: number;
   isApproved: boolean;
@@ -52,6 +54,7 @@ export interface CompanyProfile extends BaseProfile {
   contactPerson: string;
   registrationDoc?: string;
   taxDoc?: string;
+  founderIdUrl?: string;
   brochureUrl?: string;
   logoUrl?: string;
   companySize?: string;

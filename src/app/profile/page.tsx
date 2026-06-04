@@ -1069,20 +1069,41 @@ function ProfileContent() {
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold">Native Language (Max 1)</Label>
                       {profileExists && translatorData.nativeLanguage ? (
-                        <div className="p-3 bg-muted/40 rounded-xl border border-border text-xs text-foreground">
-                          {LANGUAGES.find(l => l.code === translatorData.nativeLanguage)?.name || translatorData.nativeLanguage}
+                        <div className="p-3 bg-muted/40 rounded-xl border border-border text-xs text-foreground flex items-center justify-between">
+                          <span>{LANGUAGES.find(l => l.code === translatorData.nativeLanguage)?.name || translatorData.nativeLanguage}</span>
+                          <Badge variant="outline" className="text-3xs bg-teal-500/10 border-teal-500/20 text-teal-600 rounded-md">Locked</Badge>
                         </div>
                       ) : (
-                        <ResponsiveSelect
-                          options={LANGUAGES.map(l => ({ value: l.code, label: l.name }))}
-                          value={translatorData.nativeLanguage}
-                          onChange={(val: string) => {
-                            setTranslatorData(prev => ({ ...prev, nativeLanguage: val }));
-                          }}
-                          placeholder="Select Native Language"
-                          searchPlaceholder="Search language..."
-                          label="Native Language"
-                        />
+                        translatorData.languages.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                            {translatorData.languages.map((code) => {
+                              const name = LANGUAGES.find((l) => l.code === code)?.name || code;
+                              const isSelected = translatorData.nativeLanguage === code;
+                              return (
+                                <div
+                                  key={code}
+                                  onClick={() => {
+                                    setTranslatorData((prev) => ({ ...prev, nativeLanguage: code }));
+                                  }}
+                                  className={`p-3 rounded-xl border cursor-pointer select-none transition-all flex items-center justify-between ${
+                                    isSelected
+                                      ? "border-teal-500 bg-teal-500/10 text-teal-600 font-bold"
+                                      : "border-border/60 hover:border-border hover:bg-accent/30 text-muted-foreground"
+                                  }`}
+                                >
+                                  <span className="text-xs">{name}</span>
+                                  <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${
+                                    isSelected ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"
+                                  }`}>
+                                    {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-2xs text-muted-foreground italic">Please select at least one language in the list below first, then choose your native language.</p>
+                        )
                       )}
                     </div>
 
