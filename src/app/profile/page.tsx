@@ -1067,7 +1067,7 @@ function ProfileContent() {
                   <CardContent className="px-0 pb-0 space-y-6">
                     {/* Native Language Select */}
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold">Native Language (اللغة الأم - الحد الأقصى 1)</Label>
+                      <Label className="text-xs font-semibold">Native Language (Max 1)</Label>
                       {profileExists && translatorData.nativeLanguage ? (
                         <div className="p-3 bg-muted/40 rounded-xl border border-border text-xs text-foreground">
                           {LANGUAGES.find(l => l.code === translatorData.nativeLanguage)?.name || translatorData.nativeLanguage}
@@ -1097,10 +1097,10 @@ function ProfileContent() {
                       {profileExists && translatorData.languages.length > 0 ? (
                         <div className="space-y-2 p-4 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-600">
                           <p className="text-xs font-bold flex items-center gap-1.5">
-                            ⚠️ تم قفل تعديل اللغات (Languages Change Locked)
+                            ⚠️ Languages Change Locked
                           </p>
                           <p className="text-2xs leading-relaxed">
-                            لتغيير لغات العمل أو اللغة الأم الخاصة بك، يرجى تقديم طلب تغيير لغة من خلال مركز الدعم الفني.
+                            To change your working languages or native language, please submit a Language Change Request ticket through the Support Center.
                           </p>
                           <Button
                             type="button"
@@ -1109,7 +1109,7 @@ function ProfileContent() {
                             onClick={() => router.push("/support")}
                             className="p-0 h-auto text-xs text-amber-700 underline font-bold"
                           >
-                            انتقل إلى مركز الدعم الفني لتقديم طلب تغيير لغة
+                            Go to Support Center to submit request
                           </Button>
                         </div>
                       ) : (
@@ -1181,7 +1181,7 @@ function ProfileContent() {
                     {translatorData.languages.length > 0 && (
                       <div className="p-4 rounded-xl border border-border/40 bg-muted/10 space-y-3">
                         <div className="space-y-1">
-                          <Label className="text-xs font-bold text-foreground">Select Working Language Pairs (أزواج لغات العمل المتولدة)</Label>
+                          <Label className="text-xs font-bold text-foreground">Select Working Language Pairs</Label>
                           <p className="text-[10px] text-muted-foreground">Select the translation pairs you want to activate in your profile.</p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

@@ -76,6 +76,7 @@ const SCHEMA: Col[] = [
       { key: "fullName", type: "string", size: 255, required: true },
       { key: "bio", type: "string", size: 2000, required: false },
       { key: "languages", type: "string", size: 64, required: false, array: true },
+      { key: "nativeLanguage", type: "string", size: 64, required: false },
       { key: "specializations", type: "string", size: 128, required: false, array: true },
       { key: "hourlyRate", type: "float", required: false },
       { key: "avatarUrl", type: "string", size: 512, required: false },

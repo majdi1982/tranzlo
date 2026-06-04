@@ -322,9 +322,9 @@ export default function SupportPage() {
                       <option value="general">General Inquiry</option>
                       <option value="account">Account & Teams</option>
                       <option value="translation">Translation & Jobs</option>
-                      <option value="billing">Payments & Subscriptions (المدفوعات)</option>
-                      <option value="verification">Account Verification (التوثيق)</option>
-                      <option value="language_change">Language Change Request (طلب تغيير لغة)</option>
+                      <option value="billing">Payments & Subscriptions</option>
+                      <option value="verification">Account Verification</option>
+                      <option value="language_change">Language Change Request</option>
                     </select>
                   </div>
 
