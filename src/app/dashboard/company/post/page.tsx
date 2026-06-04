@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileText, Globe, Loader2, Plus, Send, TestTube, X } from "lucide-react";
+import { ArrowLeft, FileText, Globe, Loader2, Plus, Send, TestTube, X, Upload } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -22,6 +22,14 @@ import { COUNTRIES } from "@/data/countries";
 import { SERVICE_TYPES, SERVICE_UNITS } from "@/data/service-types";
 import { CAT_TOOLS } from "@/data/cat-tools";
 import { createJobSchema } from "@/validators";
+import { getStorage, ID, BUCKETS } from "@/lib/appwrite";
+
+const AI_REVIEWERS = [
+  { id: "gpt4o", name: "GPT-4o Reviewer", rate: 0.005, description: "Highly accurate linguistic analysis and feedback." },
+  { id: "claude", name: "Claude 3.5 Sonnet Reviewer", rate: 0.008, description: "Outstanding style, natural flow, and premium review quality." },
+  { id: "deepseek", name: "DeepSeek-V3 Reviewer", rate: 0.003, description: "Fast, cost-efficient, and solid translation review." },
+  { id: "llama", name: "Llama-3.1-405B Reviewer", rate: 0.004, description: "Open-weights intelligence, strong formatting checking." },
+];
 
 interface ServiceRow {
   serviceId: string;
@@ -47,7 +55,13 @@ export default function PostJobPage() {
   const [services, setServices] = React.useState<ServiceRow[]>([{ serviceId: "translation", quantity: 1000, unit: "word", rate: 0.08 }]);
   const [requiredCatTools, setRequiredCatTools] = React.useState<string[]>([]);
   const [requiresTest, setRequiresTest] = React.useState(false);
+  const [testFileUrl, setTestFileUrl] = React.useState("");
+  const [testDuration, setTestDuration] = React.useState("24");
+  const [testWordCount, setTestWordCount] = React.useState("150");
+  const [testUploading, setTestUploading] = React.useState(false);
+  const testFileInputRef = React.useRef<HTMLInputElement>(null);
   const [reviewerType, setReviewerType] = React.useState<"company" | "translator">("company");
+  const [selectedAiReviewer, setSelectedAiReviewer] = React.useState("gpt4o");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   const availableServiceTypes = SERVICE_TYPES.filter(
@@ -89,13 +103,56 @@ export default function PostJobPage() {
     );
   }
 
+  const selectedReviewerRate = React.useMemo(() => {
+    if (reviewerType !== "translator") return 0;
+    const found = AI_REVIEWERS.find((r) => r.id === selectedAiReviewer);
+    return found ? found.rate : 0;
+  }, [reviewerType, selectedAiReviewer]);
+
   const totalBudget = React.useMemo(() => {
-    return services.reduce((sum, s) => sum + s.quantity * s.rate, 0);
-  }, [services]);
+    const baseCost = services.reduce((sum, s) => sum + s.quantity * s.rate, 0);
+    const totalWords = services.reduce((sum, s) => sum + (s.unit === "word" ? s.quantity : 0), 0);
+    const aiReviewCost = totalWords * selectedReviewerRate;
+    return baseCost + aiReviewCost;
+  }, [services, selectedReviewerRate]);
+
+  async function handleTestUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setTestUploading(true);
+    try {
+      const storage = getStorage();
+      const uploaded = await storage.createFile(BUCKETS.COMPANY_DOCUMENTS, ID.unique(), file);
+      const fileUrl = storage.getFileView(BUCKETS.COMPANY_DOCUMENTS, uploaded.$id).toString();
+      setTestFileUrl(fileUrl);
+      toast({ title: "Test file uploaded successfully", variant: "success" });
+    } catch {
+      toast({ title: "Failed to upload test file", variant: "destructive" });
+    } finally {
+      setTestUploading(false);
+      if (testFileInputRef.current) testFileInputRef.current.value = "";
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
+
+    if (requiresTest) {
+      if (!testFileUrl) {
+        setErrors((prev) => ({ ...prev, testFile: "Test file is required when 'Require translation test' is active." }));
+        toast({ title: "Please upload a test document", variant: "destructive" });
+        return;
+      }
+      if (!testDuration || Number(testDuration) <= 0) {
+        setErrors((prev) => ({ ...prev, testDuration: "Test duration must be a positive number." }));
+        return;
+      }
+      if (!testWordCount || Number(testWordCount) <= 0 || Number(testWordCount) > 250) {
+        setErrors((prev) => ({ ...prev, testWordCount: "Word count must be between 1 and 250 words." }));
+        return;
+      }
+    }
 
     const formData = {
       title,
@@ -110,6 +167,9 @@ export default function PostJobPage() {
       services: services.map((s) => ({ serviceId: s.serviceId, quantity: s.quantity, unit: s.unit, rate: s.rate })),
       requiredCatTools: requiredCatTools.length > 0 ? requiredCatTools : undefined,
       requiresTest,
+      testFileUrl: requiresTest ? testFileUrl : undefined,
+      testDuration: requiresTest ? Number(testDuration) : undefined,
+      testWordCount: requiresTest ? Number(testWordCount) : undefined,
       reviewerType,
     };
 
@@ -522,11 +582,31 @@ export default function PostJobPage() {
                       <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                         <input type="radio" name="reviewerType" value="translator" checked={reviewerType === "translator"} onChange={() => setReviewerType("translator")} className="mt-0.5 h-4 w-4" />
                         <div>
-                          <p className="text-sm font-medium">Translator provides reviewer</p>
-                          <p className="text-xs text-muted-foreground mt-1">The translator will arrange their own reviewer. We only pay for the translation.</p>
+                          <p className="text-sm font-medium">We provides reviewer (AI Reviewer)</p>
+                          <p className="text-xs text-muted-foreground mt-1">Select an advanced AI engine to review and check the translation quality. The client is responsible for paying the AI Reviewer cost.</p>
                         </div>
                       </label>
                     </div>
+                    {reviewerType === "translator" && (
+                      <div className="p-4 rounded-xl border border-border/40 bg-muted/20 space-y-3 mt-3">
+                        <Label htmlFor="aiReviewerSelect">Select AI Reviewer Model</Label>
+                        <Select value={selectedAiReviewer} onValueChange={setSelectedAiReviewer}>
+                          <SelectTrigger id="aiReviewerSelect" className="bg-background">
+                            <SelectValue placeholder="Choose AI reviewer..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {AI_REVIEWERS.map((r) => (
+                              <SelectItem key={r.id} value={r.id}>
+                                {r.name} (${r.rate}/word)
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          {AI_REVIEWERS.find((r) => r.id === selectedAiReviewer)?.description}
+                        </p>
+                      </div>
+                    )}
                     {errors.reviewerType && <p className="text-xs text-destructive">{errors.reviewerType}</p>}
                   </div>
 
@@ -540,7 +620,74 @@ export default function PostJobPage() {
                     </Label>
                   </div>
                   {requiresTest && (
-                    <p className="text-xs text-muted-foreground ml-7">Applicants will be asked to complete a short test translation before their application is considered.</p>
+                    <div className="space-y-4 ml-7 p-4 border border-border/40 rounded-xl bg-muted/20">
+                      <p className="text-xs text-muted-foreground">Applicants will be asked to complete a short test translation before their application is considered.</p>
+                      
+                      <div className="space-y-2">
+                        <Label>Test Document / File (Required)</Label>
+                        <input
+                          ref={testFileInputRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          className="hidden"
+                          onChange={handleTestUpload}
+                        />
+                        <div className="flex items-center gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={testUploading}
+                            onClick={() => testFileInputRef.current?.click()}
+                            className="gap-1.5"
+                          >
+                            {testUploading ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Upload className="h-3.5 w-3.5" />
+                            )}
+                            Upload Test File
+                          </Button>
+                          {testFileUrl ? (
+                            <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
+                              ✓ File uploaded successfully
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No file selected (PDF/Word)</span>
+                          )}
+                        </div>
+                        {errors.testFile && <p className="text-xs text-destructive">{errors.testFile}</p>}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="testWordCount">Maximum Word Count (Max 250 words)</Label>
+                          <Input
+                            id="testWordCount"
+                            type="number"
+                            max="250"
+                            min="1"
+                            value={testWordCount}
+                            onChange={(e) => setTestWordCount(e.target.value)}
+                            placeholder="e.g. 150"
+                          />
+                          {errors.testWordCount && <p className="text-xs text-destructive">{errors.testWordCount}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="testDuration">Allowed Time (Hours)</Label>
+                          <Input
+                            id="testDuration"
+                            type="number"
+                            min="1"
+                            value={testDuration}
+                            onChange={(e) => setTestDuration(e.target.value)}
+                            placeholder="e.g. 24"
+                          />
+                          {errors.testDuration && <p className="text-xs text-destructive">{errors.testDuration}</p>}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </CardContent>
               </Card>

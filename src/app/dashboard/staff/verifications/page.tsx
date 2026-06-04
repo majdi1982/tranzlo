@@ -428,7 +428,18 @@ export default function StaffVerificationsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="relative w-full max-w-4xl h-[85vh] bg-card border border-border/50 rounded-2xl p-4 shadow-2xl flex flex-col gap-3">
             <div className="flex justify-between items-center pb-2 border-b border-border/30">
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{previewTitle}</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{previewTitle}</h3>
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1 text-2xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  <span>عرض الملف / View File</span>
+                </a>
+              </div>
               <button
                 type="button"
                 onClick={() => {
@@ -440,12 +451,17 @@ export default function StaffVerificationsPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex-1 w-full h-full bg-black/10 rounded-xl overflow-hidden relative">
+            <div className="flex-1 w-full h-full bg-black/10 rounded-xl overflow-hidden relative flex flex-col items-center justify-center">
               <iframe
                 src={previewUrl}
-                className="w-full h-full border-0"
+                className="w-full h-full border-0 absolute inset-0 z-10"
                 title={previewTitle}
               />
+              <div className="text-center p-6 space-y-3 z-0">
+                <FileText className="h-10 w-10 text-muted-foreground mx-auto animate-pulse" />
+                <p className="text-xs text-muted-foreground">إذا لم يظهر الملف تلقائياً، يمكنك فتحه مباشرة بالضغط على الزر في الأعلى.</p>
+                <p className="text-3xs text-muted-foreground/60">If the document preview doesn't load, use the "View File" button above.</p>
+              </div>
             </div>
           </div>
         </div>

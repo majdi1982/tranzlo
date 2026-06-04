@@ -62,7 +62,9 @@ export interface IApplicationService {
   getMyApplications(translatorId: string): Promise<Application[]>;
   updateApplicationStatus(
     applicationId: string,
-    status: string
+    status: string,
+    testStatus?: string,
+    testSolutionUrl?: string
   ): Promise<Application>;
 }
 

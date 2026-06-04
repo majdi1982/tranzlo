@@ -7,6 +7,10 @@ export interface Application {
   coverLetter: string;
   cvUrl?: string;
   bidAmount?: number;
+  testSolutionUrl?: string;
+  testSubmittedAt?: string;
+  testStatus?: "none" | "pending" | "passed" | "failed";
+  testGradedAt?: string;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, Briefcase, MoreHorizontal, Globe, MapPin, DollarSign, Calendar, Eye, XCircle, Users, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, Briefcase, MoreHorizontal, Globe, MapPin, DollarSign, Calendar, Eye, XCircle, Users, Loader2, CheckCircle2, ExternalLink, FileText, ShieldAlert } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -143,7 +143,26 @@ function JobCard({
   const [apps, setApps] = React.useState<any[]>([]);
   const [loadingApps, setLoadingApps] = React.useState(false);
   const [hiringApp, setHiringApp] = React.useState<any | null>(null);
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = React.useState<string>("");
+  const [gradingLoading, setGradingLoading] = React.useState<string | null>(null);
   const { toast } = useToast();
+
+  async function handleGradeTest(applicationId: string, testStatus: "passed" | "failed") {
+    setGradingLoading(applicationId);
+    try {
+      const services = getServices();
+      const app = apps.find(a => a.$id === applicationId);
+      if (!app) return;
+      await services.application.updateApplicationStatus(applicationId, app.status, testStatus);
+      setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, testStatus, testGradedAt: new Date().toISOString() } : a));
+      toast({ title: `Test marked as ${testStatus === "passed" ? "Passed ✓" : "Failed ✗"}.`, variant: "success" });
+    } catch {
+      toast({ title: "Failed to update test status", variant: "destructive" });
+    } finally {
+      setGradingLoading(null);
+    }
+  }
 
   React.useEffect(() => {
     if (!showApplicants) return;
@@ -288,16 +307,98 @@ function JobCard({
                     key={app.$id}
                     className="p-4 rounded-xl border border-border/30 bg-accent/5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:bg-accent/10"
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1 space-y-3">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-bold text-foreground">Candidate ID: {app.translatorId.slice(-6).toUpperCase()}</span>
                         <Badge variant={app.status === "accepted" ? "success" : app.status === "rejected" ? "destructive" : "secondary"}>
                           {app.status}
                         </Badge>
+                        {job.requiresTest && (
+                          <Badge variant={app.testStatus === "passed" ? "success" : app.testStatus === "failed" ? "destructive" : "warning"} className="font-bold text-[10px]">
+                            Test: {app.testStatus || "pending"}
+                          </Badge>
+                        )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2 leading-relaxed">
+                      
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                         "{app.coverLetter}"
                       </p>
+
+                      {/* Test Section */}
+                      {job.requiresTest && app.testSolutionUrl && (
+                        <div className="p-3 rounded-lg border border-border/40 bg-card/40 space-y-2 mt-2">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-cyan-400" />
+                              <span className="text-2xs font-semibold">Test Solution Document</span>
+                            </div>
+                            <div className="flex gap-1.5 items-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPreviewUrl(app.testSolutionUrl!);
+                                  setPreviewTitle(`Test Solution - Candidate ${app.translatorId.slice(-6).toUpperCase()}`);
+                                }}
+                                className="p-1 hover:bg-muted text-cyan-400 rounded transition-colors text-2xs flex items-center gap-1 font-semibold"
+                              >
+                                <Eye className="h-3 w-3" />
+                                <span>Preview</span>
+                              </button>
+                              <a href={app.testSolutionUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted text-muted-foreground rounded transition-colors">
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </div>
+                          </div>
+
+                          {/* 48-Hour SLA Countdown */}
+                          {app.testSubmittedAt && app.testStatus === "pending" && (
+                            (() => {
+                              const remainingHours = Math.max(0, Math.ceil((new Date(app.testSubmittedAt).getTime() + 48 * 60 * 60 * 1000 - Date.now()) / (3600 * 1000)));
+                              const isBreached = remainingHours <= 0;
+                              return (
+                                <div className="flex items-center gap-1.5 text-2xs mt-1">
+                                  {isBreached ? (
+                                    <span className="text-rose-500 font-bold flex items-center gap-1">
+                                      <ShieldAlert className="h-3.5 w-3.5" />
+                                      48h Response SLA Breached (احتيال محتمل)
+                                    </span>
+                                  ) : (
+                                    <span className="text-amber-500 font-semibold flex items-center gap-1 animate-pulse">
+                                      ⏳ {remainingHours} hours left to respond
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()
+                          )}
+
+                          {/* Grading Buttons */}
+                          {app.testStatus === "pending" && (
+                            <div className="flex items-center gap-2 mt-2 pt-1 border-t border-border/10">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={gradingLoading === app.$id}
+                                onClick={() => handleGradeTest(app.$id, "passed")}
+                                className="h-7 text-3xs font-bold text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/10 rounded-md py-0 px-2"
+                              >
+                                {gradingLoading === app.$id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                                Pass Test (نجح)
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={gradingLoading === app.$id}
+                                onClick={() => handleGradeTest(app.$id, "failed")}
+                                className="h-7 text-3xs font-bold text-rose-500 border-rose-500/20 hover:bg-rose-500/10 rounded-md py-0 px-2"
+                              >
+                                Fail Test (رفض)
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {app.financialFileId && (
                         <p className="text-3xs text-emerald-500 font-semibold mt-1">
                           Escrow Secured: {app.financialFileId}
@@ -375,6 +476,49 @@ function JobCard({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        {/* Document Preview Modal for Companies */}
+        {previewUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="relative w-full max-w-4xl h-[85vh] bg-card border border-border/50 rounded-2xl p-4 shadow-2xl flex flex-col gap-3">
+              <div className="flex justify-between items-center pb-2 border-b border-border/30">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{previewTitle}</h3>
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1 text-2xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    <span>عرض الملف / View File</span>
+                  </a>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewUrl(null);
+                    setPreviewTitle("");
+                  }}
+                  className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex-1 w-full h-full bg-black/10 rounded-xl overflow-hidden relative flex flex-col items-center justify-center">
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-full border-0 absolute inset-0 z-10"
+                  title={previewTitle}
+                />
+                <div className="text-center p-6 space-y-3 z-0">
+                  <FileText className="h-10 w-10 text-muted-foreground mx-auto animate-pulse" />
+                  <p className="text-xs text-muted-foreground">إذا لم يظهر الملف تلقائياً، يمكنك فتحه مباشرة بالضغط على الزر في الأعلى.</p>
+                  <p className="text-3xs text-muted-foreground/60">If the document preview doesn't load, use the "View File" button above.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

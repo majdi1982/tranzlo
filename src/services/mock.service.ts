@@ -226,6 +226,9 @@ export const mockJobService = {
       services: data.services ?? [],
       requiredCatTools: data.requiredCatTools ?? [],
       requiresTest: data.requiresTest ?? false,
+      testFileUrl: data.testFileUrl,
+      testDuration: data.testDuration,
+      testWordCount: data.testWordCount,
       reviewerType: data.reviewerType ?? "company",
       status: "open",
       createdAt: new Date().toISOString(),
@@ -268,6 +271,9 @@ export const mockApplicationService = {
       translatorId: data.translatorId,
       coverLetter: data.coverLetter,
       bidAmount: data.bidAmount,
+      testSolutionUrl: data.testSolutionUrl,
+      testSubmittedAt: data.testSolutionUrl ? new Date().toISOString() : undefined,
+      testStatus: data.testSolutionUrl ? "pending" : (data.requiresTest ? "pending" : "none"),
       status: "submitted",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -284,10 +290,26 @@ export const mockApplicationService = {
     return mockApplications.filter((a) => a.translatorId === translatorId);
   },
 
-  async updateApplicationStatus(applicationId: string, status: string): Promise<Application> {
+  async updateApplicationStatus(
+    applicationId: string,
+    status: string,
+    testStatus?: string,
+    testSolutionUrl?: string
+  ): Promise<Application> {
     const app = mockApplications.find((a) => a.$id === applicationId);
     if (!app) throw new Error("Application not found");
     app.status = status as any;
+    if (testStatus) {
+      app.testStatus = testStatus as any;
+      if (testStatus === "passed" || testStatus === "failed") {
+        app.testGradedAt = new Date().toISOString();
+      }
+    }
+    if (testSolutionUrl) {
+      app.testSolutionUrl = testSolutionUrl;
+      app.testSubmittedAt = new Date().toISOString();
+      app.testStatus = "pending";
+    }
     app.updatedAt = new Date().toISOString();
     return app;
   },
@@ -467,6 +489,8 @@ export const mockDisputeService = {
       jobId: data.jobId,
       raisedById: data.raisedById,
       reason: data.reason,
+      justifications: data.justifications,
+      evidenceFiles: data.evidenceFiles ?? [],
       status: "open",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

@@ -15,6 +15,9 @@ export interface Job {
   services: string; // JSON: { serviceId: string; quantity: number; unit: string; rate?: number }[]
   requiredCatTools?: string[];
   requiresTest: boolean;
+  testFileUrl?: string;
+  testDuration?: number;
+  testWordCount?: number;
   reviewerType: "company" | "translator";
   activeTranslatorId?: string;
   status: JobStatus;

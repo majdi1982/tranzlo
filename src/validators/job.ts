@@ -20,6 +20,9 @@ export const createJobSchema = z.object({
   services: z.array(serviceEntrySchema).min(1, "At least one service is required"),
   requiredCatTools: z.array(z.string()).optional(),
   requiresTest: z.boolean().default(false),
+  testFileUrl: z.string().optional(),
+  testDuration: z.number().positive("Duration must be positive").optional(),
+  testWordCount: z.number().positive("Word count must be positive").max(250, "Word count must be at most 250 words").optional(),
   reviewerType: z.enum(["company", "translator"]),
 });
 

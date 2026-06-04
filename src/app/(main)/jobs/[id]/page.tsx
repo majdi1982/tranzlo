@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Briefcase, Calendar, CheckCircle2, Clock, DollarSign, Globe, Loader2, MapPin, Send, Star, TestTube } from "lucide-react";
+import { ArrowLeft, Briefcase, Calendar, CheckCircle2, Clock, DollarSign, Globe, Loader2, MapPin, Send, Star, TestTube, Upload, ExternalLink, FileText } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -17,6 +17,7 @@ import { LANGUAGES, getLanguageName } from "@/data/languages";
 import { SPECIALIZATIONS } from "@/data/specializations";
 import { SERVICE_TYPES } from "@/data/service-types";
 import type { Job, Application, CompanyProfile, TranslatorProfile } from "@/types";
+import { getStorage, ID, BUCKETS } from "@/lib/appwrite";
 
 export default function JobDetailPage() {
   const params = useParams();
@@ -29,6 +30,9 @@ export default function JobDetailPage() {
   const [application, setApplication] = React.useState<Application | null>(null);
   const [coverLetter, setCoverLetter] = React.useState("");
   const [bidAmount, setBidAmount] = React.useState("");
+  const [testSolutionUrl, setTestSolutionUrl] = React.useState("");
+  const [testSolutionUploading, setTestSolutionUploading] = React.useState(false);
+  const testSolutionFileInputRef = React.useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const isOwner = user && job?.companyId === user.$id;
@@ -63,8 +67,30 @@ export default function JobDetailPage() {
     load();
   }, [params.id, user?.$id]);
 
+  async function handleTestSolutionUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setTestSolutionUploading(true);
+    try {
+      const storage = getStorage();
+      const uploaded = await storage.createFile(BUCKETS.TRANSLATOR_DOCUMENTS, ID.unique(), file);
+      const fileUrl = storage.getFileView(BUCKETS.TRANSLATOR_DOCUMENTS, uploaded.$id).toString();
+      setTestSolutionUrl(fileUrl);
+      toast({ title: "Test solution uploaded successfully", variant: "success" });
+    } catch {
+      toast({ title: "Failed to upload test solution", variant: "destructive" });
+    } finally {
+      setTestSolutionUploading(false);
+      if (testSolutionFileInputRef.current) testSolutionFileInputRef.current.value = "";
+    }
+  }
+
   async function handleApply() {
-    if (!user) return;
+    if (!user || !job) return;
+    if (job.requiresTest && !testSolutionUrl) {
+      toast({ title: "Please complete and upload the required test solution file.", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     try {
       const services = getServices();
@@ -72,8 +98,11 @@ export default function JobDetailPage() {
         jobId: job!.$id,
         coverLetter,
         translatorId: user.$id,
-        bidAmount: bidAmount ? Number(bidAmount) : undefined
-      });
+        bidAmount: bidAmount ? Number(bidAmount) : undefined,
+        testSolutionUrl: job.requiresTest ? testSolutionUrl : undefined,
+        testStatus: job.requiresTest ? "pending" : "none",
+        testSubmittedAt: job.requiresTest ? new Date().toISOString() : undefined,
+      } as any);
       toast({ title: "Application submitted!", variant: "success" });
       router.refresh();
     } catch {
@@ -222,7 +251,7 @@ export default function JobDetailPage() {
             <p className="text-sm">
               {job.reviewerType === "company"
                 ? "The company will assign a reviewer to check the translation quality."
-                : "The translator will arrange their own reviewer."}
+                : "We provides reviewer (AI Reviewer) to check the translation quality automatically."}
             </p>
           </CardContent>
         </Card>
@@ -314,12 +343,73 @@ export default function JobDetailPage() {
                 />
               </div>
               {job.requiresTest && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
-                  <TestTube className="h-4 w-4 mt-0.5 shrink-0" />
-                  <span>This job requires a translation test. You will receive the test after submitting your application.</span>
+                <div className="flex flex-col gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-600">
+                  <div className="flex items-start gap-2">
+                    <TestTube className="h-5 w-5 mt-0.5 shrink-0 text-amber-500" />
+                    <div>
+                      <span className="font-bold text-foreground block">Recruitment Test Required</span>
+                      <span className="text-xs text-muted-foreground">The client requires completing a brief test before reviewing applications.</span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-xs p-2 rounded-lg bg-card/50 border border-border/30">
+                    <div>
+                      <span className="text-muted-foreground block text-[10px] uppercase font-bold">Max word count</span>
+                      <span className="font-semibold text-foreground">{job.testWordCount || 250} words</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block text-[10px] uppercase font-bold">Allowed Time</span>
+                      <span className="font-semibold text-foreground">{job.testDuration || 24} hours</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1.5">
+                    {job.testFileUrl && (
+                      <a
+                        href={job.testFileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        <span>Download Test File</span>
+                      </a>
+                    )}
+                    
+                    <input
+                      ref={testSolutionFileInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="hidden"
+                      onChange={handleTestSolutionUpload}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={testSolutionUploading}
+                      onClick={() => testSolutionFileInputRef.current?.click()}
+                      className="gap-1.5 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                    >
+                      {testSolutionUploading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="h-3.5 w-3.5" />
+                      )}
+                      <span>Upload My Translation</span>
+                    </Button>
+                    
+                    {testSolutionUrl ? (
+                      <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
+                        ✓ Solution Uploaded!
+                      </span>
+                    ) : (
+                      <span className="text-2xs text-muted-foreground">Solution file is required to apply.</span>
+                    )}
+                  </div>
                 </div>
               )}
-              <Button onClick={handleApply} disabled={submitting || coverLetter.length < 20 || !bidAmount || !isProfileMatch}>
+              <Button onClick={handleApply} disabled={submitting || coverLetter.length < 20 || !bidAmount || !isProfileMatch || (job.requiresTest && !testSolutionUrl)}>
                 {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
                 Submit Application
               </Button>

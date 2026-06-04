@@ -316,12 +316,28 @@ export const appwriteApplicationService = {
     return result.documents.map((d) => mapDoc<Application>(d as Record<string, unknown>));
   },
 
-  async updateApplicationStatus(applicationId: string, status: string): Promise<Application> {
+  async updateApplicationStatus(
+    applicationId: string,
+    status: string,
+    testStatus?: string,
+    testSolutionUrl?: string
+  ): Promise<Application> {
     const db = getDatabases();
-    const doc = await db.updateDocument(DB_ID, COLLECTIONS.applications, applicationId, {
+    const updateData: Record<string, any> = {
       status,
       updatedAt: new Date().toISOString(),
-    });
+    };
+    if (testStatus) {
+      updateData.testStatus = testStatus;
+      if (testStatus === "passed" || testStatus === "failed") {
+        updateData.testGradedAt = new Date().toISOString();
+      }
+    }
+    if (testSolutionUrl) {
+      updateData.testSolutionUrl = testSolutionUrl;
+      updateData.testSubmittedAt = new Date().toISOString();
+    }
+    const doc = await db.updateDocument(DB_ID, COLLECTIONS.applications, applicationId, updateData);
     return mapDoc<Application>(doc as Record<string, unknown>);
   },
 };

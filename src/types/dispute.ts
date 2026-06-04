@@ -5,6 +5,8 @@ export interface Dispute {
   jobId: string;
   raisedById: string;
   reason: string;
+  justifications?: string;
+  evidenceFiles?: string[];
   adminDecisionNote?: string;
   decision?: "release" | "refund" | "dismiss";
   status: DisputeStatus;
