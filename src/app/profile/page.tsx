@@ -394,12 +394,19 @@ function ProfileContent() {
     setTranslatorData((prev) => {
       const isSelected = prev.languages.includes(code);
       if (isSelected) {
+        const newNative = prev.nativeLanguage === code ? "" : prev.nativeLanguage;
+        const newActivePairs = prev.activePairs.filter(p => {
+          const [src, tgt] = p.split("-");
+          return src !== code && tgt !== code;
+        });
         return {
           ...prev,
           languages: prev.languages.filter((l) => l !== code),
+          nativeLanguage: newNative,
+          activePairs: newActivePairs,
         };
       }
-      const limit = prev.planTier === "standard" || prev.planTier === "pro" ? 5 : prev.planTier === "plus" ? 10 : 2;
+      const limit = prev.planTier === "standard" || prev.planTier === "pro" ? 5 : prev.planTier === "plus" ? 7 : 2;
       if (prev.languages.length >= limit) {
         toast({
           title: "Language Limit Reached",
@@ -425,12 +432,30 @@ function ProfileContent() {
   }
 
   function toggleActivePair(pair: string) {
-    setTranslatorData((prev) => ({
-      ...prev,
-      activePairs: prev.activePairs.includes(pair)
-        ? prev.activePairs.filter((p) => p !== pair)
-        : [...prev.activePairs, pair],
-    }));
+    setTranslatorData((prev) => {
+      const isSelected = prev.activePairs.includes(pair);
+      if (isSelected) {
+        return {
+          ...prev,
+          activePairs: prev.activePairs.filter((p) => p !== pair),
+        };
+      }
+      
+      const maxPairs = prev.planTier === "standard" || prev.planTier === "pro" ? 10 : prev.planTier === "plus" ? 14 : 3;
+      if (prev.activePairs.length >= maxPairs) {
+        toast({
+          title: "Language Pair Limit Reached",
+          description: `Your plan (${prev.planTier === "standard" || prev.planTier === "pro" ? "Pro" : prev.planTier === "plus" ? "Plus" : "Free"}) is limited to ${maxPairs} active pairs. Please upgrade to add more.`,
+          variant: "destructive",
+        });
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        activePairs: [...prev.activePairs, pair],
+      };
+    });
   }
 
   function toggleService(serviceId: string, defaultUnit: string) {
@@ -1065,53 +1090,12 @@ function ProfileContent() {
                     <CardDescription className="text-3xs">Choose spoken/written languages and specialization branches</CardDescription>
                   </CardHeader>
                   <CardContent className="px-0 pb-0 space-y-6">
-                    {/* Native Language Select */}
-                    <div className="space-y-2">
-                      <Label className="text-xs font-semibold">Native Language (Max 1)</Label>
-                      {profileExists && translatorData.nativeLanguage ? (
-                        <div className="p-3 bg-muted/40 rounded-xl border border-border text-xs text-foreground flex items-center justify-between">
-                          <span>{LANGUAGES.find(l => l.code === translatorData.nativeLanguage)?.name || translatorData.nativeLanguage}</span>
-                          <Badge variant="outline" className="text-3xs bg-teal-500/10 border-teal-500/20 text-teal-600 rounded-md">Locked</Badge>
-                        </div>
-                      ) : (
-                        translatorData.languages.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-                            {translatorData.languages.map((code) => {
-                              const name = LANGUAGES.find((l) => l.code === code)?.name || code;
-                              const isSelected = translatorData.nativeLanguage === code;
-                              return (
-                                <div
-                                  key={code}
-                                  onClick={() => {
-                                    setTranslatorData((prev) => ({ ...prev, nativeLanguage: code }));
-                                  }}
-                                  className={`p-3 rounded-xl border cursor-pointer select-none transition-all flex items-center justify-between ${
-                                    isSelected
-                                      ? "border-teal-500 bg-teal-500/10 text-teal-600 font-bold"
-                                      : "border-border/60 hover:border-border hover:bg-accent/30 text-muted-foreground"
-                                  }`}
-                                >
-                                  <span className="text-xs">{name}</span>
-                                  <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                                    isSelected ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"
-                                  }`}>
-                                    {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <p className="text-2xs text-muted-foreground italic">Please select at least one language in the list below first, then choose your native language.</p>
-                        )
-                      )}
-                    </div>
-
+                    {/* Working Languages Selection */}
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <Label className="text-xs font-semibold">Languages Spoken/Written</Label>
                         <Badge variant="outline" className="text-4xs uppercase bg-teal-500/5 text-teal-600 border-teal-500/20 font-bold">
-                          Tier: {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? "Pro (Max 5)" : translatorData.planTier === "plus" ? "Plus (Max 10)" : "Free (Max 2)"}
+                          Tier: {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? "Pro (Max 5)" : translatorData.planTier === "plus" ? "Plus (Max 7)" : "Free (Max 2)"}
                         </Badge>
                       </div>
 
@@ -1156,33 +1140,67 @@ function ProfileContent() {
                             searchPlaceholder="Search language..."
                             label="Languages Spoken/Written"
                           />
-                          {translatorData.languages.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                              {translatorData.languages.map((code) => {
-                                const name = LANGUAGES.find((l) => l.code === code)?.name || code;
-                                return (
-                                  <Badge
-                                    key={code}
-                                    variant="default"
-                                    className="transition-all rounded-lg py-1 px-2.5 text-3xs flex items-center gap-1 cursor-pointer select-none bg-teal-600/90 text-white"
-                                    onClick={() => toggleLanguage(code)}
-                                  >
-                                    {name}
-                                    <X className="h-2.5 w-2.5 hover:text-red-200" />
-                                  </Badge>
-                                );
-                              })}
-                            </div>
-                          )}
                         </>
                       )}
-                      
+
+                      {/* Selected Languages Table & Native Designation */}
+                      {translatorData.languages.length > 0 && (
+                        <div className="overflow-hidden border border-border/40 rounded-xl bg-accent/5 mt-3">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="border-b border-border/40 bg-muted/20 text-3xs uppercase tracking-wider text-muted-foreground font-bold">
+                                <th className="p-3 text-3xs font-semibold text-foreground">Language</th>
+                                <th className="p-3 text-3xs font-semibold text-foreground text-center">Native Language</th>
+                                {!profileExists && <th className="p-3 text-3xs font-semibold text-foreground text-right">Action</th>}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border/40">
+                              {translatorData.languages.map((code) => {
+                                const name = LANGUAGES.find((l) => l.code === code)?.name || code;
+                                const isNative = translatorData.nativeLanguage === code;
+                                return (
+                                  <tr key={code} className="hover:bg-accent/10 transition-colors">
+                                    <td className="p-3 text-xs font-medium text-foreground">{name}</td>
+                                    <td className="p-3 text-center">
+                                      <div className="flex justify-center">
+                                        <input
+                                          type="checkbox"
+                                          checked={isNative}
+                                          disabled={profileExists && !!translatorData.nativeLanguage}
+                                          onChange={() => {
+                                            setTranslatorData((prev) => ({ ...prev, nativeLanguage: code }));
+                                          }}
+                                          className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-60 cursor-pointer"
+                                        />
+                                      </div>
+                                    </td>
+                                    {!profileExists && (
+                                      <td className="p-3 text-right">
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => toggleLanguage(code)}
+                                          className="h-7 w-7 p-0 rounded-lg hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </td>
+                                    )}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
                       {/* Dynamic Upgrade CTA when languages limit is active */}
                       <div className="mt-3 flex items-center justify-between p-3 rounded-xl border border-border/40 bg-accent/5">
                         <div className="space-y-0.5">
                           <span className="text-4xs font-bold text-muted-foreground uppercase tracking-wider block">Languages Limit</span>
                           <span className="text-xs font-bold text-foreground">
-                            {translatorData.languages.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 10 : 2} Used
+                            {translatorData.languages.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2} Used
                           </span>
                         </div>
                         {translatorData.planTier !== "plus" && (
@@ -1201,9 +1219,14 @@ function ProfileContent() {
                     {/* Dynamic Language Pairs List (Rendered below languages select in Edit Mode) */}
                     {translatorData.languages.length > 0 && (
                       <div className="p-4 rounded-xl border border-border/40 bg-muted/10 space-y-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs font-bold text-foreground">Select Working Language Pairs</Label>
-                          <p className="text-[10px] text-muted-foreground">Select the translation pairs you want to activate in your profile.</p>
+                        <div className="flex justify-between items-center">
+                          <div className="space-y-1">
+                            <Label className="text-xs font-bold text-foreground">Select Working Language Pairs</Label>
+                            <p className="text-[10px] text-muted-foreground">Select the translation pairs you want to activate in your profile.</p>
+                          </div>
+                          <Badge variant="outline" className="text-4xs uppercase bg-teal-500/5 text-teal-600 border-teal-500/20 font-bold">
+                            Limit: {translatorData.activePairs.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 10 : translatorData.planTier === "plus" ? 14 : 3} Pairs
+                          </Badge>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {(() => {
