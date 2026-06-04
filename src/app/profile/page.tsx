@@ -1104,12 +1104,12 @@ function ProfileContent() {
                           </p>
                           <Button
                             type="button"
-                            variant="link"
+                            variant="outline"
                             size="sm"
                             onClick={() => router.push("/support")}
-                            className="p-0 h-auto text-xs text-amber-700 underline font-bold"
+                            className="mt-2 rounded-xl text-xs font-bold bg-amber-500/10 border-amber-500/30 text-amber-700 hover:bg-amber-500/20 hover:text-amber-800 transition-all px-4 py-2"
                           >
-                            Go to Support Center to submit request
+                            Change Languages?
                           </Button>
                         </div>
                       ) : (
