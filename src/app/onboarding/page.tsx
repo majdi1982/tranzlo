@@ -142,6 +142,15 @@ export default function OnboardingPage() {
 
       // 2. Save profile data in DB
       if (role === "translator") {
+        if (selectedLangs.length !== 2) {
+          toast({
+            title: "Required Languages Count Not Met",
+            description: "You must select exactly 2 languages to complete your translator profile onboarding.",
+            variant: "destructive",
+          });
+          setSubmitting(false);
+          return;
+        }
         await services.profile.updateTranslatorProfile(user?.$id || "", {
           fullName: user?.name || "Linguist Pro",
           email: user?.email || "",

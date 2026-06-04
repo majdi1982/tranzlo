@@ -332,6 +332,16 @@ function ProfileContent() {
     try {
       const services = getServices();
       if (role === "translator") {
+        const requiredLangs = translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2;
+        if (translatorData.languages.length !== requiredLangs) {
+          toast({
+            title: "Required Languages Count Not Met",
+            description: `You must select exactly ${requiredLangs} languages for your plan tier (${translatorData.planTier === "standard" || translatorData.planTier === "pro" ? "Pro" : translatorData.planTier === "plus" ? "Plus" : "Free"}).`,
+            variant: "destructive",
+          });
+          setSaving(false);
+          return;
+        }
         await services.profile.updateTranslatorProfile(user.$id, {
           fullName: translatorData.fullName,
           bio: translatorData.bio,
