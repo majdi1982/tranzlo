@@ -441,7 +441,7 @@ function ProfileContent() {
         };
       }
       
-      const maxPairs = prev.planTier === "standard" || prev.planTier === "pro" ? 10 : prev.planTier === "plus" ? 14 : 3;
+      const maxPairs = prev.planTier === "standard" || prev.planTier === "pro" ? 32 : prev.planTier === "plus" ? 128 : 4;
       if (prev.activePairs.length >= maxPairs) {
         toast({
           title: "Language Pair Limit Reached",
@@ -1225,7 +1225,7 @@ function ProfileContent() {
                             <p className="text-[10px] text-muted-foreground">Select the translation pairs you want to activate in your profile.</p>
                           </div>
                           <Badge variant="outline" className="text-4xs uppercase bg-teal-500/5 text-teal-600 border-teal-500/20 font-bold">
-                            Limit: {translatorData.activePairs.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 10 : translatorData.planTier === "plus" ? 14 : 3} Pairs
+                            Limit: {translatorData.activePairs.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 32 : translatorData.planTier === "plus" ? 128 : 4} Pairs
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
