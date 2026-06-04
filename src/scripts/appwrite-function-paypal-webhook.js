@@ -8,16 +8,14 @@ const { Client, Databases, Query } = require("node-appwrite");
 // Map PayPal Plan IDs to Tranzlo Plan Tiers ("standard", "plus") and Roles ("translator", "company")
 const PLAN_MAP = {
   // Translator Plans
-  "P-67S23580XX424023HNHN3PVA": { tier: "standard", role: "translator" }, // Annual
-  "P-1FA07072XD6828721NHNGB6I": { tier: "standard", role: "translator" }, // Monthly
-  "P-2YT069538P2060108NHN3OZA": { tier: "plus", role: "translator" },     // Annual
-  "P-5H654170A9572811WNHNGK3Q": { tier: "plus", role: "translator" },     // Monthly
+  "P-6BH643160R158860TNIQF2KQ": { tier: "standard", role: "translator" }, // Monthly Pro ($18)
+  "P-34E03651943893946NIQFS3Y": { tier: "standard", role: "translator" }, // Annual Pro ($120)
+  "P-6W050275X4975753MNIQFZPQ": { tier: "plus", role: "translator" },     // Monthly Plus ($25)
+  "P-8R773786AM2534425NIQFULQ": { tier: "plus", role: "translator" },     // Annual Plus ($200)
 
-  // Company Plans (Professional)
-  "P-69A23890DT383361KNHN26ZQ": { tier: "standard", role: "company" },    // Monthly
-  "P-9DV15255E68299003NHN3OFI": { tier: "standard", role: "company" },    // Annual
-  "P-7R9234853W7319009NHN3A2I": { tier: "plus", role: "company" },        // Monthly
-  "P-2WR17344M29329341NHN3NPI": { tier: "plus", role: "company" }         // Annual
+  // Company Plans (Annual Only)
+  "P-8JB63458CY1027604NIQF5FQ": { tier: "standard", role: "company" },    // Annual Pro ($200)
+  "P-30J14765A4566030ANIQFWDA": { tier: "plus", role: "company" }         // Annual Plus ($300)
 };
 
 module.exports = async function (context) {

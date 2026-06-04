@@ -31,7 +31,7 @@ const PLANS = {
     },
     {
       name: "Pro Member",
-      price: isAnnual ? "$190" : "$19",
+      price: isAnnual ? "$120" : "$18",
       period: isAnnual ? "year" : "month",
       description: "Great for active translators who want to keep more of their earnings.",
       features: [
@@ -43,11 +43,11 @@ const PLANS = {
       ],
       tier: "standard", // internally maps to standard
       buttonText: isAnnual ? "Subscribe Pro Annual" : "Subscribe Pro Monthly",
-      paypalPlanId: isAnnual ? "P-67S23580XX424023HNHN3PVA" : "P-1FA07072XD6828721NHNGB6I"
+      paypalPlanId: isAnnual ? "P-34E03651943893946NIQFS3Y" : "P-6BH643160R158860TNIQF2KQ"
     },
     {
       name: "Plus Member",
-      price: isAnnual ? "$490" : "$49",
+      price: isAnnual ? "$200" : "$25",
       period: isAnnual ? "year" : "month",
       description: "Ultimate plan for professional full-time translators and small teams.",
       features: [
@@ -59,7 +59,7 @@ const PLANS = {
       ],
       tier: "plus",
       buttonText: isAnnual ? "Upgrade to Plus Annual" : "Upgrade to Plus Monthly",
-      paypalPlanId: isAnnual ? "P-2YT069538P2060108NHN3OZA" : "P-5H654170A9572811WNHNGK3Q"
+      paypalPlanId: isAnnual ? "P-8R773786AM2534425NIQFULQ" : "P-6W050275X4975753MNIQFZPQ"
     }
   ],
   company: (isAnnual: boolean) => [
@@ -81,8 +81,8 @@ const PLANS = {
     },
     {
       name: "Pro Business",
-      price: isAnnual ? "$990" : "$99",
-      period: isAnnual ? "year" : "month",
+      price: "$200",
+      period: "year",
       description: "Best for growing organizations and agency localization.",
       features: [
         "2% project funding escrow fee",
@@ -92,13 +92,13 @@ const PLANS = {
         "Account setup & preparation: Free"
       ],
       tier: "standard",
-      buttonText: isAnnual ? "Subscribe Pro Annual" : "Subscribe Pro Monthly",
-      paypalPlanId: isAnnual ? "P-9DV15255E68299003NHN3OFI" : "P-69A23890DT383361KNHN26ZQ"
+      buttonText: "Subscribe Pro Annual",
+      paypalPlanId: "P-8JB63458CY1027604NIQF5FQ"
     },
     {
       name: "Plus Business",
-      price: isAnnual ? "$2490" : "$249",
-      period: isAnnual ? "year" : "month",
+      price: "$300",
+      period: "year",
       description: "Designed for enterprise scale localization with zero fees.",
       features: [
         "0% project funding escrow fee (No fees!)",
@@ -108,8 +108,8 @@ const PLANS = {
         "Account setup & preparation: Free"
       ],
       tier: "plus",
-      buttonText: isAnnual ? "Upgrade to Plus Annual" : "Upgrade to Plus Monthly",
-      paypalPlanId: isAnnual ? "P-2WR17344M29329341NHN3NPI" : "P-7R9234853W7319009NHN3A2I"
+      buttonText: "Upgrade to Plus Annual",
+      paypalPlanId: "P-30J14765A4566030ANIQFWDA"
     }
   ]
 };
@@ -248,28 +248,30 @@ export default function PlansPage() {
           </p>
 
           {/* Monthly / Annual Toggle Switch */}
-          <div className="flex items-center justify-center gap-4 pt-4">
-            <span className={`text-sm font-semibold transition-colors ${!isAnnual ? "text-primary" : "text-muted-foreground"}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className="relative w-12 h-6 bg-primary/20 rounded-full transition-colors focus:outline-none"
-              aria-label="Toggle annual billing"
-            >
-              <div
-                className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-primary transition-transform ${
-                  isAnnual ? "translate-x-6" : ""
-                }`}
-              />
-            </button>
-            <span className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${isAnnual ? "text-primary" : "text-muted-foreground"}`}>
-              Annual
-              <span className="text-[10px] bg-teal-500/20 text-teal-600 px-2 py-0.5 rounded-full font-bold">
-                2 Months Free!
+          {role === "translator" && (
+            <div className="flex items-center justify-center gap-4 pt-4">
+              <span className={`text-sm font-semibold transition-colors ${!isAnnual ? "text-primary" : "text-muted-foreground"}`}>
+                Monthly
               </span>
-            </span>
-          </div>
+              <button
+                onClick={() => setIsAnnual(!isAnnual)}
+                className="relative w-12 h-6 bg-primary/20 rounded-full transition-colors focus:outline-none"
+                aria-label="Toggle annual billing"
+              >
+                <div
+                  className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-primary transition-transform ${
+                    isAnnual ? "translate-x-6" : ""
+                  }`}
+                />
+              </button>
+              <span className={`text-sm font-semibold transition-colors flex items-center gap-1.5 ${isAnnual ? "text-primary" : "text-muted-foreground"}`}>
+                Annual
+                <span className="text-[10px] bg-teal-500/20 text-teal-600 px-2 py-0.5 rounded-full font-bold">
+                  2 Months Free!
+                </span>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Current Plan status banner */}
