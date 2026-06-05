@@ -132,6 +132,25 @@ export default function OnboardingPage() {
     }
   };
 
+  const checkMailingListAutoSubscribe = async (userRole: string) => {
+    try {
+      if (typeof window !== "undefined" && localStorage.getItem("oauth_signup_autosubscribe") === "true") {
+        await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user?.email,
+            name: user?.name,
+            role: userRole,
+          }),
+        });
+        localStorage.removeItem("oauth_signup_autosubscribe");
+      }
+    } catch (err) {
+      console.error("Auto subscribe error:", err);
+    }
+  };
+
   const handleFinishOnboarding = async () => {
     if (!role) return;
     setSubmitting(true);
@@ -196,6 +215,7 @@ export default function OnboardingPage() {
       }
 
       await refreshUser();
+      await checkMailingListAutoSubscribe(role);
       toast({
         title: "Setup Complete!",
         description: "Welcome to Tranzlo! Your profile has been updated.",
@@ -262,6 +282,7 @@ export default function OnboardingPage() {
       }
 
       await refreshUser();
+      await checkMailingListAutoSubscribe(targetRole);
       router.replace(targetRole === "translator" ? "/dashboard/translator" : "/dashboard/company");
     } catch (err: any) {
       toast({

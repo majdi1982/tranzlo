@@ -25,6 +25,8 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [agreeTerms, setAgreeTerms] = React.useState(false);
+  const [subscribeNewsletter, setSubscribeNewsletter] = React.useState(false);
 
   React.useEffect(() => {
     if (user) {
@@ -71,6 +73,19 @@ export default function SignupPage() {
     setSubmitting(true);
     try {
       await signup(email, password, name, role);
+      
+      if (subscribeNewsletter) {
+        try {
+          await fetch("/api/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, name, role }),
+          });
+        } catch (subErr) {
+          console.error("Mailing list auto-subscription failed:", subErr);
+        }
+      }
+
       toast({ title: "Account created", description: "Welcome to Tranzlo! Check your email to verify your account.", variant: "success" });
       router.replace("/onboarding");
     } catch (err) {
@@ -82,6 +97,9 @@ export default function SignupPage() {
 
   const handleSocialLogin = async (provider: "google" | "linkedin") => {
     try {
+      // Flag in localStorage to trigger auto-subscribe on onboarding completion
+      localStorage.setItem("oauth_signup_autosubscribe", "true");
+      
       const account = getAccount();
       const redirectUrl = window.location.origin + "/onboarding";
       await account.createOAuth2Session(provider as any, redirectUrl, redirectUrl);
@@ -210,9 +228,39 @@ export default function SignupPage() {
             </div>
             {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
           </div>
+
+          {/* Marketing & Terms Checkboxes */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-start gap-2.5">
+              <input
+                id="newsletter"
+                type="checkbox"
+                checked={subscribeNewsletter}
+                onChange={(e) => setSubscribeNewsletter(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-border bg-background text-primary focus:ring-primary/20"
+              />
+              <Label htmlFor="newsletter" className="text-xs text-muted-foreground font-normal leading-tight cursor-pointer">
+                Subscribe to our newsletter to receive updates and job alerts.
+              </Label>
+            </div>
+
+            <div className="flex items-start gap-2.5">
+              <input
+                id="terms"
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-border bg-background text-primary focus:ring-primary/20"
+                required
+              />
+              <Label htmlFor="terms" className="text-xs text-muted-foreground font-normal leading-tight cursor-pointer">
+                I agree to the <Link href="/terms" className="text-primary hover:underline font-semibold">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline font-semibold">Privacy Policy</Link>.
+              </Label>
+            </div>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4 pt-2">
-          <Button type="submit" className="w-full h-11 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all" size="lg" disabled={submitting}>
+          <Button type="submit" className="w-full h-11 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all" size="lg" disabled={submitting || !agreeTerms}>
             {submitting ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : (

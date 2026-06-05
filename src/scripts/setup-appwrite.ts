@@ -100,6 +100,8 @@ const SCHEMA: Col[] = [
       { key: "onboardingStep", type: "integer", required: false },
       { key: "onboardingComplete", type: "boolean", required: false, default: false },
       { key: "planTier", type: "string", size: 32, required: false, default: "free" },
+      { key: "planExpiresAt", type: "datetime", required: false },
+      { key: "promoCodeUsed", type: "string", size: 64, required: false },
       { key: "trialEndsAt", type: "datetime", required: false },
       { key: "trialStatus", type: "string", size: 32, required: false },
       { key: "isPublicPlatform", type: "boolean", required: false, default: true },
@@ -143,6 +145,8 @@ const SCHEMA: Col[] = [
       { key: "onboardingStep", type: "integer", required: false },
       { key: "onboardingComplete", type: "boolean", required: false, default: false },
       { key: "planTier", type: "string", size: 32, required: false, default: "free" },
+      { key: "planExpiresAt", type: "datetime", required: false },
+      { key: "promoCodeUsed", type: "string", size: 64, required: false },
       { key: "trialEndsAt", type: "datetime", required: false },
       { key: "trialStatus", type: "string", size: 32, required: false },
       { key: "isPublicPlatform", type: "boolean", required: false, default: true },
@@ -397,6 +401,21 @@ const SCHEMA: Col[] = [
     indexes: [
       { id: "idx_invite_token", type: "unique", attributes: ["token"] },
       { id: "idx_invite_email", type: "key", attributes: ["email"] },
+    ],
+  },
+  {
+    id: "promo_codes", name: "Promo Codes",
+    attrs: [
+      { key: "code", type: "string", size: 64, required: true },
+      { key: "planTier", type: "string", size: 32, required: true },
+      { key: "durationMonths", type: "integer", required: true },
+      { key: "maxUses", type: "integer", required: true },
+      { key: "usedCount", type: "integer", required: false, default: 0 },
+      { key: "isActive", type: "boolean", required: false, default: true },
+      { key: "expiresAt", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_promo_code", type: "unique", attributes: ["code"] }
     ],
   },
 ];

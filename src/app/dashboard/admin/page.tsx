@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Users, Shield, UserCheck, AlertTriangle, ArrowRight, Activity, Cpu, ShieldAlert } from "lucide-react";
+import { Users, Shield, UserCheck, AlertTriangle, ArrowRight, Activity, Cpu, ShieldAlert, Ticket } from "lucide-react";
 import { getServices } from "@/services";
 import type { Complaint, Dispute } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +64,11 @@ export default function AdminDashboard() {
             <Link href="/dashboard/admin/verifications">
               <Button className="gap-2 rounded-md shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all font-medium">
                 <UserCheck className="h-4 w-4" /> Pending Requests ({pendingVerifications})
+              </Button>
+            </Link>
+            <Link href="/dashboard/admin/promo-codes">
+              <Button variant="outline" className="gap-2 rounded-md font-medium border-border/60 hover:bg-accent/40 bg-background/50">
+                <Ticket className="h-4 w-4 text-primary" /> Promo Codes
               </Button>
             </Link>
           </div>

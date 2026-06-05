@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/providers/session-provider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Loader2, Sparkles, Zap, Shield, HelpCircle } from "lucide-react";
 import type { Role } from "@/types";
@@ -121,6 +122,8 @@ export default function PlansPage() {
   const [currentTier, setCurrentTier] = React.useState<string>("free");
   const [fetchingProfile, setFetchingProfile] = React.useState<boolean>(true);
   const [processingPlan, setProcessingPlan] = React.useState<string | null>(null);
+  const [promoCode, setPromoCode] = React.useState<string>("");
+  const [submittingPromo, setSubmittingPromo] = React.useState<boolean>(false);
 
   const role = (user?.prefs?.role as Role) || "translator";
   // Pro Member tier maps to pro
@@ -217,6 +220,29 @@ export default function PlansPage() {
   const handleSubscribe = (planId: string | null, planTier: string) => {
     if (!planId) return;
     setProcessingPlan(planTier);
+  };
+
+  const handleRedeemPromo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promoCode.trim()) return;
+    setSubmittingPromo(true);
+    try {
+      const res = await fetch("/api/promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to redeem code.");
+      }
+      alert(`🎉 ${data.message}`);
+      window.location.reload();
+    } catch (err: any) {
+      alert(`❌ ${err.message}`);
+    } finally {
+      setSubmittingPromo(false);
+    }
   };
 
   if (loading || fetchingProfile) {
@@ -370,6 +396,32 @@ export default function PlansPage() {
               </Card>
             );
           })}
+        </div>
+
+        {/* Promo code redemption section */}
+        <div className="max-w-md mx-auto p-6 bg-card border border-border/60 rounded-2xl shadow-sm text-center space-y-4">
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-foreground">Have a Promo Code?</h4>
+            <p className="text-3xs text-muted-foreground">Enter your launcher code to unlock Pro or Plus benefits for free.</p>
+          </div>
+          <form onSubmit={handleRedeemPromo} className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="e.g. LAUNCH3FREE"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value)}
+              className="h-10 text-xs bg-background border-border/50 rounded-xl"
+              required
+              disabled={submittingPromo}
+            />
+            <Button 
+              type="submit" 
+              className="h-10 rounded-xl px-5 text-xs font-bold shrink-0 bg-primary hover:bg-primary/90"
+              disabled={submittingPromo}
+            >
+              {submittingPromo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Redeem"}
+            </Button>
+          </form>
         </div>
 
         {/* Support banner */}
