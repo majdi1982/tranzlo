@@ -10,7 +10,8 @@ const nodemailer = require("nodemailer");
 // Dynamic Fee rates based on Translator plan tier
 const PLAN_FEES = {
   free: 0.20,     // 20% Platform Fee
-  standard: 0.10, // 10% Platform Fee
+  pro: 0.10,      // 10% Platform Fee
+  standard: 0.10, // 10% Platform Fee (legacy compatibility)
   plus: 0.05      // 5% Platform Fee
 };
 

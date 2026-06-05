@@ -26,7 +26,7 @@ export default function CompanyTeamPage() {
   const { user } = useSession();
   const { toast } = useToast();
   const router = useRouter();
-  const [planTier, setPlanTier] = React.useState<"free" | "standard" | "plus">("free");
+  const [planTier, setPlanTier] = React.useState<"free" | "standard" | "pro" | "plus">("free");
   const [loadingPlan, setLoadingPlan] = React.useState(true);
 
   const [members, setMembers] = React.useState<TeamMember[]>([
@@ -70,7 +70,7 @@ export default function CompanyTeamPage() {
     if (members.length + 1 > maxMembers) {
       toast({
         title: "Team limit reached",
-        description: `Your ${planTier === "standard" ? "Pro Business" : "Plus Business"} plan is limited to ${maxMembers} team member(s).`,
+        description: `Your ${planTier === "standard" || planTier === "pro" ? "Pro Business" : "Plus Business"} plan is limited to ${maxMembers} team member(s).`,
         variant: "destructive",
       });
       return;
@@ -119,7 +119,7 @@ export default function CompanyTeamPage() {
               Company Collaboration Team
             </h1>
             <Badge variant="outline" className="bg-teal-500/10 text-teal-600 border-teal-500/20 font-bold text-3xs uppercase py-1 px-2.5 rounded-lg">
-              Tier: {planTier === "plus" ? "Plus Business" : planTier === "standard" ? "Pro Business" : "Free Tier"}
+              Tier: {planTier === "plus" ? "Plus Business" : planTier === "standard" || planTier === "pro" ? "Pro Business" : "Free Tier"}
             </Badge>
           </div>
           <p className="text-muted-foreground text-sm mt-1">

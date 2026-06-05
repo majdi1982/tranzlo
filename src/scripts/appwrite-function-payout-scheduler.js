@@ -10,7 +10,7 @@ const { Client, Databases, Query } = require("node-appwrite");
 function getTranslatorFeePercent(tier) {
   const t = (tier || "free").toLowerCase().trim();
   if (t === "plus") return 0.05; // 5% fee
-  if (t === "standard") return 0.10; // 10% fee
+  if (t === "standard" || t === "pro") return 0.10; // 10% fee
   return 0.20; // 20% fee (free tier)
 }
 

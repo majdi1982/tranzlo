@@ -41,7 +41,7 @@ const PLANS = {
         "Verified Pro Translator badge",
         "Account setup & preparation: Free"
       ],
-      tier: "standard", // internally maps to standard
+      tier: "pro",
       buttonText: isAnnual ? "Subscribe Pro Annual" : "Subscribe Pro Monthly",
       paypalPlanId: isAnnual ? "P-34E03651943893946NIQFS3Y" : "P-6BH643160R158860TNIQF2KQ"
     },
@@ -91,7 +91,7 @@ const PLANS = {
         "Add 3 accounts with Translator Pro specs",
         "Account setup & preparation: Free"
       ],
-      tier: "standard",
+      tier: "pro",
       buttonText: "Subscribe Pro Annual",
       paypalPlanId: "P-8JB63458CY1027604NIQF5FQ"
     },
@@ -123,7 +123,7 @@ export default function PlansPage() {
   const [processingPlan, setProcessingPlan] = React.useState<string | null>(null);
 
   const role = (user?.prefs?.role as Role) || "translator";
-  // Pro Member tier internally maps to standard to preserve DB schema compatibility
+  // Pro Member tier maps to pro
   const userPlans = role === "company" ? PLANS.company(isAnnual) : PLANS.translator(isAnnual);
 
   React.useEffect(() => {
@@ -281,7 +281,7 @@ export default function PlansPage() {
             <div>
               <p className="text-sm text-muted-foreground font-medium">YOUR CURRENT MEMBERSHIP</p>
               <h3 className="text-lg font-bold text-foreground capitalize">
-                {currentTier === "standard" ? "Pro" : currentTier} Account
+                {currentTier === "standard" || currentTier === "pro" ? "Pro" : currentTier} Account
               </h3>
             </div>
           </div>
