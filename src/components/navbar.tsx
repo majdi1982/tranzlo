@@ -167,18 +167,22 @@ export function Navbar() {
       return <div className="h-8 w-8 rounded-xl bg-accent/20 animate-pulse" />;
     }
 
+    const cycleTheme = () => {
+      if (theme === "light") setTheme("dark");
+      else if (theme === "dark") setTheme("system");
+      else setTheme("light");
+    };
+
     return (
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+        onClick={cycleTheme}
         className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
       >
-        {theme === "light" ? (
-          <Sun className="h-4.5 w-4.5" />
-        ) : (
-          <Moon className="h-4.5 w-4.5" />
-        )}
+        {theme === "light" && <Sun className="h-4.5 w-4.5" />}
+        {theme === "dark" && <Moon className="h-4.5 w-4.5" />}
+        {theme === "system" && <Monitor className="h-4.5 w-4.5" />}
         <span className="sr-only">Toggle theme</span>
       </Button>
     );
