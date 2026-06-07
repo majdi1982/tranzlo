@@ -401,10 +401,26 @@ export const mockBlogService = {
   },
 
   async publishPost(postId: string): Promise<BlogPost> {
-    return mockBlogService.updatePost(postId, {
+    const post = await mockBlogService.updatePost(postId, {
       status: "published",
       publishedAt: new Date().toISOString(),
     });
+
+    // Simulate auto-sharing to social media platforms
+    console.log(`\n📢 [Social Auto-Share (MOCK)] Auto-publishing approved article: "${post.title}" to socials...`);
+    console.log(`   🔗 Post URL: https://tranzlo.net/blog/${post.slug}`);
+    console.log(`   • [Facebook] Sharing to page Tranzlo. Payload: { message: "${post.excerpt}", link: "https://tranzlo.net/blog/${post.slug}" }`);
+    console.log(`   • [LinkedIn] Sharing as company update. Share API Payload: { text: "${post.title}\\n${post.excerpt}", link: "https://tranzlo.net/blog/${post.slug}" }`);
+    console.log(`   • [X / Twitter] Posting status tweet: "${post.title} #translation #SEO - https://tranzlo.net/blog/${post.slug}"`);
+    console.log(`   • [Pinterest] Creating Pin. Board Tranzlo: { title: "${post.title}", image: "${post.coverImage}", alt: "${post.imageAlt || ''}", link: "https://tranzlo.net/blog/${post.slug}" }`);
+    console.log(`✅ [Social Auto-Share (MOCK)] Shared successfully to Facebook, LinkedIn, X, and Pinterest!\n`);
+
+    return post;
+  },
+
+  async deletePost(postId: string): Promise<void> {
+    const idx = mockBlogPosts.findIndex((p) => p.$id === postId);
+    if (idx > -1) mockBlogPosts.splice(idx, 1);
   },
 };
 

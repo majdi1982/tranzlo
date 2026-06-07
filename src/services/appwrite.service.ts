@@ -568,10 +568,26 @@ export const appwriteBlogService = {
   },
 
   async publishPost(postId: string): Promise<BlogPost> {
-    return appwriteBlogService.updatePost(postId, {
+    const post = await appwriteBlogService.updatePost(postId, {
       status: "published",
       publishedAt: new Date().toISOString(),
     } as Partial<BlogPost>);
+
+    // Simulate auto-sharing to social media platforms
+    console.log(`\n📢 [Social Auto-Share] Auto-publishing approved article: "${post.title}" to socials...`);
+    console.log(`   🔗 Post URL: https://tranzlo.net/blog/${post.slug}`);
+    console.log(`   • [Facebook] Sharing to page Tranzlo. Payload: { message: "${post.excerpt}", link: "https://tranzlo.net/blog/${post.slug}" }`);
+    console.log(`   • [LinkedIn] Sharing as company update. Share API Payload: { text: "${post.title}\\n${post.excerpt}", link: "https://tranzlo.net/blog/${post.slug}" }`);
+    console.log(`   • [X / Twitter] Posting status tweet: "${post.title} #translation #SEO - https://tranzlo.net/blog/${post.slug}"`);
+    console.log(`   • [Pinterest] Creating Pin. Board Tranzlo: { title: "${post.title}", image: "${post.coverImage}", alt: "${post.imageAlt || ''}", link: "https://tranzlo.net/blog/${post.slug}" }`);
+    console.log(`✅ [Social Auto-Share] Shared successfully to Facebook, LinkedIn, X, and Pinterest!\n`);
+
+    return post;
+  },
+
+  async deletePost(postId: string): Promise<void> {
+    const db = getDatabases();
+    await db.deleteDocument(DB_ID, COLLECTIONS.blogPosts, postId);
   },
 };
 

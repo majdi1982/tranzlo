@@ -22,6 +22,7 @@ import {
   Globe,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 import { useSession } from "@/providers/session-provider";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { Role } from "@/types";
@@ -203,10 +204,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <EmailVerificationBanner />
               {children}
             </div>
-            {/* Dashboard Mini Footer */}
-            <footer className="mt-12 pt-6 pb-2 text-center text-xs text-muted-foreground border-t border-border/30">
-              © {new Date().getFullYear()} Tranzlo. All rights reserved.
-            </footer>
+            {/* Dashboard Integrated Footer */}
+            <div className="mt-12">
+              <Footer />
+            </div>
           </div>
         </main>
       </div>

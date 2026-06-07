@@ -113,9 +113,8 @@ async function enrichAndTranslateWithGemini(title: string, rawContent: string): 
       imageAlt: "Translation chronicle cover image"
     };
   }
-
   const prompt = `
-You are an expert tech writer and professional blogger for Tranzlo (a platform combining AI translation tech, global enterprise clients, and professional translators).
+You are an expert SEO and tech writer for Tranzlo (a translation and localization platform).
 Analyze this blog post title and description:
 Title: "${title}"
 Content/Description snippet: "${rawContent.slice(0, 1000)}"
@@ -123,15 +122,15 @@ Content/Description snippet: "${rawContent.slice(0, 1000)}"
 Task:
 1. Optimize the Title into a catchy, premium English blog title. Do NOT translate to Arabic; the title must be in English.
 2. Write a professional English summary/excerpt (1-2 sentences, min 15 chars).
-3. Generate a beautifully structured, premium English blog post content in Markdown format. The word count must be between 600 and 1500 words to ensure robust depth for search engine optimization (SEO). The entire post must be strictly in English. Do NOT write any Arabic.
-4. Provide 3-5 relevant lowercase tags (e.g. technology, localization, ai, translation).
+3. Generate a beautifully structured, premium English blog post content in Markdown format. The content must be structured with H2 and H3 headings, clear paragraphs, and bullet points. The word count must be between 600 and 1500 words to ensure robust depth for search engine optimization (SEO). 
+4. Include 3-5 relevant lowercase tags (e.g. technology, localization, ai, translation) as tags/keywords.
 5. Categorize this post into one of these exact categories:
-   - "translation-tech" (for AI & Translation Tech: CAT tools, generative AI, LLMs, localization automation)
-   - "career-growth" (for Linguist & Career Growth: freelance tips, pricing, international clients, skill development)
-   - "industry-trends" (for Industry Insights & Trends: market statistics, global expansion, Middle East & North Africa localization, case studies)
-   - "best-practices" (for Best Practices & Guides: legal/medical translation, UI design guidelines, QA workflows)
-   - "platform-news" (for Platform News & Updates: Tranzlo platform releases, updates, and ecosystem news)
-6. Write a descriptive, SEO-friendly image alt text in English (max 120 chars) for this post's cover image.
+   - "translation-tech" (for AI & Translation Tech)
+   - "career-growth" (for Linguist & Career Growth)
+   - "industry-trends" (for Industry Insights & Trends)
+   - "best-practices" (for Best Practices & Guides)
+   - "platform-news" (for Platform News & Updates)
+6. Write a highly descriptive, SEO-friendly image alt text in English (max 120 chars) that perfectly details what the cover image should illustrate.
 
 Return your output STRICTLY as a JSON object with this exact format, with no markdown code block backticks around it:
 {
@@ -266,13 +265,13 @@ async function main() {
             tags: enriched.tags,
             category: enriched.category || "general",
             imageAlt: enriched.imageAlt || "Translation article cover image",
-            status: "published",
+            status: "pending_review",
             publishedAt: now,
             createdAt: now,
             updatedAt: now,
           });
 
-          console.log(`   ✅ SUCCESS: Post "${enriched.titleAr}" published!`);
+          console.log(`   ✅ SUCCESS: Post "${enriched.titleAr}" saved for review!`);
         } catch (saveErr: any) {
           console.error(`   ❌ Failed to save post:`, saveErr.message);
         }
