@@ -1219,7 +1219,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* Languages Pair & Specializations (Translator) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card className="glass-card border-border/40 rounded-2xl p-6 relative z-30">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Languages & Expertise</CardTitle>
                     <CardDescription className="text-3xs">Choose spoken/written languages and specialization branches</CardDescription>
@@ -1482,7 +1482,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* Services Offered & Rates Editor (Translator) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card className="glass-card border-border/40 rounded-2xl p-6 relative z-20">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Services Offered & Rates</CardTitle>
                     <CardDescription className="text-3xs">Enable the services you provide and define your base rates</CardDescription>
@@ -1528,7 +1528,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* CAT Tools Mastery Selector */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card className="glass-card border-border/40 rounded-2xl p-6 relative z-10">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">CAT Tools Integration</CardTitle>
                     <CardDescription className="text-3xs">Select the translation software tools you use</CardDescription>
@@ -1574,7 +1574,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* Interactive CV Upload */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card className="glass-card border-border/40 rounded-2xl p-6 relative z-0">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Linguist CV / Resume Upload</CardTitle>
                     <CardDescription className="text-3xs">Upload your professional CV to verify your experience (.pdf only)</CardDescription>
