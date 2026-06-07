@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   User,
+  Ticket,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { useSession } from "@/providers/session-provider";
@@ -58,6 +59,7 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/admin/team", label: "Team", icon: Users },
     { href: "/dashboard/admin/complaints", label: "Complaints", icon: Shield },
     { href: "/dashboard/admin/disputes", label: "Disputes", icon: Shield },
+    { href: "/dashboard/admin/promo-codes", label: "Promo Codes", icon: Ticket },
   ],
   staff: [
     { href: "/dashboard/staff", label: "Overview", icon: LayoutDashboard },
