@@ -420,7 +420,7 @@ export default function OnboardingPage() {
                   {/* Language Profile Setup */}
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">Native Language (اللغة الأم - الحد الأقصى 1)</Label>
+                      <Label className="text-sm font-semibold">Native Language (Max 1)</Label>
                       <ResponsiveSelect
                         options={LANGUAGES.map(l => ({ value: l.code, label: l.name }))}
                         value={nativeLang}
@@ -433,7 +433,7 @@ export default function OnboardingPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <Label className="text-sm font-semibold">Languages Spoken/Written (الحد الأقصى 2 للمجاني)</Label>
+                        <Label className="text-sm font-semibold">Languages Spoken/Written (Max 2)</Label>
                         <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold uppercase">Free Tier Cap</span>
                       </div>
                       <ResponsiveSelect
@@ -471,7 +471,7 @@ export default function OnboardingPage() {
                     {selectedLangs.length > 0 && (
                       <div className="p-4 rounded-xl border border-border/40 bg-muted/10 space-y-3">
                         <div className="space-y-1">
-                          <Label className="text-xs font-bold text-foreground">Select Working Language Pairs (أزواج لغات العمل المتولدة)</Label>
+                          <Label className="text-xs font-bold text-foreground">Select Working Language Pairs</Label>
                           <p className="text-[10px] text-muted-foreground">Select the specific translation pairs you want to activate and verify in your profile.</p>
                         </div>
                         {selectedLangs.length < 2 ? (
@@ -631,7 +631,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setIsPublicPlatform(!isPublicPlatform)}
-                    className={`h-6 w-11 rounded-full p-0.5 transition-colors duration-200 focus:outline-none ${
+                    className={`h-6 w-11 rounded-full p-0.5 transition-colors duration-200 focus:outline-none shrink-0 ${
                       isPublicPlatform ? "bg-primary" : "bg-muted"
                     }`}
                   >
@@ -688,7 +688,7 @@ export default function OnboardingPage() {
                         Enter custom SEO keywords to boost your ranking on selected engines
                       </Label>
                       <p className="text-[10px] text-muted-foreground">
-                        Type a keyword and press **Enter** (e.g. *arabic technical translator*).
+                        Type a keyword and press **Enter** (e.g. *{role === "company" ? "translation company" : "technical translator"}*).
                       </p>
                       
                       <Input
