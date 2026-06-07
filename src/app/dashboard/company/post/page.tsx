@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileText, Globe, Loader2, Plus, Send, TestTube, X, Upload } from "lucide-react";
+import { ArrowLeft, FileText, Globe, Loader2, Plus, Send, TestTube, X, Upload, Search } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -23,6 +23,86 @@ import { SERVICE_TYPES, SERVICE_UNITS } from "@/data/service-types";
 import { CAT_TOOLS } from "@/data/cat-tools";
 import { createJobSchema } from "@/validators";
 import { getStorage, ID, BUCKETS } from "@/lib/appwrite";
+
+interface SearchableLanguageSelectProps {
+  id: string;
+  placeholder: string;
+  selected: string[];
+  onSelect: (code: string) => void;
+}
+
+function SearchableLanguageSelect({ id, placeholder, selected, onSelect }: SearchableLanguageSelectProps) {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = LANGUAGES.filter((lang) =>
+    lang.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        id={id}
+        onClick={() => setOpen(!open)}
+        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-left"
+      >
+        <span className="text-muted-foreground">{placeholder}</span>
+        <span className="h-4 w-4 opacity-50 flex items-center justify-center">▼</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-50 min-w-[8rem] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-none mt-1 p-1 max-h-[300px] flex flex-col bg-background">
+          <div className="flex items-center border-b px-3 py-2 gap-2">
+            <Search className="h-4 w-4 shrink-0 opacity-50" />
+            <input
+              className="flex h-8 w-full rounded-md bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Search language..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="overflow-y-auto max-h-[220px] py-1">
+            {filtered.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">No language found.</div>
+            ) : (
+              filtered.map((lang) => {
+                const isSelected = selected.includes(lang.code);
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    disabled={isSelected}
+                    onClick={() => {
+                      onSelect(lang.code);
+                      setOpen(false);
+                      setSearch("");
+                    }}
+                    className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {lang.name}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const AI_REVIEWERS = [
   { id: "gpt4o", name: "GPT-4o Reviewer", rate: 0.005, description: "Highly accurate linguistic analysis and feedback." },
@@ -306,24 +386,16 @@ export default function PostJobPage() {
                 <CardContent className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="sourceLanguageSelect">Source Languages</Label>
-                    <Select
-                      onValueChange={(val) => {
+                    <SearchableLanguageSelect
+                      id="sourceLanguageSelect"
+                      placeholder="Add source language..."
+                      selected={sourceLanguages}
+                      onSelect={(val) => {
                         if (val && !sourceLanguages.includes(val)) {
                           setSourceLanguages([...sourceLanguages, val]);
                         }
                       }}
-                    >
-                      <SelectTrigger id="sourceLanguageSelect">
-                        <SelectValue placeholder="Add source language..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LANGUAGES.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code} disabled={sourceLanguages.includes(lang.code)}>
-                            {lang.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                     
                     {sourceLanguages.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pt-1.5">
@@ -348,24 +420,16 @@ export default function PostJobPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="targetLanguageSelect">Target Languages</Label>
-                    <Select
-                      onValueChange={(val) => {
+                    <SearchableLanguageSelect
+                      id="targetLanguageSelect"
+                      placeholder="Add target language..."
+                      selected={targetLanguages}
+                      onSelect={(val) => {
                         if (val && !targetLanguages.includes(val)) {
                           setTargetLanguages([...targetLanguages, val]);
                         }
                       }}
-                    >
-                      <SelectTrigger id="targetLanguageSelect">
-                        <SelectValue placeholder="Add target language..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LANGUAGES.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code} disabled={targetLanguages.includes(lang.code)}>
-                            {lang.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                     
                     {targetLanguages.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pt-1.5">
