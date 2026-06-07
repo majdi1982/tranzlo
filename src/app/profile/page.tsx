@@ -332,11 +332,20 @@ function ProfileContent() {
     try {
       const services = getServices();
       if (role === "translator") {
-        const requiredLangs = translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2;
-        if (translatorData.languages.length !== requiredLangs) {
+        const maxLangs = translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2;
+        if (translatorData.languages.length < 2) {
           toast({
-            title: "Required Languages Count Not Met",
-            description: `You must select exactly ${requiredLangs} languages for your plan tier (${translatorData.planTier === "standard" || translatorData.planTier === "pro" ? "Pro" : translatorData.planTier === "plus" ? "Plus" : "Free"}).`,
+            title: "At Least 2 Languages Required",
+            description: "You must select at least 2 working languages to configure your translation pairs.",
+            variant: "destructive",
+          });
+          setSaving(false);
+          return;
+        }
+        if (translatorData.languages.length > maxLangs) {
+          toast({
+            title: "Language Limit Exceeded",
+            description: `You can select up to ${maxLangs} languages for your plan tier (${translatorData.planTier === "standard" || translatorData.planTier === "pro" ? "Pro" : translatorData.planTier === "plus" ? "Plus" : "Free"}).`,
             variant: "destructive",
           });
           setSaving(false);
@@ -1234,47 +1243,55 @@ function ProfileContent() {
                             <Label className="text-xs font-bold text-foreground">Select Working Language Pairs</Label>
                             <p className="text-[10px] text-muted-foreground">Select the translation pairs you want to activate in your profile.</p>
                           </div>
-                          <Badge variant="outline" className="text-4xs uppercase bg-teal-500/5 text-teal-600 border-teal-500/20 font-bold">
-                            Limit: {translatorData.activePairs.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 32 : translatorData.planTier === "plus" ? 128 : 4} Pairs
-                          </Badge>
+                          {translatorData.languages.length >= 2 && (
+                            <Badge variant="outline" className="text-4xs uppercase bg-teal-500/5 text-teal-600 border-teal-500/20 font-bold">
+                              Limit: {translatorData.activePairs.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 32 : translatorData.planTier === "plus" ? 128 : 4} Pairs
+                            </Badge>
+                          )}
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {(() => {
-                            const pairsList: { id: string; label: string }[] = [];
-                            translatorData.languages.forEach(src => {
-                              translatorData.languages.forEach(tgt => {
-                                if (src !== tgt) {
-                                  const nameSrc = LANGUAGES.find(l => l.code === src)?.name || src;
-                                  const nameTgt = LANGUAGES.find(l => l.code === tgt)?.name || tgt;
-                                  pairsList.push({
-                                    id: `${src}-${tgt}`,
-                                    label: `${nameSrc} → ${nameTgt}`
-                                  });
-                                }
+                        {translatorData.languages.length < 2 ? (
+                          <div className="text-2xs text-amber-600 bg-amber-500/5 border border-amber-500/10 p-3 rounded-lg font-medium">
+                            ⚠️ Please select at least 2 working languages above to configure and select translation pairs.
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {(() => {
+                              const pairsList: { id: string; label: string }[] = [];
+                              translatorData.languages.forEach(src => {
+                                translatorData.languages.forEach(tgt => {
+                                  if (src !== tgt) {
+                                    const nameSrc = LANGUAGES.find(l => l.code === src)?.name || src;
+                                    const nameTgt = LANGUAGES.find(l => l.code === tgt)?.name || tgt;
+                                    pairsList.push({
+                                      id: `${src}-${tgt}`,
+                                      label: `${nameSrc} → ${nameTgt}`
+                                    });
+                                  }
+                                });
                               });
-                            });
-                            
-                            return pairsList.map(pair => {
-                              const isActive = translatorData.activePairs.includes(pair.id);
-                              return (
-                                <div
-                                  key={pair.id}
-                                  onClick={() => toggleActivePair(pair.id)}
-                                  className={`p-3 rounded-lg border cursor-pointer select-none transition-all flex items-center justify-between ${
-                                    isActive
-                                      ? "border-teal-500 bg-teal-500/10 shadow-[0_0_10px_rgba(20,184,166,0.15)] text-teal-600 font-bold"
-                                      : "border-border/60 hover:border-border hover:bg-accent/30 text-muted-foreground"
-                                  }`}
-                                >
-                                  <span className="text-xs">{pair.label}</span>
-                                  <div className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${isActive ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"}`}>
-                                    {isActive && <Check className="h-2.5 w-2.5" />}
+                              
+                              return pairsList.map(pair => {
+                                const isActive = translatorData.activePairs.includes(pair.id);
+                                return (
+                                  <div
+                                    key={pair.id}
+                                    onClick={() => toggleActivePair(pair.id)}
+                                    className={`p-3 rounded-lg border cursor-pointer select-none transition-all flex items-center justify-between ${
+                                      isActive
+                                        ? "border-teal-500 bg-teal-500/10 shadow-[0_0_10px_rgba(20,184,166,0.15)] text-teal-600 font-bold"
+                                        : "border-border/60 hover:border-border hover:bg-accent/30 text-muted-foreground"
+                                    }`}
+                                  >
+                                    <span className="text-xs">{pair.label}</span>
+                                    <div className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${isActive ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"}`}>
+                                      {isActive && <Check className="h-2.5 w-2.5" />}
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                        )}
                       </div>
                     )}
 

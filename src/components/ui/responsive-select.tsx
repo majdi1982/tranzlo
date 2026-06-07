@@ -162,7 +162,7 @@ export function ResponsiveSelect({
 
       {/* DESKTOP POPOVER DROPDOWN */}
       {isOpen && !isMobile && (
-        <div className="absolute left-0 z-50 mt-1 w-full rounded-lg border border-border/60 bg-card p-2 shadow-xl animate-in fade-in duration-200">
+        <div className="absolute left-0 z-50 mt-1 w-full rounded-lg border border-border bg-popover text-popover-foreground p-2 shadow-xl animate-in fade-in duration-200">
           <div className="relative mb-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input
@@ -183,7 +183,7 @@ export function ResponsiveSelect({
                     key={opt.value}
                     type="button"
                     onClick={() => handleSelect(opt.value)}
-                    className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-xs text-foreground hover:bg-accent/20 text-left transition-colors font-medium"
+                    className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-xs text-popover-foreground hover:bg-accent hover:text-accent-foreground text-left transition-colors font-medium bg-transparent border-0"
                   >
                     <span>{opt.label}</span>
                     {isSelected(opt.value) && (
@@ -212,7 +212,7 @@ export function ResponsiveSelect({
               transform: `translateY(${currentY}px)`,
               transition: isDragging ? "none" : "transform 0.3s ease-out",
             }}
-            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl border-t border-border/50 bg-card p-4 shadow-2xl animate-in slide-in-from-bottom duration-300"
+            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl border-t border-border bg-popover text-popover-foreground p-4 shadow-2xl animate-in slide-in-from-bottom duration-300"
           >
             {/* Drag Handle */}
             <div
@@ -226,7 +226,7 @@ export function ResponsiveSelect({
 
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-border/30 mb-3 shrink-0">
-              <span className="text-xs font-bold text-foreground uppercase tracking-wider">{label}</span>
+              <span className="text-xs font-bold text-popover-foreground uppercase tracking-wider">{label}</span>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -258,7 +258,7 @@ export function ResponsiveSelect({
                     key={opt.value}
                     type="button"
                     onClick={() => handleSelect(opt.value)}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-xs text-foreground hover:bg-accent/15 active:bg-accent/20 text-left transition-colors font-medium border border-border/20 bg-background/25"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-xs text-popover-foreground hover:bg-accent hover:text-accent-foreground active:bg-accent/20 text-left transition-colors font-medium border border-border/20 bg-background/25"
                   >
                     <span>{opt.label}</span>
                     {isSelected(opt.value) && (
