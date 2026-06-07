@@ -24,24 +24,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Promo code is required" }, { status: 400 });
     }
 
-    // 1. Authenticate user from session cookie
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get(`a_session_${projectId}`);
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
-    }
-
+    // 1. Authenticate user from session cookie or JWT header
+    let authenticated = false;
     const userClient = new Client()
       .setEndpoint(endpoint)
       .setProject(projectId);
-    userClient.setSession(sessionCookie.value);
+
+    const authHeader = req.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const jwt = authHeader.substring(7);
+      userClient.setJWT(jwt);
+      authenticated = true;
+    } else {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get(`a_session_${projectId}`) || cookieStore.get(`a_session_${projectId.toLowerCase()}`);
+      if (sessionCookie) {
+        userClient.setSession(sessionCookie.value);
+        authenticated = true;
+      }
+    }
+
+    if (!authenticated) {
+      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
+    }
 
     const account = new Account(userClient);
     let user;
     try {
       user = await account.get();
     } catch (err) {
-      return NextResponse.json({ error: "Unauthorized. Session invalid." }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized. Session invalid or expired." }, { status: 401 });
     }
 
     const userId = user.$id;

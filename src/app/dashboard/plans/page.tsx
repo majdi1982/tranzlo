@@ -11,6 +11,7 @@ import { Check, Loader2, Sparkles, Zap, Shield, HelpCircle } from "lucide-react"
 import type { Role } from "@/types";
 import { getServices } from "@/services";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getAccount } from "@/lib/appwrite";
 
 // Plan mappings corresponding to our Appwrite PayPal Webhook PLAN_MAP
 const PLANS = {
@@ -236,9 +237,20 @@ export default function PlansPage() {
     if (!promoCode.trim()) return;
     setSubmittingPromo(true);
     try {
+      const account = getAccount();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT, falling back to session cookie:", jwtErr);
+      }
+
       const res = await fetch("/api/promo", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ code: promoCode.trim() }),
       });
       const data = await res.json();
