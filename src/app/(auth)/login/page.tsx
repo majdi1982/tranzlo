@@ -22,6 +22,34 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [rememberMe, setRememberMe] = React.useState(false);
+  const [showForgotBox, setShowForgotBox] = React.useState(false);
+  const [sendingReset, setSendingReset] = React.useState(false);
+
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleSendResetEmail = async () => {
+    if (!email) {
+      toast({ title: "Email required", description: "Please enter your email first", variant: "destructive" });
+      return;
+    }
+    setSendingReset(true);
+    try {
+      await getServices().auth.requestPasswordReset(email);
+      toast({ title: "Reset link sent", description: "Check your email for the password reset link.", variant: "success" });
+      setShowForgotBox(false);
+    } catch (err) {
+      toast({ title: "Failed to send", description: err instanceof Error ? err.message : "Please try again", variant: "destructive" });
+    } finally {
+      setSendingReset(false);
+    }
+  };
 
   React.useEffect(() => {
     if (user) {
@@ -53,6 +81,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    setShowForgotBox(false);
 
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
@@ -70,6 +99,12 @@ export default function LoginPage() {
       const loggedInUser = await login(email, password);
       toast({ title: "Welcome back", variant: "success" });
       
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
+      
       const services = getServices();
       const role = loggedInUser.prefs?.role || "translator";
       let profile = null;
@@ -86,6 +121,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       toast({ title: "Login failed", description: err instanceof Error ? err.message : "Invalid credentials", variant: "destructive" });
+      setShowForgotBox(true);
     } finally {
       setSubmitting(false);
     }
@@ -196,7 +232,10 @@ export default function LoginPage() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setShowForgotBox(false);
+                }}
                 autoComplete="current-password"
                 className="pl-10 pr-10 h-11 rounded-xl bg-background"
               />
@@ -210,6 +249,49 @@ export default function LoginPage() {
             </div>
             {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
           </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center space-x-2">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-border/60 text-primary bg-background focus:ring-primary cursor-pointer"
+              />
+              <Label htmlFor="rememberMe" className="text-xs text-muted-foreground cursor-pointer select-none">
+                Remember me
+              </Label>
+            </div>
+          </div>
+
+          {showForgotBox && (
+            <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 space-y-2.5 animate-in fade-in slide-in-from-top-4 duration-200">
+              <div className="flex items-start justify-between">
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-semibold text-rose-500">Incorrect Password?</h4>
+                  <p className="text-3xs text-muted-foreground leading-normal">
+                    If you forgot your password, we can send a reset link to <strong>{email}</strong>.
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleSendResetEmail}
+                disabled={sendingReset}
+                className="w-full rounded-lg text-3xs border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-semibold h-8"
+              >
+                {sendingReset ? (
+                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                ) : (
+                  <Mail className="h-3 w-3 mr-1" />
+                )}
+                Send Reset Link
+              </Button>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex flex-col gap-4 pt-2">
           <Button type="submit" className="w-full h-11 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all" size="lg" disabled={submitting}>
@@ -225,19 +307,6 @@ export default function LoginPage() {
             <Link href="/signup" className="text-primary hover:underline font-medium">
               Sign up
             </Link>
-          </p>
-          <div className="relative w-full mt-2">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border/50" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-2 text-muted-foreground">Demo accounts</span>
-            </div>
-          </div>
-          <p className="text-center text-xs text-muted-foreground leading-relaxed">
-            translator@demo.tranzlo &middot; company@demo.tranzlo &middot; admin@demo.tranzlo
-            <br />
-            <span className="text-primary/70">Password: password123</span>
           </p>
         </CardFooter>
       </form>
