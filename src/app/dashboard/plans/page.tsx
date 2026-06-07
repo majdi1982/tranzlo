@@ -128,6 +128,9 @@ export default function PlansPage() {
   const [submittingPromo, setSubmittingPromo] = React.useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = React.useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = React.useState<any>(null);
+  const [appliedPromo, setAppliedPromo] = React.useState<any>(null);
+  const [promoError, setPromoError] = React.useState<string | null>(null);
+  const [promoSuccess, setPromoSuccess] = React.useState<string | null>(null);
 
   const role = (user?.prefs?.role as Role) || "translator";
   // Pro Member tier maps to pro
@@ -161,6 +164,11 @@ export default function PlansPage() {
   React.useEffect(() => {
     if (!processingPlan || !isCheckoutOpen) return;
 
+    // If 100% free discount is active, do not render PayPal
+    if (appliedPromo && (appliedPromo.discountType === "free" || appliedPromo.discountPercent === 100)) {
+      return;
+    }
+
     const plan = userPlans.find((p: any) => p.tier === processingPlan);
     if (!plan || !plan.paypalPlanId) return;
 
@@ -179,6 +187,32 @@ export default function PlansPage() {
 
       if ((window as any).paypal) {
         container.innerHTML = ""; // Clear existing loading spinner
+        
+        const payload: any = {
+          plan_id: plan.paypalPlanId,
+          custom_id: appliedPromo ? `${user?.$id}:${appliedPromo.code}` : user?.$id
+        };
+
+        // Apply discount percentage as billing cycles override
+        if (appliedPromo && appliedPromo.discountType === "percentage" && appliedPromo.discountPercent < 100) {
+          const originalVal = parseFloat(plan.price.replace("$", ""));
+          const discountedVal = (originalVal * (1 - appliedPromo.discountPercent / 100)).toFixed(2);
+          payload.plan = {
+            billing_cycles: [
+              {
+                sequence: 1,
+                total_cycles: plan.period === "year" ? 1 : 12,
+                pricing_scheme: {
+                  fixed_price: {
+                    value: discountedVal,
+                    currency_code: "USD"
+                  }
+                }
+              }
+            ]
+          };
+        }
+
         (window as any).paypal.Buttons({
           style: {
             shape: "rect",
@@ -187,10 +221,7 @@ export default function PlansPage() {
             label: "subscribe"
           },
           createSubscription: function(data: any, actions: any) {
-            return actions.subscription.create({
-              plan_id: plan.paypalPlanId,
-              custom_id: user?.$id // Pass userId to webhook
-            });
+            return actions.subscription.create(payload);
           },
           onApprove: function(data: any, actions: any) {
             alert(`🎉 Subscription successful! ID: ${data.subscriptionID}. Your account will be upgraded within a few moments.`);
@@ -224,7 +255,7 @@ export default function PlansPage() {
       // Small timeout to allow React to commit DOM render of container
       setTimeout(renderButton, 100);
     }
-  }, [processingPlan, isCheckoutOpen, user?.$id, userPlans]);
+  }, [processingPlan, isCheckoutOpen, appliedPromo, user?.$id, userPlans]);
 
   const handleSubscribe = (planId: string | null, planTier: string) => {
     if (!planId) return;
@@ -232,13 +263,19 @@ export default function PlansPage() {
     if (!plan) return;
     setSelectedPlan(plan);
     setProcessingPlan(planTier);
+    setAppliedPromo(null);
+    setPromoCode("");
+    setPromoError(null);
+    setPromoSuccess(null);
     setIsCheckoutOpen(true);
   };
 
-  const handleRedeemPromo = async (e: React.FormEvent) => {
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!promoCode.trim()) return;
     setSubmittingPromo(true);
+    setPromoError(null);
+    setPromoSuccess(null);
     try {
       const account = getAccount();
       const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -254,7 +291,43 @@ export default function PlansPage() {
       const res = await fetch("/api/promo", {
         method: "POST",
         headers,
-        body: JSON.stringify({ code: promoCode.trim() }),
+        body: JSON.stringify({ code: promoCode.trim(), planTier: selectedPlan?.tier, action: "validate" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to validate code.");
+      }
+      
+      setAppliedPromo(data);
+      setPromoSuccess(`Code applied: ${data.discountType === "percentage" ? `${data.discountPercent}% Off` : `${data.durationMonths} Months Free`}`);
+    } catch (err: any) {
+      setPromoError(err.message);
+      setAppliedPromo(null);
+    } finally {
+      setSubmittingPromo(false);
+    }
+  };
+
+  const handleRedeemFreePromo = async () => {
+    if (!appliedPromo) return;
+    setSubmittingPromo(true);
+    setPromoError(null);
+    try {
+      const account = getAccount();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT:", jwtErr);
+      }
+
+      const res = await fetch("/api/promo", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ code: appliedPromo.code, planTier: selectedPlan?.tier, action: "redeem" }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -263,7 +336,7 @@ export default function PlansPage() {
       alert(`🎉 ${data.message}`);
       window.location.reload();
     } catch (err: any) {
-      alert(`❌ ${err.message}`);
+      setPromoError(err.message);
     } finally {
       setSubmittingPromo(false);
     }
@@ -273,6 +346,164 @@ export default function PlansPage() {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isCheckoutOpen && selectedPlan) {
+    const originalPriceNum = parseFloat(selectedPlan.price.replace("$", ""));
+    const discountVal = appliedPromo ? (originalPriceNum * (appliedPromo.discountPercent / 100)) : 0;
+    const finalPriceVal = originalPriceNum - discountVal;
+
+    return (
+      <div className="min-h-screen py-12 px-6 lg:px-8 bg-gradient-to-b from-background to-accent/10">
+        <div className="mx-auto max-w-3xl space-y-8 animate-in duration-300">
+          {/* Back button */}
+          <div className="flex items-center justify-between">
+            <Button 
+              variant="ghost" 
+              className="text-xs font-bold flex items-center gap-1 bg-background border border-border/40 hover:bg-muted"
+              onClick={() => {
+                setIsCheckoutOpen(false);
+                setProcessingPlan(null);
+                setSelectedPlan(null);
+                setAppliedPromo(null);
+              }}
+            >
+              ← Back to plans
+            </Button>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-3xs font-semibold bg-primary/10 text-primary">
+              <Shield className="h-3 w-3" />
+              <span>Secure Checkout</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Column: Plan Info */}
+            <div className="space-y-6">
+              <Card className="rounded-2xl border-border/50 bg-card shadow-lg p-6 space-y-4">
+                <div>
+                  <span className="text-[10px] bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Selected Plan</span>
+                  <h3 className="text-xl font-bold mt-2 text-foreground">{selectedPlan.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">{selectedPlan.description}</p>
+                </div>
+
+                <div className="border-t border-border/50 pt-4 space-y-3">
+                  <h4 className="text-2xs font-bold text-muted-foreground uppercase tracking-wider">Plan Features:</h4>
+                  <ul className="space-y-2 text-2xs text-muted-foreground">
+                    {selectedPlan.features.map((feat: string, i: number) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <Check className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Card>
+
+              {/* Price summary box */}
+              <Card className="rounded-2xl border-border/50 bg-primary/5 p-6 space-y-3">
+                <h4 className="text-2xs font-bold text-muted-foreground uppercase tracking-wider">Pricing Summary</h4>
+                <div className="flex justify-between text-xs font-medium text-foreground">
+                  <span>Regular Price:</span>
+                  <span>{selectedPlan.price}/{selectedPlan.period}</span>
+                </div>
+                {appliedPromo && (
+                  <div className="flex justify-between text-xs font-medium text-emerald-500">
+                    <span>Discount Code ({appliedPromo.code}):</span>
+                    <span>-{appliedPromo.discountType === "percentage" ? `${appliedPromo.discountPercent}%` : "100%"} (-${discountVal.toFixed(2)})</span>
+                  </div>
+                )}
+                <div className="border-t border-border/50 pt-3 flex justify-between text-sm font-bold text-foreground">
+                  <span>Total Due Now:</span>
+                  <span>${finalPriceVal.toFixed(2)}/{selectedPlan.period}</span>
+                </div>
+              </Card>
+            </div>
+
+            {/* Right Column: Checkout actions */}
+            <div className="space-y-6">
+              {/* Promo box */}
+              <Card className="rounded-2xl border-border/50 bg-card shadow-lg p-6 space-y-4">
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-foreground">Promo / Discount Code</h4>
+                  <p className="text-4xs text-muted-foreground">Apply coupon codes to discount subscription prices or unlock free months.</p>
+                </div>
+                <form onSubmit={handleApplyPromo} className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="e.g. DISCOUNT50"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="h-10 text-xs bg-background border-border/60 rounded-xl uppercase"
+                    required
+                    disabled={submittingPromo}
+                  />
+                  <Button 
+                    type="submit" 
+                    className="h-10 rounded-xl px-5 text-xs font-bold shrink-0 bg-primary hover:bg-primary/90"
+                    disabled={submittingPromo}
+                  >
+                    {submittingPromo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Apply"}
+                  </Button>
+                </form>
+                {promoError && (
+                  <p className="text-3xs text-rose-500 font-bold flex items-center gap-1">❌ {promoError}</p>
+                )}
+                {promoSuccess && (
+                  <p className="text-3xs text-emerald-500 font-bold flex items-center gap-1">✅ {promoSuccess}</p>
+                )}
+              </Card>
+
+              {/* Payment Box */}
+              <Card className="rounded-2xl border-border/50 bg-card shadow-lg p-6 space-y-4">
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-foreground">Complete Activation</h4>
+                  <p className="text-4xs text-muted-foreground">Finish your upgrade through secure PayPal or directly via coupon.</p>
+                </div>
+
+                {appliedPromo && (appliedPromo.discountType === "free" || appliedPromo.discountPercent === 100) ? (
+                  /* 100% free code -> just activate instantly */
+                  <div className="space-y-3 pt-2">
+                    <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-center space-y-1">
+                      <Sparkles className="h-5 w-5 text-emerald-500 mx-auto animate-pulse" />
+                      <p className="text-3xs font-bold text-emerald-500">Your plan is 100% Free for {appliedPromo.durationMonths} months!</p>
+                      <p className="text-4xs text-muted-foreground">No card or payment details required.</p>
+                    </div>
+                    <Button 
+                      onClick={handleRedeemFreePromo}
+                      className="w-full h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold"
+                      disabled={submittingPromo}
+                    >
+                      {submittingPromo ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                      Activate My Free Plan
+                    </Button>
+                  </div>
+                ) : (
+                  /* Regular PayPal payment */
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-center gap-2 justify-center py-1 bg-blue-500/5 border border-blue-500/10 rounded-xl">
+                      <CreditCard className="h-3.5 w-3.5 text-blue-500" />
+                      <span className="text-3xs font-bold text-blue-500">Pay securely with Credit Card or PayPal</span>
+                    </div>
+
+                    <div id={`paypal-sub-container-${selectedPlan.tier}`} className="w-full min-h-[150px] bg-accent/10 rounded-xl flex items-center justify-center border border-dashed border-border/50 p-4">
+                      <div className="flex flex-col items-center gap-2 text-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        <span className="text-4xs text-muted-foreground font-medium">Initializing secure PayPal gateway...</span>
+                      </div>
+                    </div>
+
+                    <p className="text-4xs text-center text-muted-foreground flex items-center justify-center gap-1">
+                      <Shield className="h-3 w-3 text-primary" />
+                      <span>Secure billing. Cancel at any time via PayPal.</span>
+                    </p>
+                  </div>
+                )}
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -415,92 +646,6 @@ export default function PlansPage() {
             );
           })}
         </div>
-
-        {/* Checkout Dialog */}
-        <Dialog open={isCheckoutOpen} onOpenChange={(open) => {
-          if (!open) {
-            setIsCheckoutOpen(false);
-            setProcessingPlan(null);
-            setSelectedPlan(null);
-          }
-        }}>
-          <DialogContent className="sm:max-w-md bg-background border border-border/80 rounded-2xl shadow-2xl p-6">
-            <DialogHeader className="space-y-2 text-center sm:text-center">
-              <DialogTitle className="text-xl font-bold flex items-center justify-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-                <span>Secure Checkout</span>
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground text-center">
-                Activate your {selectedPlan?.name || "Premium"} membership below.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="mt-4 space-y-6">
-              {/* Plan brief details */}
-              <div className="bg-primary/5 border border-primary/15 rounded-xl p-4 flex justify-between items-center">
-                <div className="text-left">
-                  <h4 className="text-sm font-bold text-foreground">{selectedPlan?.name}</h4>
-                  <p className="text-3xs text-muted-foreground max-w-[200px] truncate">{selectedPlan?.description}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-lg font-black text-foreground">{selectedPlan?.price}</span>
-                  <span className="text-3xs text-muted-foreground">/{selectedPlan?.period}</span>
-                </div>
-              </div>
-
-              {/* Promo code field */}
-              <div className="space-y-2.5">
-                <label className="text-xs font-bold text-foreground flex items-center justify-between">
-                  <span>Have a Promo/Coupon Code?</span>
-                  <span className="text-4xs font-medium text-teal-600 dark:text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded">Launch Offer</span>
-                </label>
-                <form onSubmit={handleRedeemPromo} className="flex gap-2">
-                  <Input
-                    type="text"
-                    placeholder="e.g. LAUNCH3FREE"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    className="h-10 text-xs bg-background border-border/60 rounded-xl"
-                    required
-                    disabled={submittingPromo}
-                  />
-                  <Button 
-                    type="submit" 
-                    className="h-10 rounded-xl px-5 text-xs font-bold shrink-0 bg-primary hover:bg-primary/90"
-                    disabled={submittingPromo}
-                  >
-                    {submittingPromo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Apply"}
-                  </Button>
-                </form>
-              </div>
-
-              {/* Or separator */}
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-border/50"></div>
-                <span className="flex-shrink mx-4 text-3xs text-muted-foreground uppercase font-bold tracking-wider">No Code?</span>
-                <div className="flex-grow border-t border-border/50"></div>
-              </div>
-
-              {/* PayPal Container */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 justify-center py-1 bg-blue-500/5 border border-blue-500/10 rounded-xl">
-                  <CreditCard className="h-3.5 w-3.5 text-blue-500" />
-                  <span className="text-3xs font-bold text-blue-500">Pay securely with Credit Card or PayPal</span>
-                </div>
-                <div id={`paypal-sub-container-${selectedPlan?.tier}`} className="w-full min-h-[150px] bg-accent/10 rounded-xl flex items-center justify-center border border-dashed border-border/50 p-4">
-                  <div className="flex flex-col items-center gap-2 text-center">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span className="text-4xs text-muted-foreground font-medium">Initializing secure PayPal gateway...</span>
-                  </div>
-                </div>
-                <p className="text-4xs text-center text-muted-foreground flex items-center justify-center gap-1">
-                  <Shield className="h-3 w-3 text-primary" />
-                  <span>Secure billing. Cancel at any time via PayPal.</span>
-                </p>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Support banner */}
         <div className="text-center pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs text-muted-foreground">

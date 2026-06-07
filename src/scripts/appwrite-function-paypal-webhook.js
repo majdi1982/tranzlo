@@ -54,10 +54,17 @@ module.exports = async function (context) {
     const subscriptionId = resource.id;
     const planId = resource.plan_id;
 
-    // Extract userId passed in the PayPal custom_id or subscriber custom_field
-    const userId = resource.custom_id || (resource.subscriber && resource.subscriber.custom_id);
+    // Extract userId and optional promoCode passed in the PayPal custom_id or subscriber custom_field (formatted as userId:promoCode)
+    const customId = resource.custom_id || (resource.subscriber && resource.subscriber.custom_id) || "";
+    let userId = customId;
+    let promoCode = "";
+    if (customId.includes(":")) {
+      const parts = customId.split(":");
+      userId = parts[0];
+      promoCode = parts[1];
+    }
 
-    log(`💎 Processing subscription ${subscriptionId} for plan ${planId} (User: ${userId})`);
+    log(`💎 Processing subscription ${subscriptionId} for plan ${planId} (User: ${userId}, Promo: ${promoCode})`);
 
     if (!userId) {
       error("❌ Webhook missing custom_id / userId in metadata.");
@@ -86,11 +93,30 @@ module.exports = async function (context) {
       }
 
       const profile = docs.documents[0];
-      await db.updateDocument(databaseId, collection, profile.$id, {
+      const updatePayload = {
         planTier: mapping.tier,
         paypalSubscriptionId: subscriptionId,
         updatedAt: new Date().toISOString()
-      });
+      };
+      if (promoCode) {
+        updatePayload.promoCodeUsed = promoCode;
+        try {
+          const promoDocs = await db.listDocuments(databaseId, "promo_codes", [
+            Query.equal("code", promoCode),
+            Query.limit(1)
+          ]);
+          if (promoDocs.documents.length > 0) {
+            const promo = promoDocs.documents[0];
+            await db.updateDocument(databaseId, "promo_codes", promo.$id, {
+              usedCount: (promo.usedCount || 0) + 1
+            });
+            log(`   ✅ Incremented usage count for promo code ${promoCode}`);
+          }
+        } catch (promoErr) {
+          error(`❌ Failed to increment promo code usage: ${promoErr.message}`);
+        }
+      }
+      await db.updateDocument(databaseId, collection, profile.$id, updatePayload);
 
       log(`   ✅ SUCCESS: Profile upgraded successfully!`);
       return res.json({ success: true, message: `Upgraded to ${mapping.tier}` });

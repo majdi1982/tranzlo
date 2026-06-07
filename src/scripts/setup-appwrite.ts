@@ -413,6 +413,8 @@ const SCHEMA: Col[] = [
       { key: "usedCount", type: "integer", required: false, default: 0 },
       { key: "isActive", type: "boolean", required: false, default: true },
       { key: "expiresAt", type: "datetime", required: false },
+      { key: "discountType", type: "string", size: 32, required: false, default: "free" },
+      { key: "discountPercent", type: "integer", required: false, default: 100 },
     ],
     indexes: [
       { id: "idx_promo_code", type: "unique", attributes: ["code"] }

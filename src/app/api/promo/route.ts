@@ -19,7 +19,7 @@ function getAdminClient() {
 
 export async function POST(req: Request) {
   try {
-    const { code } = await req.json();
+    const { code, planTier, action = "validate" } = await req.json();
     if (!code) {
       return NextResponse.json({ error: "Promo code is required" }, { status: 400 });
     }
@@ -91,6 +91,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This promo code has reached its usage limit." }, { status: 400 });
     }
 
+    // Verify plan tier if specified
+    if (planTier && promo.planTier !== planTier) {
+      return NextResponse.json({ error: `This coupon is only valid for the ${promo.planTier.toUpperCase()} membership tier.` }, { status: 400 });
+    }
+
     // 3. Fetch user profile
     const profileCollection = userRole === "translator" ? "translator_profiles" : "company_profiles";
     const profileResult = await db.listDocuments(
@@ -108,6 +113,26 @@ export async function POST(req: Request) {
     // Check if they already have an active promo plan or used this code
     if (profile.promoCodeUsed) {
       return NextResponse.json({ error: "You have already redeemed a promo code on this account." }, { status: 400 });
+    }
+
+    const isFreeCode = (promo.discountType === "free" || promo.discountPercent === 100);
+
+    if (action === "validate") {
+      return NextResponse.json({
+        success: true,
+        valid: true,
+        code: promo.code,
+        planTier: promo.planTier,
+        discountType: promo.discountType || "free",
+        discountPercent: promo.discountPercent !== undefined ? promo.discountPercent : 100,
+        durationMonths: promo.durationMonths,
+        isFree: isFreeCode,
+      });
+    }
+
+    // Action is "redeem" - only allowed for 100% free codes
+    if (!isFreeCode) {
+      return NextResponse.json({ error: "Percentage discount codes must be completed via secure PayPal checkout." }, { status: 400 });
     }
 
     // 4. Calculate subscription expiry date

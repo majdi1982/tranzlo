@@ -19,6 +19,8 @@ interface PromoCode {
   usedCount: number;
   isActive: boolean;
   expiresAt?: string;
+  discountType?: string;
+  discountPercent?: number;
 }
 
 export default function AdminPromoCodesPage() {
@@ -31,6 +33,8 @@ export default function AdminPromoCodesPage() {
   const [durationMonths, setDurationMonths] = React.useState("3");
   const [maxUses, setMaxUses] = React.useState("100");
   const [expiresAt, setExpiresAt] = React.useState("");
+  const [discountType, setDiscountType] = React.useState("free");
+  const [discountPercent, setDiscountPercent] = React.useState("100");
   const [submitting, setSubmitting] = React.useState(false);
 
   const fetchPromoCodes = async () => {
@@ -68,6 +72,8 @@ export default function AdminPromoCodesPage() {
         usedCount: 0,
         isActive: true,
         expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
+        discountType,
+        discountPercent: parseInt(discountPercent),
       };
 
       await db.createDocument(DB_ID, COLLECTIONS.promoCodes, ID.unique(), payload);
@@ -173,18 +179,50 @@ export default function AdminPromoCodesPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="duration" className="text-3xs font-bold text-muted-foreground uppercase tracking-wider">Duration (Months)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="1"
-                    max="12"
-                    required
-                    value={durationMonths}
-                    onChange={(e) => setDurationMonths(e.target.value)}
-                    className="h-9 text-2xs bg-background border-border/50 rounded-lg focus-visible:ring-0"
-                  />
+                  <Label htmlFor="discountType" className="text-3xs font-bold text-muted-foreground uppercase tracking-wider">Discount Type</Label>
+                  <Select value={discountType} onValueChange={(val) => {
+                    setDiscountType(val);
+                    if (val === "free") setDiscountPercent("100");
+                  }}>
+                    <SelectTrigger className="h-9 text-2xs bg-background border-border/50 rounded-lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border text-foreground rounded-lg">
+                      <SelectItem value="free" className="text-2xs font-medium">Free Access (100% Off)</SelectItem>
+                      <SelectItem value="percentage" className="text-2xs font-medium">Percentage Discount</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {discountType === "percentage" ? (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="discountPercent" className="text-3xs font-bold text-muted-foreground uppercase tracking-wider">Discount Percentage (%)</Label>
+                    <Input
+                      id="discountPercent"
+                      type="number"
+                      min="1"
+                      max="100"
+                      required
+                      value={discountPercent}
+                      onChange={(e) => setDiscountPercent(e.target.value)}
+                      className="h-9 text-2xs bg-background border-border/50 rounded-lg focus-visible:ring-0"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="duration" className="text-3xs font-bold text-muted-foreground uppercase tracking-wider">Duration (Months)</Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      min="1"
+                      max="12"
+                      required
+                      value={durationMonths}
+                      onChange={(e) => setDurationMonths(e.target.value)}
+                      className="h-9 text-2xs bg-background border-border/50 rounded-lg focus-visible:ring-0"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <Label htmlFor="maxUses" className="text-3xs font-bold text-muted-foreground uppercase tracking-wider">Max Uses</Label>
@@ -249,7 +287,7 @@ export default function AdminPromoCodesPage() {
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="text-xs font-bold text-foreground font-mono">{p.code}</span>
                             <span className="text-[10px] text-muted-foreground font-semibold px-2 py-0.5 rounded bg-muted">
-                              {p.planTier.toUpperCase()} • {p.durationMonths}m
+                              {p.planTier.toUpperCase()} • {p.discountType === "percentage" ? `${p.discountPercent}% Off` : `${p.durationMonths}m Free`}
                             </span>
                             {isCodeValid ? (
                               <span className="text-emerald-500 border border-emerald-500/20 bg-emerald-500/10 text-[8px] h-3.5 py-0 px-1.5 font-bold rounded flex items-center gap-1 shrink-0">
