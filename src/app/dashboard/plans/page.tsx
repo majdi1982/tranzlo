@@ -201,7 +201,7 @@ export default function PlansPage() {
             billing_cycles: [
               {
                 sequence: 1,
-                total_cycles: 0,
+                total_cycles: 1,
                 pricing_scheme: {
                   fixed_price: {
                     value: discountedVal,
