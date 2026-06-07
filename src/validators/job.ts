@@ -5,6 +5,9 @@ const serviceEntrySchema = z.object({
   quantity: z.number().positive("Quantity must be positive"),
   unit: z.string(),
   rate: z.number().positive().optional(),
+  rateMin: z.number().positive().optional(),
+  rateMax: z.number().positive().optional(),
+  isFixed: z.boolean().optional(),
 });
 
 export const createJobSchema = z.object({

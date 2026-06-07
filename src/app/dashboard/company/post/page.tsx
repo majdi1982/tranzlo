@@ -36,6 +36,9 @@ interface ServiceRow {
   quantity: number;
   unit: string;
   rate: number;
+  rateMin: number;
+  rateMax: number;
+  isFixed: boolean;
 }
 
 export default function PostJobPage() {
@@ -52,7 +55,9 @@ export default function PostJobPage() {
   const [workType, setWorkType] = React.useState<"onsite" | "online" | "hybrid">("online");
   const [deadline, setDeadline] = React.useState("");
   const [specializations, setSpecializations] = React.useState<string[]>([]);
-  const [services, setServices] = React.useState<ServiceRow[]>([{ serviceId: "translation", quantity: 1000, unit: "word", rate: 0.08 }]);
+  const [services, setServices] = React.useState<ServiceRow[]>([
+    { serviceId: "translation", quantity: 1000, unit: "word", rate: 0.08, rateMin: 0.04, rateMax: 0.08, isFixed: true }
+  ]);
   const [requiredCatTools, setRequiredCatTools] = React.useState<string[]>([]);
   const [requiresTest, setRequiresTest] = React.useState(false);
   const [testFileUrl, setTestFileUrl] = React.useState("");
@@ -73,14 +78,22 @@ export default function PostJobPage() {
   function addService() {
     if (availableServiceTypes.length === 0) return;
     const first = availableServiceTypes[0];
-    setServices([...services, { serviceId: first.id, quantity: 1000, unit: first.unit, rate: first.unit === "word" ? 0.08 : 25.00 }]);
+    setServices([...services, {
+      serviceId: first.id,
+      quantity: 1000,
+      unit: first.unit,
+      rate: first.unit === "word" ? 0.08 : 25.00,
+      rateMin: first.unit === "word" ? 0.04 : 15.00,
+      rateMax: first.unit === "word" ? 0.08 : 30.00,
+      isFixed: true
+    }]);
   }
 
   function removeService(idx: number) {
     setServices(services.filter((_, i) => i !== idx));
   }
 
-  function updateService(idx: number, field: keyof ServiceRow, value: string | number) {
+  function updateService(idx: number, field: keyof ServiceRow, value: any) {
     setServices(services.map((s, i) => {
       if (i !== idx) return s;
       const next = { ...s, [field]: value };
@@ -88,6 +101,8 @@ export default function PostJobPage() {
         const svc = SERVICE_TYPES.find((st) => st.id === value);
         next.unit = svc?.unit ?? "word";
         next.rate = next.unit === "word" ? 0.08 : 25.00;
+        next.rateMin = next.unit === "word" ? 0.04 : 15.00;
+        next.rateMax = next.unit === "word" ? 0.08 : 30.00;
       }
       return next;
     }));
@@ -111,8 +126,21 @@ export default function PostJobPage() {
     return found ? found.rate : 0;
   }, [reviewerType, selectedAiReviewer]);
 
-  const totalBudget = React.useMemo(() => {
-    const baseCost = services.reduce((sum, s) => sum + s.quantity * s.rate, 0);
+  const totalBudgetMin = React.useMemo(() => {
+    const baseCost = services.reduce((sum, s) => {
+      const val = s.isFixed ? s.rate : s.rateMin;
+      return sum + s.quantity * val;
+    }, 0);
+    const totalWords = services.reduce((sum, s) => sum + (s.unit === "word" ? s.quantity : 0), 0);
+    const aiReviewCost = totalWords * selectedReviewerRate;
+    return baseCost + aiReviewCost;
+  }, [services, selectedReviewerRate]);
+
+  const totalBudgetMax = React.useMemo(() => {
+    const baseCost = services.reduce((sum, s) => {
+      const val = s.isFixed ? s.rate : s.rateMax;
+      return sum + s.quantity * val;
+    }, 0);
     const totalWords = services.reduce((sum, s) => sum + (s.unit === "word" ? s.quantity : 0), 0);
     const aiReviewCost = totalWords * selectedReviewerRate;
     return baseCost + aiReviewCost;
@@ -139,7 +167,7 @@ export default function PostJobPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
-
+ 
     if (requiresTest) {
       if (!testFileUrl) {
         setErrors((prev) => ({ ...prev, testFile: "Test file is required when 'Require translation test' is active." }));
@@ -155,20 +183,15 @@ export default function PostJobPage() {
         return;
       }
     }
-
-    if (!budgetMin || Number(budgetMin) <= 0) {
-      setErrors((prev) => ({ ...prev, budgetMin: "Minimum budget must be positive." }));
+ 
+    const finalBudgetMin = Math.round(totalBudgetMin);
+    const finalBudgetMax = Math.round(totalBudgetMax);
+ 
+    if (finalBudgetMin <= 0 || finalBudgetMax <= 0) {
+      toast({ title: "Total budget must be a positive number. Please check service rates.", variant: "destructive" });
       return;
     }
-    if (!budgetMax || Number(budgetMax) <= 0) {
-      setErrors((prev) => ({ ...prev, budgetMax: "Maximum budget must be positive." }));
-      return;
-    }
-    if (Number(budgetMin) > Number(budgetMax)) {
-      setErrors((prev) => ({ ...prev, budgetMin: "Minimum budget cannot exceed maximum budget." }));
-      return;
-    }
-
+ 
     const formData = {
       title,
       description,
@@ -176,12 +199,20 @@ export default function PostJobPage() {
       targetLanguage: targetLanguages.join(", "),
       country: (workType === "onsite" || workType === "hybrid") ? country : undefined,
       workType,
-      budget: Number(budgetMax),
-      budgetMin: Number(budgetMin),
-      budgetMax: Number(budgetMax),
+      budget: finalBudgetMax,
+      budgetMin: finalBudgetMin,
+      budgetMax: finalBudgetMax,
       deadline,
       specializations,
-      services: services.map((s) => ({ serviceId: s.serviceId, quantity: s.quantity, unit: s.unit, rate: s.rate })),
+      services: services.map((s) => ({
+        serviceId: s.serviceId,
+        quantity: s.quantity,
+        unit: s.unit,
+        rate: s.isFixed ? s.rate : undefined,
+        rateMin: !s.isFixed ? s.rateMin : undefined,
+        rateMax: !s.isFixed ? s.rateMax : undefined,
+        isFixed: s.isFixed
+      })),
       requiredCatTools: requiredCatTools.length > 0 ? requiredCatTools : undefined,
       requiresTest,
       testFileUrl: requiresTest ? testFileUrl : undefined,
@@ -189,9 +220,9 @@ export default function PostJobPage() {
       testWordCount: requiresTest ? Number(testWordCount) : undefined,
       reviewerType,
     };
-
+ 
     const parsed = createJobSchema.safeParse(formData);
-
+ 
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
       parsed.error.errors.forEach((err) => {
@@ -201,21 +232,21 @@ export default function PostJobPage() {
       setErrors(fieldErrors);
       return;
     }
-
+ 
     if ((workType === "onsite" || workType === "hybrid") && !country) {
       setErrors((prev) => ({ ...prev, country: "Country is required for physical location jobs" }));
       return;
     }
-
+ 
     setSaving(true);
     try {
       const svc = getServices();
       await svc.job.createJob({
         ...parsed.data,
         services: JSON.stringify(parsed.data.services),
-        budget: Number(budgetMax),
-        budgetMin: Number(budgetMin),
-        budgetMax: Number(budgetMax),
+        budget: finalBudgetMax,
+        budgetMin: finalBudgetMin,
+        budgetMax: finalBudgetMax,
         companyId: user?.$id || "",
       });
       toast({ title: "Job posted successfully!", variant: "success" });
@@ -526,7 +557,13 @@ export default function PostJobPage() {
                     </Button>
                   )}
                   <div className="flex justify-end pt-2 border-t">
-                    <div className="text-lg font-bold">Total Budget: ${Math.round(totalBudget).toLocaleString()}</div>
+                    <div className="text-lg font-bold">
+                      Total Budget: {totalBudgetMin === totalBudgetMax ? (
+                        `$${Math.round(totalBudgetMin).toLocaleString()}`
+                      ) : (
+                        `$${Math.round(totalBudgetMin).toLocaleString()} - $${Math.round(totalBudgetMax).toLocaleString()}`
+                      )}
+                    </div>
                   </div>
                   {errors.services && <p className="text-xs text-destructive">{errors.services}</p>}
                 </CardContent>
@@ -589,43 +626,19 @@ export default function PostJobPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Reviewer</Label>
-                    <div className="flex gap-6">
-                      <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                        <input type="radio" name="reviewerType" value="company" checked={reviewerType === "company"} onChange={() => setReviewerType("company")} className="mt-0.5 h-4 w-4" />
-                        <div>
-                          <p className="text-sm font-medium">Company selects reviewer</p>
-                          <p className="text-xs text-muted-foreground mt-1">We will assign a reviewer from our team to check the translation quality</p>
-                        </div>
-                      </label>
-                      <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                        <input type="radio" name="reviewerType" value="translator" checked={reviewerType === "translator"} onChange={() => setReviewerType("translator")} className="mt-0.5 h-4 w-4" />
-                        <div>
-                          <p className="text-sm font-medium">We provides reviewer (AI Reviewer)</p>
-                          <p className="text-xs text-muted-foreground mt-1">Select an advanced AI engine to review and check the translation quality. The client is responsible for paying the AI Reviewer cost.</p>
-                        </div>
-                      </label>
+                    <div className="flex items-start gap-3 p-3 rounded-lg border bg-card/50">
+                      <input
+                        id="companyReviewer"
+                        type="checkbox"
+                        checked={reviewerType === "company"}
+                        onChange={(e) => setReviewerType(e.target.checked ? "company" : "translator")}
+                        className="mt-1 h-4 w-4 rounded border-input text-teal-600 focus:ring-teal-500"
+                      />
+                      <Label htmlFor="companyReviewer" className="flex flex-col cursor-pointer select-none">
+                        <span className="text-sm font-medium text-foreground">Company selects reviewer</span>
+                        <span className="text-xs text-muted-foreground mt-1">We will assign a reviewer from our team to check the translation quality</span>
+                      </Label>
                     </div>
-                    {reviewerType === "translator" && (
-                      <div className="p-4 rounded-xl border border-border/40 bg-muted/20 space-y-3 mt-3">
-                        <Label htmlFor="aiReviewerSelect">Select AI Reviewer Model</Label>
-                        <Select value={selectedAiReviewer} onValueChange={setSelectedAiReviewer}>
-                          <SelectTrigger id="aiReviewerSelect" className="bg-background">
-                            <SelectValue placeholder="Choose AI reviewer..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {AI_REVIEWERS.map((r) => (
-                              <SelectItem key={r.id} value={r.id}>
-                                {r.name} (${r.rate}/word)
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">
-                          {AI_REVIEWERS.find((r) => r.id === selectedAiReviewer)?.description}
-                        </p>
-                      </div>
-                    )}
                     {errors.reviewerType && <p className="text-xs text-destructive">{errors.reviewerType}</p>}
                   </div>
 
@@ -748,10 +761,14 @@ export default function PostJobPage() {
                       <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
                       {errors.deadline && <p className="text-xs text-destructive">{errors.deadline}</p>}
                     </div>
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                       <Label>Est. Services Budget (Reference)</Label>
                       <div className="h-10 flex items-center text-sm font-semibold px-3 border rounded-md bg-muted/30">
-                        ${Math.round(totalBudget).toLocaleString()} USD
+                        {totalBudgetMin === totalBudgetMax ? (
+                          `$${Math.round(totalBudgetMin).toLocaleString()} USD`
+                        ) : (
+                          `$${Math.round(totalBudgetMin).toLocaleString()} - $${Math.round(totalBudgetMax).toLocaleString()} USD`
+                        )}
                       </div>
                     </div>
                   </div>
