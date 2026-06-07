@@ -168,30 +168,19 @@ export function Navbar() {
     }
 
     return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">
-            {theme === "light" && <Sun className="h-4 w-4" />}
-            {theme === "dark" && <Moon className="h-4 w-4" />}
-            {theme === "system" && <Monitor className="h-4 w-4" />}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-36 mt-1 rounded-lg">
-          <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2 cursor-pointer rounded-md">
-            <Sun className="h-4 w-4" />
-            <span>Light</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2 cursor-pointer rounded-md">
-            <Moon className="h-4 w-4" />
-            <span>Dark</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2 cursor-pointer rounded-md">
-            <Monitor className="h-4 w-4" />
-            <span>System</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+        className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+      >
+        {theme === "light" ? (
+          <Sun className="h-4.5 w-4.5" />
+        ) : (
+          <Moon className="h-4.5 w-4.5" />
+        )}
+        <span className="sr-only">Toggle theme</span>
+      </Button>
     );
   };
 
