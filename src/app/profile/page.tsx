@@ -1121,7 +1121,7 @@ function ProfileContent() {
                         value={translatorData.fullName}
                         onChange={(e) => setTranslatorData((p) => ({ ...p, fullName: e.target.value }))}
                         placeholder="Your full name"
-                        className="rounded-xl border-border/50"
+                        className="rounded-xl"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1132,68 +1132,9 @@ function ProfileContent() {
                         value={translatorData.paypalEmail}
                         onChange={(e) => setTranslatorData((p) => ({ ...p, paypalEmail: e.target.value }))}
                         placeholder="your-paypal-email@domain.com"
-                        className="rounded-xl border-border/50"
+                        className="rounded-xl"
                       />
                       <p className="text-4xs text-muted-foreground">PayPal payouts are sent directly to this address. Ensure it is correct.</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-semibold">WhatsApp Number</Label>
-                      <div className="flex gap-2">
-                        <ResponsiveSelect
-                          options={COUNTRY_CODES.map((c) => ({
-                            value: c.code,
-                            label: `${c.flag} ${c.code} (${c.name})`,
-                          }))}
-                          value={(() => {
-                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                            for (const c of sortedCodes) {
-                              if (translatorData.phone.startsWith(c.code)) return c.code;
-                            }
-                            return "+966";
-                          })()}
-                          onChange={(newCode) => {
-                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                            let currentNumber = translatorData.phone;
-                            for (const c of sortedCodes) {
-                              if (translatorData.phone.startsWith(c.code)) {
-                                currentNumber = translatorData.phone.substring(c.code.length);
-                                break;
-                              }
-                            }
-                            setTranslatorData((p) => ({ ...p, phone: newCode + currentNumber.replace(/^[0]+/g, "") }));
-                          }}
-                          placeholder="Select code"
-                          searchPlaceholder="Search country..."
-                          label="Country Code"
-                          className="w-[140px] shrink-0"
-                        />
-                        <Input
-                          id="phone"
-                          type="text"
-                          placeholder="e.g. 501234567"
-                          value={(() => {
-                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                            for (const c of sortedCodes) {
-                              if (translatorData.phone.startsWith(c.code)) return translatorData.phone.substring(c.code.length);
-                            }
-                            return translatorData.phone;
-                          })()}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/[^0-9]/g, ""); // Keep only digits
-                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                            let activeCode = "+966";
-                            for (const c of sortedCodes) {
-                              if (translatorData.phone.startsWith(c.code)) {
-                                activeCode = c.code;
-                                break;
-                              }
-                            }
-                            setTranslatorData((p) => ({ ...p, phone: activeCode + val.replace(/^[0]+/g, "") }));
-                          }}
-                          className="rounded-xl border-border/50 flex-1"
-                        />
-                      </div>
-                      <p className="text-2xs text-muted-foreground leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1212,7 +1153,7 @@ function ProfileContent() {
                         value={translatorData.bio}
                         onChange={(e) => setTranslatorData((p) => ({ ...p, bio: e.target.value }))}
                         placeholder="Tell clients about your specialized experience, translation processes..."
-                        className="min-h-[110px] rounded-xl border-border/50"
+                        className="min-h-[110px] rounded-xl"
                       />
                     </div>
                   </CardContent>
@@ -1515,7 +1456,7 @@ function ProfileContent() {
                                   step="0.001"
                                   value={pricingItem.rate}
                                   onChange={(e) => handleServiceRateChange(service.id, Number(e.target.value))}
-                                  className="w-20 h-7 rounded-lg text-xs py-1 px-2 border-border/50"
+                                  className="w-20 h-7 rounded-lg text-xs py-1 px-2"
                                 />
                                 <span className="text-4xs text-muted-foreground uppercase font-semibold">USD / {pricingItem.unit}</span>
                               </div>
@@ -1652,7 +1593,7 @@ function ProfileContent() {
                         value={translatorData.seoKeywords}
                         onChange={(e) => setTranslatorData((p) => ({ ...p, seoKeywords: e.target.value }))}
                         placeholder="arabic translator, legal documents translation, sdl trados expert"
-                        className="rounded-xl border-border/50"
+                        className="rounded-xl"
                       />
                     </div>
                   </CardContent>
@@ -1674,7 +1615,7 @@ function ProfileContent() {
                         value={companyData.companyName}
                         onChange={(e) => setCompanyData((p) => ({ ...p, companyName: e.target.value }))}
                         placeholder="Your company name"
-                        className="rounded-xl border-border/50"
+                        className="rounded-xl"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1684,7 +1625,7 @@ function ProfileContent() {
                         value={companyData.fullName}
                         onChange={(e) => setCompanyData((p) => ({ ...p, fullName: e.target.value }))}
                         placeholder="Your full name"
-                        className="rounded-xl border-border/50"
+                        className="rounded-xl"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1695,7 +1636,7 @@ function ProfileContent() {
                         value={companyData.paypalEmail}
                         onChange={(e) => setCompanyData((p) => ({ ...p, paypalEmail: e.target.value }))}
                         placeholder="billing-paypal@company.com"
-                        className="rounded-xl border-border/50"
+                        className="rounded-xl"
                       />
                       <p className="text-4xs text-muted-foreground">PayPal invoice billing email for payments and refunds.</p>
                     </div>
@@ -1706,67 +1647,8 @@ function ProfileContent() {
                         value={companyData.contactPerson}
                         onChange={(e) => setCompanyData((p) => ({ ...p, contactPerson: e.target.value }))}
                         placeholder="HR Specialist / Procurement Manager"
-                        className="rounded-xl border-border/50"
+                        className="rounded-xl"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-semibold">WhatsApp Number</Label>
-                      <div className="flex gap-2">
-                        <ResponsiveSelect
-                          options={COUNTRY_CODES.map((c) => ({
-                            value: c.code,
-                            label: `${c.flag} ${c.code} (${c.name})`,
-                          }))}
-                          value={(() => {
-                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                            for (const c of sortedCodes) {
-                              if (companyData.phone.startsWith(c.code)) return c.code;
-                            }
-                            return "+966";
-                          })()}
-                          onChange={(newCode) => {
-                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                            let currentNumber = companyData.phone;
-                            for (const c of sortedCodes) {
-                              if (companyData.phone.startsWith(c.code)) {
-                                currentNumber = companyData.phone.substring(c.code.length);
-                                break;
-                              }
-                            }
-                            setCompanyData((p) => ({ ...p, phone: newCode + currentNumber.replace(/^[0]+/g, "") }));
-                          }}
-                          placeholder="Select code"
-                          searchPlaceholder="Search country..."
-                          label="Country Code"
-                          className="w-[140px] shrink-0"
-                        />
-                        <Input
-                          id="phone"
-                          type="text"
-                          placeholder="e.g. 501234567"
-                          value={(() => {
-                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                            for (const c of sortedCodes) {
-                              if (companyData.phone.startsWith(c.code)) return companyData.phone.substring(c.code.length);
-                            }
-                            return companyData.phone;
-                          })()}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/[^0-9]/g, ""); // Keep only digits
-                            const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                            let activeCode = "+966";
-                            for (const c of sortedCodes) {
-                              if (companyData.phone.startsWith(c.code)) {
-                                activeCode = c.code;
-                                break;
-                              }
-                            }
-                            setCompanyData((p) => ({ ...p, phone: activeCode + val.replace(/^[0]+/g, "") }));
-                          }}
-                          className="rounded-xl border-border/50 flex-1"
-                        />
-                      </div>
-                      <p className="text-2xs text-muted-foreground leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1787,7 +1669,7 @@ function ProfileContent() {
                           value={companyData.website}
                           onChange={(e) => setCompanyData((p) => ({ ...p, website: e.target.value }))}
                           placeholder="https://example.com"
-                          className="rounded-xl border-border/50"
+                          className="rounded-xl"
                         />
                       </div>
                       <div className="space-y-2">
@@ -1813,7 +1695,7 @@ function ProfileContent() {
                         value={companyData.about}
                         onChange={(e) => setCompanyData((p) => ({ ...p, about: e.target.value }))}
                         placeholder="Describe your company's translation needs, business model..."
-                        className="min-h-[110px] rounded-xl border-border/50"
+                        className="min-h-[110px] rounded-xl"
                       />
                     </div>
                   </CardContent>
@@ -1953,7 +1835,7 @@ function ProfileContent() {
                         value={companyData.seoKeywords}
                         onChange={(e) => setCompanyData((p) => ({ ...p, seoKeywords: e.target.value }))}
                         placeholder="translation agency, localized solutions provider, document scanning"
-                        className="rounded-xl border-border/50"
+                        className="rounded-xl"
                       />
                     </div>
                   </CardContent>
@@ -2034,7 +1916,7 @@ function ProfileContent() {
                         onChange={(e) => setRequestReason(e.target.value)}
                         placeholder="Please explain why you want to change your languages..."
                         rows={4}
-                        className="rounded-xl border-border/50 text-xs"
+                        className="rounded-xl text-xs"
                       />
                     </div>
                   </div>

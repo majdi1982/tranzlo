@@ -527,63 +527,7 @@ export default function OnboardingPage() {
                     )}
                   </div>
 
-                  {/* WhatsApp Number */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">WhatsApp Number</Label>
-                    <div className="flex gap-2">
-                      <ResponsiveSelect
-                        options={COUNTRY_CODES.map((c) => ({ value: c.code, label: `${c.flag} ${c.code} (${c.name})` }))}
-                        value={(() => {
-                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                          for (const c of sortedCodes) {
-                            if (phone.startsWith(c.code)) return c.code;
-                          }
-                          return "+966";
-                        })()}
-                        onChange={(newCode) => {
-                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                          let currentNumber = phone;
-                          for (const c of sortedCodes) {
-                            if (phone.startsWith(c.code)) {
-                              currentNumber = phone.substring(c.code.length);
-                              break;
-                            }
-                          }
-                          setPhone(newCode + currentNumber.replace(/^[0]+/g, ""));
-                        }}
-                        placeholder="Code"
-                        searchPlaceholder="Search country..."
-                        label="Country Code"
-                        className="w-[140px] shrink-0"
-                      />
-                      <Input
-                        id="phone"
-                        type="text"
-                        placeholder="e.g. 501234567"
-                        value={(() => {
-                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                          for (const c of sortedCodes) {
-                            if (phone.startsWith(c.code)) return phone.substring(c.code.length);
-                          }
-                          return phone;
-                        })()}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^0-9]/g, ""); // Keep only digits
-                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                          let activeCode = "+966";
-                          for (const c of sortedCodes) {
-                            if (phone.startsWith(c.code)) {
-                              activeCode = c.code;
-                              break;
-                            }
-                          }
-                          setPhone(activeCode + val.replace(/^[0]+/g, "")); // Remove leading zeros for clean format
-                        }}
-                        className="bg-background border-border rounded-md flex-1"
-                      />
-                    </div>
-                    <p className="text-2xs text-muted-foreground leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
-                  </div>
+
 
                   {/* CAT Tools Selector */}
                   <div className="space-y-2">
@@ -608,7 +552,7 @@ export default function OnboardingPage() {
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                       rows={4}
-                      className="bg-background border-border rounded-md resize-none"
+                      className="bg-background rounded-md resize-none"
                     />
                   </div>
                 </div>
@@ -622,7 +566,7 @@ export default function OnboardingPage() {
                       placeholder="Tranzlo Enterprise"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      className="bg-background border-border rounded-md"
+                      className="bg-background rounded-md"
                     />
                   </div>
 
@@ -633,67 +577,11 @@ export default function OnboardingPage() {
                       placeholder="https://example.com"
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
-                      className="bg-background border-border rounded-md"
+                      className="bg-background rounded-md"
                     />
                   </div>
 
-                  {/* WhatsApp Number */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">WhatsApp Number</Label>
-                    <div className="flex gap-2">
-                      <ResponsiveSelect
-                        options={COUNTRY_CODES.map((c) => ({ value: c.code, label: `${c.flag} ${c.code} (${c.name})` }))}
-                        value={(() => {
-                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                          for (const c of sortedCodes) {
-                            if (phone.startsWith(c.code)) return c.code;
-                          }
-                          return "+966";
-                        })()}
-                        onChange={(newCode) => {
-                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                          let currentNumber = phone;
-                          for (const c of sortedCodes) {
-                            if (phone.startsWith(c.code)) {
-                              currentNumber = phone.substring(c.code.length);
-                              break;
-                            }
-                          }
-                          setPhone(newCode + currentNumber.replace(/^[0]+/g, ""));
-                        }}
-                        placeholder="Code"
-                        searchPlaceholder="Search country..."
-                        label="Country Code"
-                        className="w-[140px] shrink-0"
-                      />
-                      <Input
-                        id="companyPhone"
-                        type="text"
-                        placeholder="e.g. 501234567"
-                        value={(() => {
-                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                          for (const c of sortedCodes) {
-                            if (phone.startsWith(c.code)) return phone.substring(c.code.length);
-                          }
-                          return phone;
-                        })()}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^0-9]/g, ""); // Keep only digits
-                          const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-                          let activeCode = "+966";
-                          for (const c of sortedCodes) {
-                            if (phone.startsWith(c.code)) {
-                              activeCode = c.code;
-                              break;
-                            }
-                          }
-                          setPhone(activeCode + val.replace(/^[0]+/g, "")); // Remove leading zeros for clean format
-                        }}
-                        className="bg-background border-border rounded-md flex-1"
-                      />
-                    </div>
-                    <p className="text-2xs text-muted-foreground leading-relaxed">Select your country code and enter your WhatsApp number (without leading zeros or symbols).</p>
-                  </div>
+
 
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Company Size</Label>
@@ -719,7 +607,7 @@ export default function OnboardingPage() {
                       value={about}
                       onChange={(e) => setAbout(e.target.value)}
                       rows={4}
-                      className="bg-background border-border rounded-md resize-none"
+                      className="bg-background rounded-md resize-none"
                     />
                   </div>
                 </div>
@@ -809,7 +697,7 @@ export default function OnboardingPage() {
                         value={seoKeywordsInput}
                         onChange={(e) => setSeoKeywordsInput(e.target.value)}
                         onKeyDown={handleAddKeyword}
-                        className="bg-background border-border rounded-md h-9 text-xs"
+                        className="bg-background rounded-md h-9 text-xs"
                       />
 
                       {seoKeywords.length > 0 && (
