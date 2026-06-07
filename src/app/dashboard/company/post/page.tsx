@@ -184,6 +184,86 @@ function SearchableSpecializationSelect({ id, placeholder, selected, onSelect }:
   );
 }
 
+interface SearchableCatToolSelectProps {
+  id: string;
+  placeholder: string;
+  selected: string[];
+  onSelect: (value: string) => void;
+}
+
+function SearchableCatToolSelect({ id, placeholder, selected, onSelect }: SearchableCatToolSelectProps) {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = CAT_TOOLS.filter((tool) =>
+    tool.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        id={id}
+        onClick={() => setOpen(!open)}
+        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-left"
+      >
+        <span className="text-muted-foreground">{placeholder}</span>
+        <span className="h-4 w-4 opacity-50 flex items-center justify-center">▼</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-50 min-w-[8rem] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-none mt-1 p-1 max-h-[300px] flex flex-col bg-background">
+          <div className="flex items-center border-b px-3 py-2 gap-2">
+            <Search className="h-4 w-4 shrink-0 opacity-50" />
+            <input
+              className="flex h-8 w-full rounded-md bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Search CAT tool..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="overflow-y-auto max-h-[220px] py-1">
+            {filtered.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">No CAT tool found.</div>
+            ) : (
+              filtered.map((tool) => {
+                const isSelected = selected.includes(tool.id);
+                return (
+                  <button
+                    key={tool.id}
+                    type="button"
+                    disabled={isSelected}
+                    onClick={() => {
+                      onSelect(tool.id);
+                      setOpen(false);
+                      setSearch("");
+                    }}
+                    className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {tool.name}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const AI_REVIEWERS = [
   { id: "gpt4o", name: "GPT-4o Reviewer", rate: 0.005, description: "Highly accurate linguistic analysis and feedback." },
   { id: "claude", name: "Claude 3.5 Sonnet Reviewer", rate: 0.008, description: "Outstanding style, natural flow, and premium review quality." },
@@ -744,22 +824,16 @@ export default function PostJobPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="catToolSelect">Add Required CAT Tool</Label>
-                    <Select onValueChange={(val) => {
-                      if (val && !requiredCatTools.includes(val)) {
-                        setRequiredCatTools([...requiredCatTools, val]);
-                      }
-                    }}>
-                      <SelectTrigger id="catToolSelect">
-                        <SelectValue placeholder="Choose a CAT tool..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CAT_TOOLS.map((tool) => (
-                          <SelectItem key={tool.id} value={tool.id} disabled={requiredCatTools.includes(tool.id)}>
-                            {tool.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableCatToolSelect
+                      id="catToolSelect"
+                      placeholder="Choose a CAT tool..."
+                      selected={requiredCatTools}
+                      onSelect={(val) => {
+                        if (val && !requiredCatTools.includes(val)) {
+                          setRequiredCatTools([...requiredCatTools, val]);
+                        }
+                      }}
+                    />
                   </div>
 
                   {requiredCatTools.length > 0 && (
@@ -788,32 +862,13 @@ export default function PostJobPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Review & Testing</CardTitle>
-                  <CardDescription>Configure reviewer assignment and translator testing</CardDescription>
+                  <CardTitle>Translator Testing</CardTitle>
+                  <CardDescription>Configure recruitment testing for applicants</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-3 p-3 rounded-lg border bg-card/50">
-                      <input
-                        id="companyReviewer"
-                        type="checkbox"
-                        checked={reviewerType === "company"}
-                        onChange={(e) => setReviewerType(e.target.checked ? "company" : "translator")}
-                        className="mt-1 h-4 w-4 rounded border-input text-teal-600 focus:ring-teal-500"
-                      />
-                      <Label htmlFor="companyReviewer" className="flex flex-col cursor-pointer select-none">
-                        <span className="text-sm font-medium text-foreground">Company selects reviewer</span>
-                        <span className="text-xs text-muted-foreground mt-1">We will assign a reviewer from our team to check the translation quality</span>
-                      </Label>
-                    </div>
-                    {errors.reviewerType && <p className="text-xs text-destructive">{errors.reviewerType}</p>}
-                  </div>
-
-                  <Separator />
-
                   <div className="flex items-center gap-3">
-                    <input id="requiresTest" type="checkbox" checked={requiresTest} onChange={(e) => setRequiresTest(e.target.checked)} className="h-4 w-4 rounded border-input" />
-                    <Label htmlFor="requiresTest" className="flex items-center gap-2 text-sm font-normal cursor-pointer">
+                    <input id="requiresTest" type="checkbox" checked={requiresTest} onChange={(e) => setRequiresTest(e.target.checked)} className="h-4 w-4 rounded border-input text-teal-600 focus:ring-teal-500" />
+                    <Label htmlFor="requiresTest" className="flex items-center gap-2 text-sm font-normal cursor-pointer select-none">
                       <TestTube className="h-4 w-4 text-muted-foreground" />
                       Require a translation test from applicants
                     </Label>
@@ -898,38 +953,12 @@ export default function PostJobPage() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="budgetMin">Minimum Budget (USD)</Label>
-                      <Input
-                        id="budgetMin"
-                        type="number"
-                        min="1"
-                        value={budgetMin}
-                        onChange={(e) => setBudgetMin(e.target.value)}
-                        placeholder="e.g. 50"
-                      />
-                      {errors.budgetMin && <p className="text-xs text-destructive">{errors.budgetMin}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="budgetMax">Maximum Budget (USD)</Label>
-                      <Input
-                        id="budgetMax"
-                        type="number"
-                        min="1"
-                        value={budgetMax}
-                        onChange={(e) => setBudgetMax(e.target.value)}
-                        placeholder="e.g. 300"
-                      />
-                      {errors.budgetMax && <p className="text-xs text-destructive">{errors.budgetMax}</p>}
-                    </div>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
                       <Label htmlFor="deadline">Deadline</Label>
                       <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
                       {errors.deadline && <p className="text-xs text-destructive">{errors.deadline}</p>}
                     </div>
-                     <div className="space-y-2">
-                      <Label>Est. Services Budget (Reference)</Label>
+                    <div className="space-y-2">
+                      <Label>Calculated Project Budget</Label>
                       <div className="h-10 flex items-center text-sm font-semibold px-3 border rounded-md bg-muted/30">
                         {totalBudgetMin === totalBudgetMax ? (
                           `$${Math.round(totalBudgetMin).toLocaleString()} USD`
