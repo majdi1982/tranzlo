@@ -105,38 +105,9 @@ export async function PATCH(
 
       const profile = profileResult.documents[0];
 
-      // 2. Clean up native language if no longer in requested languages
-      let newNativeLang = profile.nativeLanguage || "";
-      if (newNativeLang && !requestedLangs.includes(newNativeLang)) {
-        newNativeLang = requestedLangs[0] || "";
-      }
-
-      // 3. Clean up language pairs to only include valid pairs
-      let newLanguagePairsStr = "";
-      if (profile.languagePairs) {
-        try {
-          const pairs = typeof profile.languagePairs === "string"
-            ? JSON.parse(profile.languagePairs)
-            : profile.languagePairs;
-
-          if (Array.isArray(pairs)) {
-            const validPairs = pairs.filter((p: any) => 
-              requestedLangs.includes(p.source) && requestedLangs.includes(p.target)
-            );
-            newLanguagePairsStr = JSON.stringify(validPairs);
-          }
-        } catch (e) {
-          console.error("Failed to parse/filter language pairs on approval:", e);
-        }
-      }
-
-      // 4. Update the profile (resetting verification status to require re-verification)
+      // 2. Update the profile (unlocking language selections for editing)
       await db.updateDocument(dbId, "translator_profiles", profile.$id, {
-        languages: requestedLangs,
-        nativeLanguage: newNativeLang,
-        languagePairs: newLanguagePairsStr,
-        isVerified: false,
-        verificationStatus: "unverified",
+        languagesUnlocked: true,
         updatedAt: new Date().toISOString()
       });
     }

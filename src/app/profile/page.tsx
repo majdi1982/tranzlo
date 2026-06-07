@@ -75,6 +75,7 @@ function ProfileContent() {
     planTier: "free",
     pricing: [] as { serviceId: string; rate: number; unit: string }[],
     paypalEmail: "",
+    languagesUnlocked: false,
   });
 
   // Company state
@@ -106,6 +107,7 @@ function ProfileContent() {
   const [requestedLanguages, setRequestedLanguages] = React.useState<string[]>([]);
   const [requestReason, setRequestReason] = React.useState("");
   const [submittingRequest, setSubmittingRequest] = React.useState(false);
+  const [initialLanguages, setInitialLanguages] = React.useState<string[]>([]);
 
   // Dynamically set SEO settings based on the currently displayed profile
   useDynamicSEO(role === "translator" ? {
@@ -191,7 +193,9 @@ function ProfileContent() {
             planTier: translatorProfile.planTier || "free",
             pricing: parsedPricing,
             paypalEmail: translatorProfile.paypalEmail || "",
+            languagesUnlocked: (translatorProfile as any).languagesUnlocked || false,
           });
+          setInitialLanguages(translatorProfile.languages || []);
           foundProfile = true;
 
           // Fetch language change requests
@@ -445,7 +449,9 @@ function ProfileContent() {
           setSaving(false);
           return;
         }
-        await services.profile.updateTranslatorProfile(user.$id, {
+        const languagesChanged = JSON.stringify([...translatorData.languages].sort()) !== JSON.stringify([...initialLanguages].sort());
+        
+        const translatorPayload: any = {
           fullName: translatorData.fullName,
           bio: translatorData.bio,
           hourlyRate: 0,
@@ -469,7 +475,23 @@ function ProfileContent() {
           onboardingComplete: true,
           pricing: JSON.stringify(translatorData.pricing || []),
           paypalEmail: translatorData.paypalEmail || undefined,
-        });
+        };
+
+        if (languagesChanged) {
+          translatorPayload.isVerified = false;
+          translatorPayload.verificationStatus = "unverified";
+          translatorPayload.languagesUnlocked = false; // relock it!
+        }
+
+        await services.profile.updateTranslatorProfile(user.$id, translatorPayload);
+
+        if (languagesChanged) {
+          setTranslatorData(prev => ({
+            ...prev,
+            languagesUnlocked: false
+          }));
+          setInitialLanguages(translatorData.languages);
+        }
         await services.profile.updateCompanyProfile(user.$id, {
           companyName: companyData.companyName,
           fullName: companyData.fullName,
@@ -1212,7 +1234,7 @@ function ProfileContent() {
                         </Badge>
                       </div>
 
-                      {profileExists ? (
+                      {profileExists && !translatorData.languagesUnlocked ? (
                         <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2 text-xs">
                           <div className="flex items-center gap-2 font-semibold text-amber-600">
                             <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
@@ -1280,7 +1302,7 @@ function ProfileContent() {
                               <tr className="border-b border-border/40 bg-muted/20 text-3xs uppercase tracking-wider text-muted-foreground font-bold">
                                 <th className="p-3 text-3xs font-semibold text-foreground">Language</th>
                                 <th className="p-3 text-3xs font-semibold text-foreground text-center">Native Language</th>
-                                <th className="p-3 text-3xs font-semibold text-foreground text-right">{profileExists ? "Change Request" : "Action"}</th>
+                                <th className="p-3 text-3xs font-semibold text-foreground text-right">{profileExists && !translatorData.languagesUnlocked ? "Change Request" : "Action"}</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-border/40">
@@ -1295,7 +1317,7 @@ function ProfileContent() {
                                         <input
                                           type="checkbox"
                                           checked={isNative}
-                                          disabled={profileExists}
+                                          disabled={profileExists && !translatorData.languagesUnlocked}
                                           onChange={() => {
                                             setTranslatorData((prev) => ({ ...prev, nativeLanguage: code }));
                                           }}
@@ -1304,7 +1326,7 @@ function ProfileContent() {
                                       </div>
                                     </td>
                                     <td className="p-3 text-right">
-                                      {profileExists ? (
+                                      {profileExists && !translatorData.languagesUnlocked ? (
                                         <Button
                                           type="button"
                                           disabled={!!changeRequests.find(r => r.status === "pending")}
@@ -1968,30 +1990,41 @@ function ProfileContent() {
                     </p>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold">Requested Languages</Label>
-                      <ResponsiveSelect
-                        options={LANGUAGES.map((lang) => ({
-                          value: lang.code,
-                          label: lang.name,
-                        }))}
-                        value={requestedLanguages}
-                        onChange={(selected: string[]) => {
-                          const maxLangs = translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2;
-                          if (selected.length > maxLangs) {
-                            toast({
-                              title: "Limit Exceeded",
-                              description: `You can only select up to ${maxLangs} languages for your plan.`,
-                              variant: "destructive"
-                            });
-                            return;
-                          }
-                          setRequestedLanguages(selected);
-                        }}
-                        multiple={true}
-                        placeholder="Select new languages"
-                        searchPlaceholder="Search language..."
-                        label="Requested Languages"
-                      />
+                      <Label className="text-xs font-semibold">Requested Languages (Choose via Checkboxes)</Label>
+                      <div className="max-h-48 overflow-y-auto border border-border/40 rounded-xl p-3 bg-muted/20 space-y-2">
+                        {LANGUAGES.map((lang) => {
+                          const isChecked = requestedLanguages.includes(lang.code);
+                          return (
+                            <div key={lang.code} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id={`req-lang-${lang.code}`}
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    const maxLangs = translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2;
+                                    if (requestedLanguages.length >= maxLangs) {
+                                      toast({
+                                        title: "Limit Exceeded",
+                                        description: `You can only select up to ${maxLangs} languages for your plan.`,
+                                        variant: "destructive"
+                                      });
+                                      return;
+                                    }
+                                    setRequestedLanguages((prev) => [...prev, lang.code]);
+                                  } else {
+                                    setRequestedLanguages((prev) => prev.filter((code) => code !== lang.code));
+                                  }
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                              />
+                              <Label htmlFor={`req-lang-${lang.code}`} className="text-xs font-medium cursor-pointer select-none">
+                                {lang.name}
+                              </Label>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="space-y-2">

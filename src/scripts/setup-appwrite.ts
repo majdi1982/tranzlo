@@ -100,6 +100,7 @@ const SCHEMA: Col[] = [
       { key: "onboardingStep", type: "integer", required: false },
       { key: "onboardingComplete", type: "boolean", required: false, default: false },
       { key: "planTier", type: "string", size: 32, required: false, default: "free" },
+      { key: "languagesUnlocked", type: "boolean", required: false, default: false },
       { key: "planExpiresAt", type: "datetime", required: false },
       { key: "promoCodeUsed", type: "string", size: 64, required: false },
       { key: "trialEndsAt", type: "datetime", required: false },
