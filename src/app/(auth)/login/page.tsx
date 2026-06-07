@@ -32,6 +32,12 @@ export default function LoginPage() {
       setEmail(savedEmail);
       setRememberMe(true);
     }
+
+    const tempPassword = sessionStorage.getItem("justResetPassword");
+    if (tempPassword) {
+      setPassword(tempPassword);
+      sessionStorage.removeItem("justResetPassword");
+    }
   }, []);
 
   const handleSendResetEmail = async () => {

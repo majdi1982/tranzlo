@@ -9,10 +9,22 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 
+import { useRouter, useSearchParams } from "next/navigation";
+
 export default function ResetPasswordPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [sent, setSent] = React.useState(false);
+
+  React.useEffect(() => {
+    const userId = searchParams.get("userId");
+    const secret = searchParams.get("secret");
+    if (userId && secret) {
+      router.replace(`/reset-password/${userId}/${secret}`);
+    }
+  }, [searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

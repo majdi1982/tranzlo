@@ -28,6 +28,7 @@ export default function CompleteResetPage() {
       const { getServices } = await import("@/services");
       await getServices().auth.resetPassword(params.userId as string, params.secret as string, password);
       toast({ title: "Password updated", description: "You can now sign in with your new password.", variant: "success" });
+      sessionStorage.setItem("justResetPassword", password);
       router.replace("/login");
     } catch (err) {
       toast({ title: "Failed to reset", description: err instanceof Error ? err.message : "Invalid or expired link.", variant: "destructive" });
