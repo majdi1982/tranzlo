@@ -229,8 +229,7 @@ export default function AdminBlogReviewPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setSelectedPost(post);
-                          setPreviewOpen(true);
+                          window.open(`/dashboard/admin/blog-review/preview?id=${post.$id}`, "_blank");
                         }}
                         className="gap-1.5 text-xs"
                       >
