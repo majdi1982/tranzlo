@@ -7,7 +7,7 @@ import { useSession } from "@/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Loader2, Sparkles, Zap, Shield, HelpCircle } from "lucide-react";
+import { Check, Loader2, Sparkles, Zap, Shield, HelpCircle, CreditCard } from "lucide-react";
 import type { Role } from "@/types";
 import { getServices } from "@/services";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -472,14 +472,18 @@ export default function PlansPage() {
               </div>
 
               {/* Or separator */}
-              <div className="relative flex py-2 items-center">
+              <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-border/50"></div>
-                <span className="flex-shrink mx-4 text-3xs text-muted-foreground uppercase font-bold tracking-wider">or pay with</span>
+                <span className="flex-shrink mx-4 text-3xs text-muted-foreground uppercase font-bold tracking-wider">No Code?</span>
                 <div className="flex-grow border-t border-border/50"></div>
               </div>
 
               {/* PayPal Container */}
               <div className="space-y-3">
+                <div className="flex items-center gap-2 justify-center py-1 bg-blue-500/5 border border-blue-500/10 rounded-xl">
+                  <CreditCard className="h-3.5 w-3.5 text-blue-500" />
+                  <span className="text-3xs font-bold text-blue-500">Pay securely with Credit Card or PayPal</span>
+                </div>
                 <div id={`paypal-sub-container-${selectedPlan?.tier}`} className="w-full min-h-[150px] bg-accent/10 rounded-xl flex items-center justify-center border border-dashed border-border/50 p-4">
                   <div className="flex flex-col items-center gap-2 text-center">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
