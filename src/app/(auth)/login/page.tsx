@@ -195,7 +195,7 @@ export default function LoginPage() {
 
       <div className="relative flex items-center justify-center px-6 my-2">
         <div className="absolute inset-x-6 border-t border-border/50" />
-        <span className="relative bg-[#111827] px-3 text-xs text-muted-foreground uppercase tracking-wider">
+        <span className="relative bg-card px-3 text-2xs text-muted-foreground uppercase tracking-wider font-semibold">
           Or continue with
         </span>
       </div>
