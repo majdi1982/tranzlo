@@ -427,8 +427,8 @@ export default function PostJobPage() {
     const finalBudgetMin = Math.round(totalBudgetMin);
     const finalBudgetMax = Math.round(totalBudgetMax);
  
-    if (finalBudgetMin <= 0 || finalBudgetMax <= 0) {
-      toast({ title: "Total budget must be a positive number. Please check service rates.", variant: "destructive" });
+    if (finalBudgetMin < 0 || finalBudgetMax < 0) {
+      toast({ title: "Total budget cannot be negative. Please check service rates.", variant: "destructive" });
       return;
     }
  
@@ -766,17 +766,17 @@ export default function PostJobPage() {
                         {svc.isFixed ? (
                           <div className="w-28 space-y-1">
                             <Label className="text-xs">Unit Price (USD)</Label>
-                            <Input type="number" step="0.001" min="0.001" value={svc.rate} onChange={(e) => updateService(idx, "rate", Number(e.target.value))} />
+                            <Input type="number" step="0.001" min="0" value={svc.rate} onChange={(e) => updateService(idx, "rate", Number(e.target.value))} />
                           </div>
                         ) : (
                           <>
                             <div className="w-24 space-y-1">
                               <Label className="text-xs">Min Price</Label>
-                              <Input type="number" step="0.001" min="0.001" value={svc.rateMin} onChange={(e) => updateService(idx, "rateMin", Number(e.target.value))} />
+                              <Input type="number" step="0.001" min="0" value={svc.rateMin} onChange={(e) => updateService(idx, "rateMin", Number(e.target.value))} />
                             </div>
                             <div className="w-24 space-y-1">
                               <Label className="text-xs">Max Price</Label>
-                              <Input type="number" step="0.001" min="0.001" value={svc.rateMax} onChange={(e) => updateService(idx, "rateMax", Number(e.target.value))} />
+                              <Input type="number" step="0.001" min="0" value={svc.rateMax} onChange={(e) => updateService(idx, "rateMax", Number(e.target.value))} />
                             </div>
                           </>
                         )}
