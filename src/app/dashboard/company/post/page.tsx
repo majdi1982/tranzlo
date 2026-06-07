@@ -674,12 +674,41 @@ export default function PostJobPage() {
                           </Select>
                         </div>
                         <div className="w-28 space-y-1">
-                          <Label className="text-xs">Unit Price (USD)</Label>
-                          <Input type="number" step="0.001" min="0.001" value={svc.rate} onChange={(e) => updateService(idx, "rate", Number(e.target.value))} />
+                          <Label className="text-xs">Rate Type</Label>
+                          <Select value={svc.isFixed ? "fixed" : "range"} onValueChange={(v) => updateService(idx, "isFixed", v === "fixed")}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="fixed">Fixed Rate</SelectItem>
+                              <SelectItem value="range">Range</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <div className="w-24 space-y-1">
+                        {svc.isFixed ? (
+                          <div className="w-28 space-y-1">
+                            <Label className="text-xs">Unit Price (USD)</Label>
+                            <Input type="number" step="0.001" min="0.001" value={svc.rate} onChange={(e) => updateService(idx, "rate", Number(e.target.value))} />
+                          </div>
+                        ) : (
+                          <>
+                            <div className="w-24 space-y-1">
+                              <Label className="text-xs">Min Price</Label>
+                              <Input type="number" step="0.001" min="0.001" value={svc.rateMin} onChange={(e) => updateService(idx, "rateMin", Number(e.target.value))} />
+                            </div>
+                            <div className="w-24 space-y-1">
+                              <Label className="text-xs">Max Price</Label>
+                              <Input type="number" step="0.001" min="0.001" value={svc.rateMax} onChange={(e) => updateService(idx, "rateMax", Number(e.target.value))} />
+                            </div>
+                          </>
+                        )}
+                        <div className="w-32 space-y-1">
                           <Label className="text-xs">Est. Total</Label>
-                          <div className="h-10 flex items-center text-sm font-medium px-2 border rounded-md bg-background">${(svc.quantity * svc.rate).toFixed(0)}</div>
+                          <div className="h-10 flex items-center text-sm font-medium px-2 border rounded-md bg-background">
+                            {svc.isFixed ? (
+                              `$${(svc.quantity * svc.rate).toFixed(0)}`
+                            ) : (
+                              `$${(svc.quantity * svc.rateMin).toFixed(0)} - $${(svc.quantity * svc.rateMax).toFixed(0)}`
+                            )}
+                          </div>
                         </div>
                         {services.length > 1 && (
                           <Button type="button" variant="ghost" size="icon" className="mb-0.5" onClick={() => removeService(idx)}>
