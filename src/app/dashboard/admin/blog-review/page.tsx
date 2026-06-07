@@ -193,10 +193,15 @@ export default function AdminBlogReviewPage() {
                   >
                     <div className="space-y-2 max-w-2xl min-w-0">
                       <div className="flex flex-wrap gap-2 items-center">
-                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-                          {post.category || "General"}
+                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-semibold">
+                          Domain: {post.category || "General"}
                         </Badge>
-                        {post.tags?.map((tag) => (
+                        {post.tags?.filter(t => t.startsWith("Objective:")).map((tag) => (
+                          <Badge key={tag} className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-2xs font-semibold">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {post.tags?.filter(t => !t.startsWith("Objective:")).map((tag) => (
                           <Badge key={tag} variant="secondary" className="text-2xs font-normal">
                             #{tag}
                           </Badge>
@@ -280,8 +285,11 @@ export default function AdminBlogReviewPage() {
                 {/* Title & Stats */}
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="default">{selectedPost.category}</Badge>
-                    {selectedPost.tags?.map((t) => (
+                    <Badge variant="default">Domain: {selectedPost.category}</Badge>
+                    {selectedPost.tags?.filter(t => t.startsWith("Objective:")).map((t) => (
+                      <Badge key={t} className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 font-semibold">{t}</Badge>
+                    ))}
+                    {selectedPost.tags?.filter(t => !t.startsWith("Objective:")).map((t) => (
                       <Badge key={t} variant="outline">#{t}</Badge>
                     ))}
                   </div>

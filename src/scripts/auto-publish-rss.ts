@@ -108,37 +108,41 @@ async function enrichAndTranslateWithGemini(title: string, rawContent: string): 
       titleAr: title,
       excerptAr: rawContent.slice(0, 150).replace(/<[^>]*>/g, "") + "...",
       contentAr: rawContent,
-      tags: ["news", "general"],
-      category: "general",
+      tags: ["Objective: Creative/SEO Localization", "news", "translation"],
+      category: "Technical & Tech",
       imageAlt: "Translation chronicle cover image"
     };
   }
   const prompt = `
-You are an expert SEO and tech writer for Tranzlo (a translation and localization platform).
-Analyze this blog post title and description:
+You are an expert SEO and translation/localization industry writer for Tranzlo (a freelance translation platform).
+Analyze this source article title and description snippet:
 Title: "${title}"
 Content/Description snippet: "${rawContent.slice(0, 1000)}"
 
 Task:
-1. Optimize the Title into a catchy, premium English blog title. Do NOT translate to Arabic; the title must be in English.
-2. Write a professional English summary/excerpt (1-2 sentences, min 15 chars).
-3. Generate a beautifully structured, premium English blog post content in Markdown format. The content must be structured with H2 and H3 headings, clear paragraphs, and bullet points. The word count must be between 600 and 1500 words to ensure robust depth for search engine optimization (SEO). 
-4. Include 3-5 relevant lowercase tags (e.g. technology, localization, ai, translation) as tags/keywords.
-5. Categorize this post into one of these exact categories:
-   - "translation-tech" (for AI & Translation Tech)
-   - "career-growth" (for Linguist & Career Growth)
-   - "industry-trends" (for Industry Insights & Trends)
-   - "best-practices" (for Best Practices & Guides)
-   - "platform-news" (for Platform News & Updates)
-6. Write a highly descriptive, SEO-friendly image alt text in English (max 120 chars) that perfectly details what the cover image should illustrate.
+1. Rewrite this article to be strictly focused on translation, localization, or multilingual communication, adapting the source content to the translation industry context.
+2. Optimize the Title into a catchy, premium English blog title. Do NOT translate to Arabic; the title must be in English.
+3. Write a professional English summary/excerpt (1-2 sentences, min 15 chars).
+4. Generate a beautifully structured, premium English blog post content in Markdown format. The content must be structured with H2 and H3 headings, clear paragraphs, and bullet points. The word count must be between 600 and 1500 words to ensure robust depth for search engine optimization (SEO). 
+5. Categorize this post into one of these exact domains (set this as the "category" property):
+   - "Academic & Scientific" (for translation of research papers, theses, etc. requiring high accuracy)
+   - "Medical & Healthcare" (for sensitive articles needing professional medical translation background)
+   - "Legal & Political" (for translation of political analysis, news, laws, and journalism)
+   - "Technical & Tech" (for translation/localization of AI, programming, hardware, or cryptocurrency)
+   - "Business & Finance" (for market analysis, entrepreneurship, case studies, finance/management localization)
+   - "SEO & Marketing" (for creative web content translation, product promotions, and SEO localization)
+   - "General & Lifestyle" (for travel, cooking, sports, art, human interest translation)
+6. Determine the localization objective. If the domain is "Academic & Scientific", "Medical & Healthcare", or "Legal & Political", set the objective to "Objective: Literal/Accurate Translation". Otherwise, set the objective to "Objective: Creative/SEO Localization".
+7. Include the chosen objective string as the first element in the "tags" array, followed by 2-4 other relevant lowercase tags (e.g. technology, AI, localization, etc.).
+8. Write a highly descriptive, SEO-friendly image alt text in English (max 120 chars) that perfectly details what the cover image should illustrate.
 
 Return your output STRICTLY as a JSON object with this exact format, with no markdown code block backticks around it:
 {
   "titleAr": "Optimized English title here",
   "excerptAr": "Optimized English excerpt here",
   "contentAr": "Optimized English full content here in Markdown format (must be 600 - 1500 words)",
-  "tags": ["tag1", "tag2", "tag3"],
-  "category": "translation-tech",
+  "tags": ["Objective: Literal/Accurate Translation", "tag1", "tag2"],
+  "category": "Academic & Scientific",
   "imageAlt": "Descriptive cover image alt text in English"
 }
 `;
@@ -170,8 +174,8 @@ Return your output STRICTLY as a JSON object with this exact format, with no mar
       titleAr: `[News] ${title}`,
       excerptAr: `Article summary: ${title} in technology and translation.`,
       contentAr: fallbackText,
-      tags: ["news", "translation"],
-      category: "general",
+      tags: ["Objective: Creative/SEO Localization", "news", "translation"],
+      category: "Technical & Tech",
       imageAlt: "Translation chronicle cover image"
     };
   }
