@@ -474,49 +474,55 @@ export default function OnboardingPage() {
                           <Label className="text-xs font-bold text-foreground">Select Working Language Pairs (أزواج لغات العمل المتولدة)</Label>
                           <p className="text-[10px] text-muted-foreground">Select the specific translation pairs you want to activate and verify in your profile.</p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {(() => {
-                            const pairsList: { id: string; label: string }[] = [];
-                            selectedLangs.forEach(src => {
-                              selectedLangs.forEach(tgt => {
-                                if (src !== tgt) {
-                                  const nameSrc = LANGUAGES.find(l => l.code === src)?.name || src;
-                                  const nameTgt = LANGUAGES.find(l => l.code === tgt)?.name || tgt;
-                                  pairsList.push({
-                                    id: `${src}-${tgt}`,
-                                    label: `${nameSrc} → ${nameTgt}`
-                                  });
-                                }
+                        {selectedLangs.length < 2 ? (
+                          <div className="text-2xs text-amber-600 bg-amber-500/5 border border-amber-500/10 p-3 rounded-lg font-medium">
+                            ⚠️ Please select at least 2 working languages above to configure and select translation pairs.
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {(() => {
+                              const pairsList: { id: string; label: string }[] = [];
+                              selectedLangs.forEach(src => {
+                                selectedLangs.forEach(tgt => {
+                                  if (src !== tgt) {
+                                    const nameSrc = LANGUAGES.find(l => l.code === src)?.name || src;
+                                    const nameTgt = LANGUAGES.find(l => l.code === tgt)?.name || tgt;
+                                    pairsList.push({
+                                      id: `${src}-${tgt}`,
+                                      label: `${nameSrc} → ${nameTgt}`
+                                    });
+                                  }
+                                });
                               });
-                            });
-                            
-                            return pairsList.map(pair => {
-                              const isActive = activePairs.includes(pair.id);
-                              return (
-                                <div
-                                  key={pair.id}
-                                  onClick={() => {
-                                    if (isActive) {
-                                      setActivePairs(activePairs.filter(p => p !== pair.id));
-                                    } else {
-                                      setActivePairs([...activePairs, pair.id]);
-                                    }
-                                  }}
-                                  className={`p-3 rounded-lg border cursor-pointer select-none transition-all flex items-center justify-between ${
-                                    isActive
-                                      ? "border-teal-500 bg-teal-500/10 shadow-[0_0_10px_rgba(20,184,166,0.15)] text-teal-600 font-bold"
-                                      : "border-border/60 hover:border-border hover:bg-accent/30 text-muted-foreground"
-                                  }`}
-                                >
-                                  <span className="text-xs">{pair.label}</span>
-                                  <div className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${isActive ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"}`}>
-                                    {isActive && <Check className="h-2.5 w-2.5" />}
+                              
+                              return pairsList.map(pair => {
+                                const isActive = activePairs.includes(pair.id);
+                                return (
+                                  <div
+                                    key={pair.id}
+                                    onClick={() => {
+                                      if (isActive) {
+                                        setActivePairs(activePairs.filter(p => p !== pair.id));
+                                      } else {
+                                        setActivePairs([...activePairs, pair.id]);
+                                      }
+                                    }}
+                                    className={`p-3 rounded-lg border cursor-pointer select-none transition-all flex items-center justify-between ${
+                                      isActive
+                                        ? "border-teal-500 bg-teal-500/10 shadow-[0_0_10px_rgba(20,184,166,0.15)] text-teal-600 font-bold"
+                                        : "border-border/60 hover:border-border hover:bg-accent/30 text-muted-foreground"
+                                    }`}
+                                  >
+                                    <span className="text-xs">{pair.label}</span>
+                                    <div className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${isActive ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"}`}>
+                                      {isActive && <Check className="h-2.5 w-2.5" />}
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
