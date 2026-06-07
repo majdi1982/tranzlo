@@ -10,6 +10,8 @@ export interface BaseProfile {
   isVerified: boolean;
   verificationStatus: VerificationStatus;
   planTier: string;
+  planExpiresAt?: string;
+  promoCodeUsed?: string;
   trialEndsAt?: string;
   trialStatus?: string;
   paypalSubscriptionId?: string;

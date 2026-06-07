@@ -27,6 +27,7 @@ export default function CompanyTeamPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [planTier, setPlanTier] = React.useState<"free" | "standard" | "pro" | "plus">("free");
+  const [promoCodeUsed, setPromoCodeUsed] = React.useState<string | null>(null);
   const [loadingPlan, setLoadingPlan] = React.useState(true);
 
   const [members, setMembers] = React.useState<TeamMember[]>([
@@ -48,6 +49,7 @@ export default function CompanyTeamPage() {
         const profile = await services.profile.getCompanyProfile(user.$id);
         if (profile) {
           setPlanTier((profile.planTier as any) || "free");
+          setPromoCodeUsed(profile.promoCodeUsed || null);
         }
       } catch (err) {
         console.error("Failed to load company plan tier:", err);
@@ -58,7 +60,7 @@ export default function CompanyTeamPage() {
     loadPlan();
   }, [user?.$id]);
 
-  const maxMembers = planTier === "free" ? 0 : 3;
+  const maxMembers = planTier === "free" || promoCodeUsed ? 0 : 3;
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,21 +129,27 @@ export default function CompanyTeamPage() {
           </p>
         </div>
 
-        {planTier === "free" ? (
+        {planTier === "free" || promoCodeUsed ? (
           <Card className="glass-card border-border/40 p-8 rounded-2xl flex flex-col items-center text-center space-y-6 bg-gradient-to-br from-background/30 to-accent/5">
             <div className="mx-auto h-16 w-16 rounded-3xl bg-amber-500/10 flex items-center justify-center ring-1 ring-amber-500/20">
-              <Sparkles className="h-8 w-8 text-amber-500 animate-bounce" />
+              <AlertTriangle className="h-8 w-8 text-amber-500 animate-bounce" />
             </div>
             <div className="max-w-md space-y-2">
-              <h2 className="text-lg font-bold text-foreground">Collaboration Team is Locked</h2>
+              <h2 className="text-lg font-bold text-foreground">
+                {promoCodeUsed ? "Feature Restricted" : "Collaboration Team is Locked"}
+              </h2>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                The Free Plan is limited to a single company administrator account. Upgrade to Pro Business or Plus Business to add collaborator accounts (up to 3 team members).
+                {promoCodeUsed
+                  ? "You are using a promo code. This feature is only for paid plans."
+                  : "The Free Plan is limited to a single company administrator account. Upgrade to Pro Business or Plus Business to add collaborator accounts (up to 3 team members)."}
               </p>
             </div>
-            <Button onClick={() => router.push("/dashboard/plans")} className="rounded-xl bg-teal-600 hover:bg-teal-700 text-xs font-bold gap-2">
-              <Sparkles className="h-4 w-4 text-amber-300 fill-current" />
-              Upgrade Plan Tier
-            </Button>
+            {!promoCodeUsed && (
+              <Button onClick={() => router.push("/dashboard/plans")} className="rounded-xl bg-teal-600 hover:bg-teal-700 text-xs font-bold gap-2">
+                <Sparkles className="h-4 w-4 text-amber-300 fill-current" />
+                Upgrade Plan Tier
+              </Button>
+            )}
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
