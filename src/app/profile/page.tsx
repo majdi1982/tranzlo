@@ -1118,49 +1118,27 @@ function ProfileContent() {
                         </Badge>
                       </div>
 
-                      {profileExists && translatorData.languages.length > 0 ? (
-                        <div className="space-y-2 p-4 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-600">
-                          <p className="text-xs font-bold flex items-center gap-1.5">
-                            ⚠️ Languages Change Locked
-                          </p>
-                          <p className="text-2xs leading-relaxed">
-                            To change your working languages or native language, please submit a Language Change Request ticket through the Support Center.
-                          </p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => router.push("/support")}
-                            className="mt-2 rounded-xl text-xs font-bold bg-amber-500/10 border-amber-500/30 text-amber-700 hover:bg-amber-500/20 hover:text-amber-800 transition-all px-4 py-2"
-                          >
-                            Change Languages?
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          <ResponsiveSelect
-                            options={LANGUAGES.map((lang) => ({
-                              value: lang.code,
-                              label: lang.name,
-                            }))}
-                            value={translatorData.languages}
-                            onChange={(selectedCodes: string[]) => {
-                              const prevCodes = translatorData.languages;
-                              if (selectedCodes.length > prevCodes.length) {
-                                const addedCode = selectedCodes.find(c => !prevCodes.includes(c));
-                                if (addedCode) toggleLanguage(addedCode);
-                              } else {
-                                const removedCode = prevCodes.find(c => !selectedCodes.includes(c));
-                                if (removedCode) toggleLanguage(removedCode);
-                              }
-                            }}
-                            multiple={true}
-                            placeholder="Select spoken/written languages"
-                            searchPlaceholder="Search language..."
-                            label="Languages Spoken/Written"
-                          />
-                        </>
-                      )}
+                      <ResponsiveSelect
+                        options={LANGUAGES.map((lang) => ({
+                          value: lang.code,
+                          label: lang.name,
+                        }))}
+                        value={translatorData.languages}
+                        onChange={(selectedCodes: string[]) => {
+                          const prevCodes = translatorData.languages;
+                          if (selectedCodes.length > prevCodes.length) {
+                            const addedCode = selectedCodes.find(c => !prevCodes.includes(c));
+                            if (addedCode) toggleLanguage(addedCode);
+                          } else {
+                            const removedCode = prevCodes.find(c => !selectedCodes.includes(c));
+                            if (removedCode) toggleLanguage(removedCode);
+                          }
+                        }}
+                        multiple={true}
+                        placeholder="Select spoken/written languages"
+                        searchPlaceholder="Search language..."
+                        label="Languages Spoken/Written"
+                      />
 
                       {/* Selected Languages Table & Native Designation */}
                       {translatorData.languages.length > 0 && (
@@ -1170,7 +1148,7 @@ function ProfileContent() {
                               <tr className="border-b border-border/40 bg-muted/20 text-3xs uppercase tracking-wider text-muted-foreground font-bold">
                                 <th className="p-3 text-3xs font-semibold text-foreground">Language</th>
                                 <th className="p-3 text-3xs font-semibold text-foreground text-center">Native Language</th>
-                                {!profileExists && <th className="p-3 text-3xs font-semibold text-foreground text-right">Action</th>}
+                                <th className="p-3 text-3xs font-semibold text-foreground text-right">Action</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-border/40">
@@ -1185,7 +1163,6 @@ function ProfileContent() {
                                         <input
                                           type="checkbox"
                                           checked={isNative}
-                                          disabled={profileExists && !!translatorData.nativeLanguage}
                                           onChange={() => {
                                             setTranslatorData((prev) => ({ ...prev, nativeLanguage: code }));
                                           }}
@@ -1193,19 +1170,17 @@ function ProfileContent() {
                                         />
                                       </div>
                                     </td>
-                                    {!profileExists && (
-                                      <td className="p-3 text-right">
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => toggleLanguage(code)}
-                                          className="h-7 w-7 p-0 rounded-lg hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
-                                        >
-                                          <X className="h-3.5 w-3.5" />
-                                        </Button>
-                                      </td>
-                                    )}
+                                    <td className="p-3 text-right">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => toggleLanguage(code)}
+                                        className="h-7 w-7 p-0 rounded-lg hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </td>
                                   </tr>
                                 );
                               })}
