@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { LANGUAGES } from "@/data/languages";
 import { Label } from "@/components/ui/label";
+import { getAccount } from "@/lib/appwrite";
 
 interface LanguageRequest {
   $id: string;
@@ -40,7 +41,18 @@ export default function AdminLanguageRequestsPage() {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/language-requests");
+      const account = getAccount();
+      const headers: Record<string, string> = {};
+      try {
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT for admin requests fetch:", jwtErr);
+      }
+
+      const res = await fetch("/api/language-requests", { headers });
       if (!res.ok) throw new Error("Failed to load requests");
       const data = await res.json();
       setRequests(data.requests || []);
@@ -64,9 +76,20 @@ export default function AdminLanguageRequestsPage() {
     if (submittingAction) return;
     setSubmittingAction(true);
     try {
+      const account = getAccount();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT for admin approval:", jwtErr);
+      }
+
       const res = await fetch(`/api/language-requests/${request.$id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ status: "approved" })
       });
 
@@ -105,9 +128,20 @@ export default function AdminLanguageRequestsPage() {
 
     setSubmittingAction(true);
     try {
+      const account = getAccount();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT for admin rejection:", jwtErr);
+      }
+
       const res = await fetch(`/api/language-requests/${rejectingRequest.$id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ 
           status: "rejected", 
           adminNote: rejectionNote.trim() 

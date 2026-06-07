@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
-import { getStorage, ID, BUCKETS } from "@/lib/appwrite";
+import { getStorage, ID, BUCKETS, getAccount } from "@/lib/appwrite";
 import { AuthGuard } from "@/guards/auth-guard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -196,7 +196,18 @@ function ProfileContent() {
 
           // Fetch language change requests
           try {
-            const requestsRes = await fetch("/api/language-requests");
+            const account = getAccount();
+            const headers: Record<string, string> = {};
+            try {
+              const jwtObj = await account.createJWT();
+              if (jwtObj?.jwt) {
+                headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+              }
+            } catch (jwtErr) {
+              console.warn("Failed to generate JWT for language requests fetch:", jwtErr);
+            }
+
+            const requestsRes = await fetch("/api/language-requests", { headers });
             if (requestsRes.ok) {
               const reqData = await requestsRes.json();
               setChangeRequests(reqData.requests || []);
@@ -364,9 +375,20 @@ function ProfileContent() {
 
     setSubmittingRequest(true);
     try {
+      const account = getAccount();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT for language requests POST:", jwtErr);
+      }
+
       const res = await fetch("/api/language-requests", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           requestedLanguages,
           reason: requestReason.trim()
