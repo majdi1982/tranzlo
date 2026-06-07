@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, Loader2, Sparkles, Zap, Shield, HelpCircle } from "lucide-react";
 import type { Role } from "@/types";
 import { getServices } from "@/services";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Plan mappings corresponding to our Appwrite PayPal Webhook PLAN_MAP
 const PLANS = {
@@ -124,6 +125,8 @@ export default function PlansPage() {
   const [processingPlan, setProcessingPlan] = React.useState<string | null>(null);
   const [promoCode, setPromoCode] = React.useState<string>("");
   const [submittingPromo, setSubmittingPromo] = React.useState<boolean>(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = React.useState<boolean>(false);
+  const [selectedPlan, setSelectedPlan] = React.useState<any>(null);
 
   const role = (user?.prefs?.role as Role) || "translator";
   // Pro Member tier maps to pro
@@ -155,7 +158,7 @@ export default function PlansPage() {
   }, [user?.$id, role, loading]);
 
   React.useEffect(() => {
-    if (!processingPlan) return;
+    if (!processingPlan || !isCheckoutOpen) return;
 
     const plan = userPlans.find((p: any) => p.tier === processingPlan);
     if (!plan || !plan.paypalPlanId) return;
@@ -188,12 +191,14 @@ export default function PlansPage() {
           onApprove: function(data: any, actions: any) {
             alert(`🎉 Subscription successful! ID: ${data.subscriptionID}. Your account will be upgraded within a few moments.`);
             setProcessingPlan(null);
+            setIsCheckoutOpen(false);
             window.location.reload();
           },
           onError: function(err: any) {
             console.error("Subscription Error:", err);
             alert("❌ Payment could not be processed. Please try again.");
             setProcessingPlan(null);
+            setIsCheckoutOpen(false);
           }
         }).render(`#${containerId}`);
       } else {
@@ -215,11 +220,15 @@ export default function PlansPage() {
       // Small timeout to allow React to commit DOM render of container
       setTimeout(renderButton, 100);
     }
-  }, [processingPlan, user?.$id, userPlans]);
+  }, [processingPlan, isCheckoutOpen, user?.$id, userPlans]);
 
   const handleSubscribe = (planId: string | null, planTier: string) => {
     if (!planId) return;
+    const plan = userPlans.find((p: any) => p.tier === planTier);
+    if (!plan) return;
+    setSelectedPlan(plan);
     setProcessingPlan(planTier);
+    setIsCheckoutOpen(true);
   };
 
   const handleRedeemPromo = async (e: React.FormEvent) => {
@@ -370,22 +379,16 @@ export default function PlansPage() {
                         Active Plan
                       </Button>
                     ) : plan.paypalPlanId ? (
-                      <>
-                        {processingPlan === plan.tier ? (
-                          <div id={`paypal-sub-container-${plan.tier}`} className="w-full min-h-[44px]" />
-                        ) : (
-                          <Button 
-                            className={`w-full rounded-xl shadow-md ${
-                              isPlus 
-                                ? "bg-primary text-primary-foreground hover:bg-primary/95" 
-                                : "variant-outline"
-                            }`}
-                            onClick={() => handleSubscribe(plan.paypalPlanId, plan.tier)}
-                          >
-                            {plan.buttonText}
-                          </Button>
-                        )}
-                      </>
+                      <Button 
+                        className={`w-full rounded-xl shadow-md ${
+                          isPlus 
+                            ? "bg-primary text-primary-foreground hover:bg-primary/95" 
+                            : "variant-outline"
+                        }`}
+                        onClick={() => handleSubscribe(plan.paypalPlanId, plan.tier)}
+                      >
+                        {plan.buttonText}
+                      </Button>
                     ) : (
                       <Button className="w-full rounded-xl border border-border" variant="outline" disabled>
                         Basic Lifetime Plan
@@ -398,31 +401,87 @@ export default function PlansPage() {
           })}
         </div>
 
-        {/* Promo code redemption section */}
-        <div className="max-w-md mx-auto p-6 bg-card border border-border/60 rounded-2xl shadow-sm text-center space-y-4">
-          <div className="space-y-1">
-            <h4 className="text-sm font-bold text-foreground">Have a Promo Code?</h4>
-            <p className="text-3xs text-muted-foreground">Enter your launcher code to unlock Pro or Plus benefits for free.</p>
-          </div>
-          <form onSubmit={handleRedeemPromo} className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="e.g. LAUNCH3FREE"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-              className="h-10 text-xs bg-background border-border/50 rounded-xl"
-              required
-              disabled={submittingPromo}
-            />
-            <Button 
-              type="submit" 
-              className="h-10 rounded-xl px-5 text-xs font-bold shrink-0 bg-primary hover:bg-primary/90"
-              disabled={submittingPromo}
-            >
-              {submittingPromo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Redeem"}
-            </Button>
-          </form>
-        </div>
+        {/* Checkout Dialog */}
+        <Dialog open={isCheckoutOpen} onOpenChange={(open) => {
+          if (!open) {
+            setIsCheckoutOpen(false);
+            setProcessingPlan(null);
+            setSelectedPlan(null);
+          }
+        }}>
+          <DialogContent className="sm:max-w-md bg-background border border-border/80 rounded-2xl shadow-2xl p-6">
+            <DialogHeader className="space-y-2 text-center sm:text-center">
+              <DialogTitle className="text-xl font-bold flex items-center justify-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+                <span>Secure Checkout</span>
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground text-center">
+                Activate your {selectedPlan?.name || "Premium"} membership below.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="mt-4 space-y-6">
+              {/* Plan brief details */}
+              <div className="bg-primary/5 border border-primary/15 rounded-xl p-4 flex justify-between items-center">
+                <div className="text-left">
+                  <h4 className="text-sm font-bold text-foreground">{selectedPlan?.name}</h4>
+                  <p className="text-3xs text-muted-foreground max-w-[200px] truncate">{selectedPlan?.description}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-black text-foreground">{selectedPlan?.price}</span>
+                  <span className="text-3xs text-muted-foreground">/{selectedPlan?.period}</span>
+                </div>
+              </div>
+
+              {/* Promo code field */}
+              <div className="space-y-2.5">
+                <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                  <span>Have a Promo/Coupon Code?</span>
+                  <span className="text-4xs font-medium text-teal-600 dark:text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded">Launch Offer</span>
+                </label>
+                <form onSubmit={handleRedeemPromo} className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="e.g. LAUNCH3FREE"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="h-10 text-xs bg-background border-border/60 rounded-xl"
+                    required
+                    disabled={submittingPromo}
+                  />
+                  <Button 
+                    type="submit" 
+                    className="h-10 rounded-xl px-5 text-xs font-bold shrink-0 bg-primary hover:bg-primary/90"
+                    disabled={submittingPromo}
+                  >
+                    {submittingPromo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Apply"}
+                  </Button>
+                </form>
+              </div>
+
+              {/* Or separator */}
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-border/50"></div>
+                <span className="flex-shrink mx-4 text-3xs text-muted-foreground uppercase font-bold tracking-wider">or pay with</span>
+                <div className="flex-grow border-t border-border/50"></div>
+              </div>
+
+              {/* PayPal Container */}
+              <div className="space-y-3">
+                <div id={`paypal-sub-container-${selectedPlan?.tier}`} className="w-full min-h-[150px] bg-accent/10 rounded-xl flex items-center justify-center border border-dashed border-border/50 p-4">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <span className="text-4xs text-muted-foreground font-medium">Initializing secure PayPal gateway...</span>
+                  </div>
+                </div>
+                <p className="text-4xs text-center text-muted-foreground flex items-center justify-center gap-1">
+                  <Shield className="h-3 w-3 text-primary" />
+                  <span>Secure billing. Cancel at any time via PayPal.</span>
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Support banner */}
         <div className="text-center pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs text-muted-foreground">

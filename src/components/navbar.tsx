@@ -48,6 +48,7 @@ export function Navbar() {
   const [recentChats, setRecentChats] = React.useState<any[]>([]);
   const [avatarUrl, setAvatarUrl] = React.useState<string>("");
   const [isVerified, setIsVerified] = React.useState<boolean>(false);
+  const [planTier, setPlanTier] = React.useState<string>("free");
 
   React.useEffect(() => {
     setMounted(true);
@@ -62,11 +63,17 @@ export function Navbar() {
         if (role === "translator") {
           const profile = await services.profile.getTranslatorProfile(user.$id);
           if (profile?.avatarUrl) setAvatarUrl(profile.avatarUrl);
-          if (profile) setIsVerified(profile.isVerified || false);
+          if (profile) {
+            setIsVerified(profile.isVerified || false);
+            setPlanTier(profile.planTier || "free");
+          }
         } else if (role === "company") {
           const profile = await services.profile.getCompanyProfile(user.$id);
           if (profile?.logoUrl) setAvatarUrl(profile.logoUrl);
-          if (profile) setIsVerified(profile.isVerified || false);
+          if (profile) {
+            setIsVerified(profile.isVerified || false);
+            setPlanTier(profile.planTier || "free");
+          }
         }
       } catch {
         // ignore
@@ -381,8 +388,13 @@ export function Navbar() {
                         )}
                       </Avatar>
                       {isVerified && (
-                        <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-teal-500 border border-background shadow-sm">
+                        <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-teal-500 border border-background shadow-sm z-10">
                           <Check className="h-2 w-2 text-white" />
+                        </span>
+                      )}
+                      {planTier === "free" && (
+                        <span className="absolute -bottom-0.5 -left-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 border border-background shadow-sm z-10 animate-pulse">
+                          <Sparkles className="h-2 w-2 text-white" />
                         </span>
                       )}
                     </div>
@@ -391,8 +403,18 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 mt-1 rounded-lg">
                   <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <span className="truncate font-semibold">{user.name}</span>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate font-semibold">{user.name}</span>
+                        <span className={cn(
+                          "text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider",
+                          planTier === "plus" ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" :
+                          planTier === "pro" ? "bg-teal-500/20 text-teal-600 dark:text-teal-400" :
+                          "bg-muted text-muted-foreground"
+                        )}>
+                          {planTier}
+                        </span>
+                      </div>
                       <span className="text-xs font-normal text-muted-foreground truncate">
                         {user.email}
                       </span>
