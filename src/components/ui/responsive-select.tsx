@@ -152,7 +152,7 @@ export function ResponsiveSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-10 w-full items-center justify-between rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 hover:bg-accent/10 transition-colors text-left"
+        className="flex h-10 w-full items-center justify-between rounded-xl border-2 border-slate-700 dark:border-slate-300 bg-background/50 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-slate-500/15 focus:ring-offset-0 hover:bg-accent/10 transition-all text-left"
       >
         <span className="truncate pr-2 font-medium">
           {triggerLabel}
@@ -170,7 +170,7 @@ export function ResponsiveSelect({
               placeholder={searchPlaceholder}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-8 pl-8 pr-3 rounded-md bg-background border border-border/50 text-xs focus:outline-none focus:border-cyan-500/50 text-foreground"
+              className="w-full h-8 pl-8 pr-3 rounded-md bg-background border-2 border-slate-700 dark:border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500/15 focus:ring-offset-0 text-foreground"
             />
           </div>
           <ScrollAreaCustom maxClass="max-h-48">
@@ -244,7 +244,7 @@ export function ResponsiveSelect({
                 placeholder={searchPlaceholder}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-10 pl-9 pr-3 rounded-lg bg-background border border-border/50 text-xs focus:outline-none focus:border-cyan-500/50 text-foreground"
+                className="w-full h-10 pl-9 pr-3 rounded-lg bg-background border-2 border-slate-700 dark:border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500/15 focus:ring-offset-0 text-foreground"
               />
             </div>
 
