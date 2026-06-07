@@ -362,7 +362,7 @@ export function Navbar() {
                 <Link href="/dashboard/plans">
                   <Button variant="outline" size="sm" className="hidden lg:flex rounded-full text-xs font-semibold border-primary/30 text-primary hover:bg-primary/5 hover:text-primary mr-1">
                     <Sparkles className="mr-1 h-3.5 w-3.5 text-primary animate-pulse" />
-                    Upgrade
+                    {planTier === "free" || !planTier ? "Upgrade" : `${planTier.charAt(0).toUpperCase() + planTier.slice(1)} Plan`}
                   </Button>
                 </Link>
               )}
