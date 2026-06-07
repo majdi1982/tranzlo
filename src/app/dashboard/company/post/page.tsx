@@ -104,6 +104,86 @@ function SearchableLanguageSelect({ id, placeholder, selected, onSelect }: Searc
   );
 }
 
+interface SearchableSpecializationSelectProps {
+  id: string;
+  placeholder: string;
+  selected: string[];
+  onSelect: (value: string) => void;
+}
+
+function SearchableSpecializationSelect({ id, placeholder, selected, onSelect }: SearchableSpecializationSelectProps) {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = SPECIALIZATIONS.filter((spec) =>
+    spec.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        id={id}
+        onClick={() => setOpen(!open)}
+        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-left"
+      >
+        <span className="text-muted-foreground">{placeholder}</span>
+        <span className="h-4 w-4 opacity-50 flex items-center justify-center">▼</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-50 min-w-[8rem] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-none mt-1 p-1 max-h-[300px] flex flex-col bg-background">
+          <div className="flex items-center border-b px-3 py-2 gap-2">
+            <Search className="h-4 w-4 shrink-0 opacity-50" />
+            <input
+              className="flex h-8 w-full rounded-md bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Search specialization..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="overflow-y-auto max-h-[220px] py-1">
+            {filtered.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">No specialization found.</div>
+            ) : (
+              filtered.map((spec) => {
+                const isSelected = selected.includes(spec);
+                return (
+                  <button
+                    key={spec}
+                    type="button"
+                    disabled={isSelected}
+                    onClick={() => {
+                      onSelect(spec);
+                      setOpen(false);
+                      setSearch("");
+                    }}
+                    className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {spec}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const AI_REVIEWERS = [
   { id: "gpt4o", name: "GPT-4o Reviewer", rate: 0.005, description: "Highly accurate linguistic analysis and feedback." },
   { id: "claude", name: "Claude 3.5 Sonnet Reviewer", rate: 0.008, description: "Outstanding style, natural flow, and premium review quality." },
@@ -516,22 +596,16 @@ export default function PostJobPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="specializationSelect">Add Specialization</Label>
-                    <Select onValueChange={(val) => {
-                      if (val && !specializations.includes(val)) {
-                        setSpecializations([...specializations, val]);
-                      }
-                    }}>
-                      <SelectTrigger id="specializationSelect">
-                        <SelectValue placeholder="Choose a specialization..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SPECIALIZATIONS.map((spec) => (
-                          <SelectItem key={spec} value={spec} disabled={specializations.includes(spec)}>
-                            {spec}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSpecializationSelect
+                      id="specializationSelect"
+                      placeholder="Choose a specialization..."
+                      selected={specializations}
+                      onSelect={(val) => {
+                        if (val && !specializations.includes(val)) {
+                          setSpecializations([...specializations, val]);
+                        }
+                      }}
+                    />
                   </div>
 
                   {specializations.length > 0 && (
