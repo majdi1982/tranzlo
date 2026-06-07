@@ -172,7 +172,10 @@ export default function PlansPage() {
 
     const renderButton = () => {
       const container = document.getElementById(containerId);
-      if (!container) return;
+      if (!container) {
+        setTimeout(renderButton, 50);
+        return;
+      }
 
       if ((window as any).paypal) {
         container.innerHTML = ""; // Clear existing loading spinner
