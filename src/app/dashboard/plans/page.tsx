@@ -137,6 +137,14 @@ export default function PlansPage() {
   const userPlans = role === "company" ? PLANS.company(isAnnual) : PLANS.translator(isAnnual);
 
   React.useEffect(() => {
+    if (!loading && user) {
+      if (role === "admin" || role === "staff") {
+        router.replace(role === "admin" ? "/dashboard/admin" : "/dashboard/staff");
+      }
+    }
+  }, [user, role, loading, router]);
+
+  React.useEffect(() => {
     async function loadCurrentPlan() {
       if (!user?.$id) return;
       try {

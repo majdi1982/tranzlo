@@ -358,7 +358,7 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {user && (
+              {user && userRole !== "admin" && userRole !== "staff" && (
                 <Link href="/dashboard/plans">
                   <Button variant="outline" size="sm" className="hidden lg:flex rounded-full text-xs font-semibold border-primary/30 text-primary hover:bg-primary/5 hover:text-primary mr-1">
                     <Sparkles className="mr-1 h-3.5 w-3.5 text-primary animate-pulse" />
@@ -414,12 +414,14 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="rounded-md cursor-pointer text-primary focus:text-primary font-medium">
-                    <Link href="/dashboard/plans" className="flex items-center">
-                      <Sparkles className="mr-2 h-4 w-4 text-primary animate-pulse" />
-                      Upgrade Membership
-                    </Link>
-                  </DropdownMenuItem>
+                  {userRole !== "admin" && userRole !== "staff" && (
+                    <DropdownMenuItem asChild className="rounded-md cursor-pointer text-primary focus:text-primary font-medium">
+                      <Link href="/dashboard/plans" className="flex items-center">
+                        <Sparkles className="mr-2 h-4 w-4 text-primary animate-pulse" />
+                        Upgrade Membership
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild className="rounded-md cursor-pointer">
                     <Link href={dashboardHref} className="flex items-center">
                       <LayoutDashboard className="mr-2 h-4 w-4" />
