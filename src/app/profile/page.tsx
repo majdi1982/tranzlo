@@ -100,6 +100,13 @@ function ProfileContent() {
   const [logoUrl, setLogoUrl] = React.useState("");
   const [isVerified, setIsVerified] = React.useState(false);
 
+  // Language Change Requests states
+  const [changeRequests, setChangeRequests] = React.useState<any[]>([]);
+  const [isRequestModalOpen, setIsRequestModalOpen] = React.useState(false);
+  const [requestedLanguages, setRequestedLanguages] = React.useState<string[]>([]);
+  const [requestReason, setRequestReason] = React.useState("");
+  const [submittingRequest, setSubmittingRequest] = React.useState(false);
+
   // Dynamically set SEO settings based on the currently displayed profile
   useDynamicSEO(role === "translator" ? {
     isPublic: translatorData.isPublicPlatform,
@@ -186,6 +193,17 @@ function ProfileContent() {
             paypalEmail: translatorProfile.paypalEmail || "",
           });
           foundProfile = true;
+
+          // Fetch language change requests
+          try {
+            const requestsRes = await fetch("/api/language-requests");
+            if (requestsRes.ok) {
+              const reqData = await requestsRes.json();
+              setChangeRequests(reqData.requests || []);
+            }
+          } catch (e) {
+            console.error("Failed to load language requests", e);
+          }
         }
 
         // If not a translator profile, check company profile next
@@ -325,6 +343,60 @@ function ProfileContent() {
       }
     }
   }
+
+  const handleSendChangeRequest = async () => {
+    if (requestedLanguages.length < 2) {
+      toast({
+        title: "At Least 2 Languages Required",
+        description: "You must request at least 2 working languages.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!requestReason || requestReason.trim().length < 5) {
+      toast({
+        title: "Reason Required",
+        description: "Please provide a valid reason (minimum 5 characters) for your request.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSubmittingRequest(true);
+    try {
+      const res = await fetch("/api/language-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestedLanguages,
+          reason: requestReason.trim()
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit request");
+      }
+
+      toast({
+        title: "Change Request Submitted",
+        description: "Your language change request has been submitted to administrators.",
+        variant: "success"
+      });
+
+      setChangeRequests(prev => [data.request, ...prev]);
+      setIsRequestModalOpen(false);
+      setRequestReason("");
+    } catch (e: any) {
+      toast({
+        title: "Submission Failed",
+        description: e.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
 
   async function handleSave() {
     if (!user?.$id) return;
@@ -1118,27 +1190,65 @@ function ProfileContent() {
                         </Badge>
                       </div>
 
-                      <ResponsiveSelect
-                        options={LANGUAGES.map((lang) => ({
-                          value: lang.code,
-                          label: lang.name,
-                        }))}
-                        value={translatorData.languages}
-                        onChange={(selectedCodes: string[]) => {
-                          const prevCodes = translatorData.languages;
-                          if (selectedCodes.length > prevCodes.length) {
-                            const addedCode = selectedCodes.find(c => !prevCodes.includes(c));
-                            if (addedCode) toggleLanguage(addedCode);
-                          } else {
-                            const removedCode = prevCodes.find(c => !selectedCodes.includes(c));
-                            if (removedCode) toggleLanguage(removedCode);
-                          }
-                        }}
-                        multiple={true}
-                        placeholder="Select spoken/written languages"
-                        searchPlaceholder="Search language..."
-                        label="Languages Spoken/Written"
-                      />
+                      {profileExists ? (
+                        <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2 text-xs">
+                          <div className="flex items-center gap-2 font-semibold text-amber-600">
+                            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                            Languages Change Request Required
+                          </div>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            To modify your spoken or written languages, please submit a Change Request. 
+                            <strong> Your verification status will reset to unverified upon approval.</strong>
+                          </p>
+                          {changeRequests.find(r => r.status === "pending") ? (
+                            <div className="mt-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-700 text-[10px] space-y-1">
+                              <span className="font-bold block">Pending Request:</span>
+                              <div>
+                                <strong>Requested:</strong>{" "}
+                                {JSON.parse(changeRequests.find(r => r.status === "pending").requestedLanguages)
+                                  .map((code: string) => LANGUAGES.find(l => l.code === code)?.name || code)
+                                  .join(", ")}
+                              </div>
+                              <div>
+                                <strong>Reason:</strong> {changeRequests.find(r => r.status === "pending").reason}
+                              </div>
+                            </div>
+                          ) : (
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                setRequestedLanguages(translatorData.languages);
+                                setIsRequestModalOpen(true);
+                              }}
+                              className="mt-2 text-2xs h-7 px-3 py-1 font-semibold rounded-lg bg-amber-600/10 hover:bg-amber-600/20 text-amber-700 border border-amber-600/20 transition-all"
+                            >
+                              Request Language Change
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <ResponsiveSelect
+                          options={LANGUAGES.map((lang) => ({
+                            value: lang.code,
+                            label: lang.name,
+                          }))}
+                          value={translatorData.languages}
+                          onChange={(selectedCodes: string[]) => {
+                            const prevCodes = translatorData.languages;
+                            if (selectedCodes.length > prevCodes.length) {
+                              const addedCode = selectedCodes.find(c => !prevCodes.includes(c));
+                              if (addedCode) toggleLanguage(addedCode);
+                            } else {
+                              const removedCode = prevCodes.find(c => !selectedCodes.includes(c));
+                              if (removedCode) toggleLanguage(removedCode);
+                            }
+                          }}
+                          multiple={true}
+                          placeholder="Select spoken/written languages"
+                          searchPlaceholder="Search language..."
+                          label="Languages Spoken/Written"
+                        />
+                      )}
 
                       {/* Selected Languages Table & Native Designation */}
                       {translatorData.languages.length > 0 && (
@@ -1148,7 +1258,7 @@ function ProfileContent() {
                               <tr className="border-b border-border/40 bg-muted/20 text-3xs uppercase tracking-wider text-muted-foreground font-bold">
                                 <th className="p-3 text-3xs font-semibold text-foreground">Language</th>
                                 <th className="p-3 text-3xs font-semibold text-foreground text-center">Native Language</th>
-                                <th className="p-3 text-3xs font-semibold text-foreground text-right">Action</th>
+                                <th className="p-3 text-3xs font-semibold text-foreground text-right">{profileExists ? "Change Request" : "Action"}</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-border/40">
@@ -1163,6 +1273,7 @@ function ProfileContent() {
                                         <input
                                           type="checkbox"
                                           checked={isNative}
+                                          disabled={profileExists}
                                           onChange={() => {
                                             setTranslatorData((prev) => ({ ...prev, nativeLanguage: code }));
                                           }}
@@ -1171,15 +1282,29 @@ function ProfileContent() {
                                       </div>
                                     </td>
                                     <td className="p-3 text-right">
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => toggleLanguage(code)}
-                                        className="h-7 w-7 p-0 rounded-lg hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
-                                      >
-                                        <X className="h-3.5 w-3.5" />
-                                      </Button>
+                                      {profileExists ? (
+                                        <Button
+                                          type="button"
+                                          disabled={!!changeRequests.find(r => r.status === "pending")}
+                                          onClick={() => {
+                                            setRequestedLanguages(translatorData.languages);
+                                            setIsRequestModalOpen(true);
+                                          }}
+                                          className="text-3xs h-7 px-3 py-1 font-semibold rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 border border-teal-500/20 transition-all disabled:opacity-50"
+                                        >
+                                          {changeRequests.find(r => r.status === "pending") ? "Pending Review" : "Request Change"}
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => toggleLanguage(code)}
+                                          className="h-7 w-7 p-0 rounded-lg hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </Button>
+                                      )}
                                     </td>
                                   </tr>
                                 );
@@ -1803,6 +1928,79 @@ function ProfileContent() {
                 {profileExists ? "Save Changes" : "Create Profile"}
               </Button>
             </div>
+            {/* Language Change Request Modal */}
+            {isRequestModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div className="w-full max-w-lg rounded-2xl border border-border/50 bg-background p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-200">
+                  <div className="flex items-center justify-between border-b border-border/40 pb-3">
+                    <h3 className="text-base font-bold text-foreground">Request Language Change</h3>
+                    <Button variant="ghost" size="sm" onClick={() => setIsRequestModalOpen(false)} className="h-8 w-8 p-0 rounded-lg">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Select the full list of languages you wish to offer. 
+                      <strong className="text-amber-600 block mt-1">⚠️ Note: Your profile verification status will be reset to unverified upon approval, and you must complete the verification process again.</strong>
+                    </p>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold">Requested Languages</Label>
+                      <ResponsiveSelect
+                        options={LANGUAGES.map((lang) => ({
+                          value: lang.code,
+                          label: lang.name,
+                        }))}
+                        value={requestedLanguages}
+                        onChange={(selected: string[]) => {
+                          const maxLangs = translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2;
+                          if (selected.length > maxLangs) {
+                            toast({
+                              title: "Limit Exceeded",
+                              description: `You can only select up to ${maxLangs} languages for your plan.`,
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+                          setRequestedLanguages(selected);
+                        }}
+                        multiple={true}
+                        placeholder="Select new languages"
+                        searchPlaceholder="Search language..."
+                        label="Requested Languages"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold">Reason for Change (Mandatory)</Label>
+                      <Textarea
+                        value={requestReason}
+                        onChange={(e) => setRequestReason(e.target.value)}
+                        placeholder="Please explain why you want to change your languages..."
+                        rows={4}
+                        className="rounded-xl border-border/50 text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-3 border-t border-border/40">
+                    <Button variant="outline" size="sm" onClick={() => setIsRequestModalOpen(false)} className="rounded-xl">
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSendChangeRequest}
+                      disabled={submittingRequest}
+                      size="sm"
+                      className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white"
+                    >
+                      {submittingRequest ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Submit Request
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
         )}

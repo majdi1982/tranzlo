@@ -420,6 +420,24 @@ const SCHEMA: Col[] = [
       { id: "idx_promo_code", type: "unique", attributes: ["code"] }
     ],
   },
+  {
+    id: "language_change_requests", name: "Language Change Requests",
+    attrs: [
+      { key: "userId", type: "string", size: 64, required: true },
+      { key: "translatorName", type: "string", size: 255, required: true },
+      { key: "currentLanguages", type: "string", size: 1000, required: true },
+      { key: "requestedLanguages", type: "string", size: 1000, required: true },
+      { key: "reason", type: "string", size: 2000, required: true },
+      { key: "status", type: "enum", elements: ["pending", "approved", "rejected"], required: false, default: "pending" },
+      { key: "adminNote", type: "string", size: 2000, required: false },
+      { key: "createdAt", type: "datetime", required: false },
+      { key: "updatedAt", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_lcr_userId", type: "key", attributes: ["userId"] },
+      { id: "idx_lcr_status", type: "key", attributes: ["status"] },
+    ],
+  },
 ];
 
 async function main() {
