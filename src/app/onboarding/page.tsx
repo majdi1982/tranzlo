@@ -301,37 +301,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center py-16 px-4 bg-grid relative">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[300px] bg-hero-glow pointer-events-none" />
 
-      {/* Floating Circular Progress Widget */}
-      <div className="fixed top-6 right-6 z-50 glass-card bg-card/85 backdrop-blur-md border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xl">
-        <div className="relative h-12 w-12 flex items-center justify-center">
-          <svg className="absolute transform -rotate-90 w-full h-full">
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              stroke="rgba(255,255,255,0.05)"
-              strokeWidth="4"
-              fill="transparent"
-            />
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              stroke="hsl(var(--primary))"
-              strokeWidth="4"
-              fill="transparent"
-              strokeDasharray={2 * Math.PI * 20}
-              strokeDashoffset={2 * Math.PI * 20 * (1 - progressPercent / 100)}
-              className="transition-all duration-500 ease-out"
-            />
-          </svg>
-          <span className="text-xs font-semibold text-primary">{progressPercent}%</span>
-        </div>
-        <div>
-          <div className="text-xs font-medium text-foreground">Profile completion</div>
-          <div className="text-[10px] text-muted-foreground">Increases hiring rates by up to 85%</div>
-        </div>
-      </div>
+
 
       <div className="w-full max-w-2xl relative z-10">
         {step === 1 ? (
@@ -341,10 +311,10 @@ export default function OnboardingPage() {
                 <Settings className="h-6 w-6 text-primary animate-spin-slow" />
               </div>
               <CardTitle className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-500">
-                Let's Customize Your Experience
+                Choose Your Path on Tranzlo
               </CardTitle>
               <CardDescription className="text-muted-foreground mt-2 text-base">
-                How would you like to use Tranzlo? Choose your role below.
+                Select your profile type below to start translating projects or recruiting premium language specialists.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -362,7 +332,7 @@ export default function OnboardingPage() {
                 }`}>
                   <Briefcase className="h-7 w-7" />
                 </div>
-                <h3 className="text-lg font-bold">Linguist / Translator</h3>
+                <h3 className="text-lg font-bold">Translator</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Offer professional translation services, set your own pricing, and connect with global organizations.
                 </p>
@@ -382,7 +352,7 @@ export default function OnboardingPage() {
                 }`}>
                   <User className="h-7 w-7" />
                 </div>
-                <h3 className="text-lg font-bold">Employer / Company</h3>
+                <h3 className="text-lg font-bold">Company</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Post dynamic translation jobs, review linguists, hire certified specialists, and manage localization tasks.
                 </p>
