@@ -846,6 +846,7 @@ export const appwriteLedgerService = {
       feeDeducted: fee,
       status: "released",
       transferStatus: speed === "instant" ? "succeeded" : "pending",
+      responseLog: "",
       createdAt: new Date().toISOString(),
     });
     return mapDoc<any>(doc as Record<string, unknown>);
@@ -917,6 +918,7 @@ export const appwriteLedgerService = {
       feeDeducted: speed === "instant" ? 5.00 : 0.00,
       status: "released",
       transferStatus: transferStatusVal,
+      responseLog: "",
       createdAt: new Date().toISOString(),
     });
   },

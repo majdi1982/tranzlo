@@ -188,55 +188,95 @@ module.exports = async function (context) {
     const payoutItemId = resource.payout_item_id;
     const transactionStatus = resource.transaction_status;
     const payoutItem = resource.payout_item || {};
-    const jobId = payoutItem.sender_item_id; // Matches the jobId passed during payout initiation
+    const senderItemId = payoutItem.sender_item_id; // Unique ID like payout_... or payout_salary_...
+    const amountVal = parseFloat(payoutItem.amount ? payoutItem.amount.value : "0");
 
-    log(`💸 Processing Payout Item Webhook: ID ${payoutItemId} | Status: ${transactionStatus} | Job ID: ${jobId}`);
+    log(`💸 Processing Payout Item Webhook: ID ${payoutItemId} | Status: ${transactionStatus} | Sender Item ID: ${senderItemId}`);
 
-    if (!jobId) {
-      log("ℹ️ Payout event has no sender_item_id matching jobId. Skipped.");
+    if (!senderItemId) {
+      log("ℹ️ Payout event has no sender_item_id. Skipped.");
       return res.json({ success: true, message: "Non-matching payout event skipped." });
     }
 
     try {
       const now = new Date().toISOString();
-      if (transactionStatus === "SUCCESS" || eventType === "PAYMENT.PAYOUTS-ITEM.SUCCEEDED") {
-        // Payout successfully completed on PayPal side!
-        log(`   ✅ Payout succeeded on PayPal for Job ${jobId}. Updating job status...`);
-        
-        await db.updateDocument(databaseId, "jobs", jobId, {
-          escrowStatus: "released",
-          updatedAt: now
-        });
+      const newTransferStatus = (transactionStatus === "SUCCESS" || eventType === "PAYMENT.PAYOUTS-ITEM.SUCCEEDED")
+        ? "succeeded"
+        : "failed";
 
-        // Also update matching application
-        try {
-          const apps = await db.listDocuments(databaseId, "applications", [
-            Query.equal("jobId", jobId),
-            Query.limit(1)
-          ]);
-          if (apps.documents.length > 0) {
-            await db.updateDocument(databaseId, "applications", apps.documents[0].$id, {
-              escrowStatus: "released",
-              updatedAt: now
-            });
+      log(`   🔄 Auto-updating database records for Payout ${senderItemId} to status: ${newTransferStatus}...`);
+
+      // 1. Update matching transaction in transactions_ledger
+      try {
+        const txDocs = await db.listDocuments(databaseId, "transactions_ledger", [
+          Query.equal("transactionId", senderItemId),
+          Query.limit(1)
+        ]);
+
+        if (txDocs.documents.length > 0) {
+          const txDoc = txDocs.documents[0];
+          await db.updateDocument(databaseId, "transactions_ledger", txDoc.$id, {
+            transferStatus: newTransferStatus,
+            status: newTransferStatus === "succeeded" ? "released" : "failed",
+            responseLog: JSON.stringify(resource).slice(0, 4000),
+            createdAt: now
+          });
+          log(`      ✅ Updated transactions_ledger record ${txDoc.$id}`);
+
+          // 2. If it is a salary payment, update the matching employee's record
+          if (txDoc.code && txDoc.code.startsWith("salary_")) {
+            const empId = txDoc.code.replace("salary_", "");
+            const empDocs = await db.listDocuments(databaseId, "employee_salaries", [
+              Query.equal("employeeId", empId),
+              Query.limit(1)
+            ]);
+
+            if (empDocs.documents.length > 0) {
+              const empDoc = empDocs.documents[0];
+              await db.updateDocument(databaseId, "employee_salaries", empDoc.$id, {
+                transferStatus: newTransferStatus,
+                paymentStatus: newTransferStatus === "succeeded" ? "paid" : "failed",
+                lastPayoutDate: now
+              });
+              log(`      ✅ Updated employee_salaries record ${empDoc.$id} for employee ${empId}`);
+            }
           }
-        } catch (appErr) {
-          log(`   ⚠️ Could not update application payout status: ${appErr.message}`);
         }
-
-        log(`   ✅ Job ${jobId} escrowStatus successfully marked as released.`);
-      } else {
-        // Payout failed/denied on PayPal side!
-        log(`   ❌ Payout failed/denied on PayPal for Job ${jobId}. Reverting or logging failure...`);
-        
-        // Mark job as approved (so it can be reviewed and retried) instead of released
-        await db.updateDocument(databaseId, "jobs", jobId, {
-          escrowStatus: "approved", 
-          updatedAt: now
-        });
+      } catch (txErr) {
+        error(`   ❌ Failed to update transaction logs: ${txErr.message}`);
       }
 
-      return res.json({ success: true, message: `Payout status updated to ${transactionStatus}` });
+      // 3. Keep fallback logic for translator escrow job payout updates
+      if (senderItemId.startsWith("job_") || !senderItemId.includes("_")) {
+        const jobId = senderItemId;
+        if (newTransferStatus === "succeeded") {
+          await db.updateDocument(databaseId, "jobs", jobId, {
+            escrowStatus: "released",
+            updatedAt: now
+          });
+          try {
+            const apps = await db.listDocuments(databaseId, "applications", [
+              Query.equal("jobId", jobId),
+              Query.limit(1)
+            ]);
+            if (apps.documents.length > 0) {
+              await db.updateDocument(databaseId, "applications", apps.documents[0].$id, {
+                escrowStatus: "released",
+                updatedAt: now
+              });
+            }
+          } catch (appErr) {
+            log(`   ⚠️ Could not update application payout status: ${appErr.message}`);
+          }
+        } else {
+          await db.updateDocument(databaseId, "jobs", jobId, {
+            escrowStatus: "approved", 
+            updatedAt: now
+          });
+        }
+      }
+
+      return res.json({ success: true, message: `Payout status updated to ${newTransferStatus}` });
     } catch (err) {
       error("❌ Database updates failed for payout status: " + err.message);
       return res.json({ success: false, error: err.message }, 500);

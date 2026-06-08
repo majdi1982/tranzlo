@@ -468,6 +468,7 @@ const SCHEMA: Col[] = [
       { key: "feeDeducted", type: "float", required: false, default: 0 },
       { key: "status", type: "enum", elements: ["funded", "approved", "released", "refunded", "failed"], required: true },
       { key: "transferStatus", type: "string", size: 32, required: false },
+      { key: "responseLog", type: "string", size: 4000, required: false },
       { key: "createdAt", type: "datetime", required: false },
     ],
     indexes: [
