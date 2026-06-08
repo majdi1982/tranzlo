@@ -21,7 +21,8 @@ import {
   Users,
   Briefcase,
   Calendar,
-  Settings
+  Settings,
+  ArrowRightLeft
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ interface Transaction {
   amount: number;
   feeDeducted: number;
   status: "funded" | "approved" | "released" | "refunded" | "failed";
+  transferStatus?: string;
   createdAt: string;
 }
 
@@ -55,6 +57,7 @@ interface Employee {
   baseSalary: number;
   payoutAccount: string;
   paymentStatus: "paid" | "pending" | "failed";
+  transferStatus?: string;
   paymentMethod: string;
   lastPayoutDate?: string;
 }
@@ -71,12 +74,18 @@ export default function AdminFinancialsPage() {
   const [search, setSearch] = React.useState("");
   const [activeTab, setActiveTab] = React.useState<"manual" | "auto" | "revenue" | "employees">("manual");
 
-  // Modals state
+  // Withdrawal Modal state
   const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
   const [withdrawEmail, setWithdrawEmail] = React.useState("");
   const [withdrawAmount, setWithdrawAmount] = React.useState("");
+  const [withdrawSpeed, setWithdrawSpeed] = React.useState<"standard" | "instant">("standard");
   const [isWithdrawing, setIsWithdrawing] = React.useState(false);
 
+  // Employee Pay Modal state
+  const [showPayEmployeeModal, setShowPayEmployeeModal] = React.useState<Employee | null>(null);
+  const [payEmployeeSpeed, setPayEmployeeSpeed] = React.useState<"standard" | "instant">("standard");
+
+  // Employee Enrollment Modal state
   const [showEmployeeModal, setShowEmployeeModal] = React.useState(false);
   const [editingEmployee, setEditingEmployee] = React.useState<Employee | null>(null);
   const [employeeName, setEmployeeName] = React.useState("");
@@ -148,10 +157,15 @@ export default function AdminFinancialsPage() {
     setIsWithdrawing(true);
     try {
       const services = getServices();
-      await services.ledger.paypalPayout(withdrawEmail, amt);
+      await services.ledger.paypalPayout(withdrawEmail, amt, withdrawSpeed);
+      
+      const message = withdrawSpeed === "instant" 
+        ? `Successfully transferred $${amt.toFixed(2)} instantly to ${withdrawEmail} ($5.00 flat fee applied)` 
+        : `Successfully scheduled standard free transfer of $${amt.toFixed(2)} to ${withdrawEmail} (1-3 days)`;
+        
       toast({
-        title: "PayPal Payout Triggered",
-        description: `Successfully initiated withdrawal of $${amt.toFixed(2)} to ${withdrawEmail}`,
+        title: "PayPal Withdrawal Triggered",
+        description: message,
       });
       setShowWithdrawModal(false);
       setWithdrawAmount("");
@@ -208,8 +222,11 @@ export default function AdminFinancialsPage() {
     }
   }
 
-  async function handlePaySalary(employee: Employee) {
+  async function handlePaySalarySubmit() {
+    if (!showPayEmployeeModal) return;
+    const employee = showPayEmployeeModal;
     setPayingEmployeeId(employee.$id);
+    setShowPayEmployeeModal(null);
     try {
       const services = getServices();
       await services.ledger.payEmployeeSalary(
@@ -217,11 +234,17 @@ export default function AdminFinancialsPage() {
         employee.employeeId,
         employee.name,
         employee.payoutAccount,
-        employee.baseSalary
+        employee.baseSalary,
+        payEmployeeSpeed
       );
+      
+      const message = payEmployeeSpeed === "instant"
+        ? `Transferred $${employee.baseSalary.toFixed(2)} instantly to ${employee.name} ($5.00 flat fee applied)`
+        : `Scheduled standard free transfer of $${employee.baseSalary.toFixed(2)} to ${employee.name} (1-3 days)`;
+        
       toast({
-        title: "Salary Payout Transferred",
-        description: `Transferred $${employee.baseSalary.toFixed(2)} to ${employee.name} via ${employee.paymentMethod}`,
+        title: "Salary Payout Dispatched",
+        description: message,
       });
       await loadEmployees();
       await loadTransactions();
@@ -302,7 +325,7 @@ export default function AdminFinancialsPage() {
   // CSV/Excel instant export
   const exportToCSV = () => {
     if (activeTab === "employees") {
-      const headers = ["Employee ID", "Full Name", "Job Title", "Monthly Salary", "Payout Account", "Status", "Payment Method", "Last Payout Date"];
+      const headers = ["Employee ID", "Full Name", "Job Title", "Monthly Salary", "Payout Account", "Status", "Transfer Status", "Payment Method", "Last Payout Date"];
       const rows = getFilteredEmployees().map((e) => [
         e.employeeId,
         `"${e.name.replace(/"/g, '""')}"`,
@@ -310,6 +333,7 @@ export default function AdminFinancialsPage() {
         e.baseSalary.toFixed(2),
         e.payoutAccount,
         e.paymentStatus,
+        e.transferStatus || "pending",
         e.paymentMethod,
         e.lastPayoutDate ? new Date(e.lastPayoutDate).toLocaleDateString() : "Never",
       ]);
@@ -319,7 +343,7 @@ export default function AdminFinancialsPage() {
     }
 
     const list = getFilteredList(getActiveList());
-    const headers = ["Transaction ID", "Code / Ledger Ref", "Customer Name", "Customer Email", "Plan Tier", "Type", "Amount", "Fee Deducted", "Net Released", "Status", "Date"];
+    const headers = ["Transaction ID", "Code / Ledger Ref", "Customer Name", "Customer Email", "Plan Tier", "Type", "Amount", "Fee Deducted", "Net Released", "Status", "Transfer Status", "Date"];
     const rows = list.map((t) => [
       t.transactionId,
       t.code,
@@ -331,6 +355,7 @@ export default function AdminFinancialsPage() {
       t.feeDeducted.toFixed(2),
       (t.amount - t.feeDeducted).toFixed(2),
       t.status,
+      t.transferStatus || "succeeded",
       new Date(t.createdAt).toLocaleDateString(),
     ]);
 
@@ -380,6 +405,7 @@ export default function AdminFinancialsPage() {
                   <th>Salary ($)</th>
                   <th>Payout Account</th>
                   <th>Status</th>
+                  <th>Transfer Status</th>
                   <th>Method</th>
                 </tr>
               </thead>
@@ -392,6 +418,7 @@ export default function AdminFinancialsPage() {
                     <td>$${e.baseSalary.toFixed(2)}</td>
                     <td>${e.payoutAccount}</td>
                     <td>${e.paymentStatus.toUpperCase()}</td>
+                    <td>${(e.transferStatus || "pending").toUpperCase()}</td>
                     <td>${e.paymentMethod}</td>
                   </tr>
                 `).join("")}
@@ -449,6 +476,7 @@ export default function AdminFinancialsPage() {
                 <th>Fee ($)</th>
                 <th>Net ($)</th>
                 <th>Status</th>
+                <th>Transfer Status</th>
               </tr>
             </thead>
             <tbody>
@@ -465,6 +493,7 @@ export default function AdminFinancialsPage() {
                   <td class="fee">-$${t.feeDeducted.toFixed(2)}</td>
                   <td class="net">$${(t.amount - t.feeDeducted).toFixed(2)}</td>
                   <td>${t.status.toUpperCase()}</td>
+                  <td>${(t.transferStatus || "succeeded").toUpperCase()}</td>
                 </tr>
               `
                 )
@@ -488,9 +517,11 @@ export default function AdminFinancialsPage() {
     switch (status) {
       case "released":
       case "paid":
+      case "succeeded":
         return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
       case "approved":
       case "pending":
+      case "processing":
         return "bg-cyan-500/10 text-cyan-600 border-cyan-500/20";
       case "funded":
         return "bg-amber-500/10 text-amber-600 border-amber-500/20";
@@ -711,7 +742,7 @@ export default function AdminFinancialsPage() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col lg:w-1/4">
+                      <div className="flex flex-col lg:w-1/5">
                         <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider">Salary Rate</span>
                         <span className="text-xs font-extrabold text-foreground">${emp.baseSalary.toFixed(2)}/mo</span>
                       </div>
@@ -723,6 +754,17 @@ export default function AdminFinancialsPage() {
                       </div>
 
                       <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0">
+                        {/* Transfer Status Badge */}
+                        <div className="flex flex-col items-center">
+                          <span className="text-[8px] text-muted-foreground font-semibold uppercase block mb-0.5">Transfer Status</span>
+                          <Badge
+                            variant="outline"
+                            className={cn("rounded-lg text-4xs font-semibold px-2 py-0.5 border capitalize", getStatusBadge(emp.transferStatus || "pending"))}
+                          >
+                            {emp.transferStatus || "pending"}
+                          </Badge>
+                        </div>
+
                         <Badge
                           variant="outline"
                           className={cn("rounded-lg text-4xs font-semibold px-2 py-0.5 border capitalize", getStatusBadge(emp.paymentStatus))}
@@ -741,7 +783,7 @@ export default function AdminFinancialsPage() {
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handlePaySalary(emp)}
+                            onClick={() => setShowPayEmployeeModal(emp)}
                             disabled={payingEmployeeId === emp.$id || emp.paymentStatus === "paid"}
                             className="rounded-xl px-3 py-1 bg-teal-600 hover:bg-teal-700 text-white text-3xs font-bold gap-1 shadow-md"
                           >
@@ -811,12 +853,12 @@ export default function AdminFinancialsPage() {
                           </div>
                         </div>
 
-                        <div className="flex flex-col justify-center lg:w-1/4">
+                        <div className="flex flex-col justify-center lg:w-1/5">
                           <p className="text-xs font-bold text-foreground">{t.userName}</p>
                           <p className="text-[10px] text-muted-foreground">{t.userEmail}</p>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2 lg:w-1/3 text-left">
+                        <div className="grid grid-cols-3 gap-2 lg:w-1/4 text-left">
                           <div>
                             <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider">Gross Amt</span>
                             <span className="text-xs font-bold text-foreground/90 block mt-0.5">${t.amount.toFixed(2)}</span>
@@ -834,6 +876,17 @@ export default function AdminFinancialsPage() {
                         </div>
 
                         <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0">
+                          {/* Transfer Status Badge */}
+                          <div className="flex flex-col items-center">
+                            <span className="text-[8px] text-muted-foreground font-semibold uppercase block mb-0.5">Transfer Status</span>
+                            <Badge
+                              variant="outline"
+                              className={cn("rounded-lg text-4xs font-semibold px-2 py-0.5 border capitalize", getStatusBadge(t.transferStatus || "succeeded"))}
+                            >
+                              {t.transferStatus || "succeeded"}
+                            </Badge>
+                          </div>
+
                           <Badge
                             variant="outline"
                             className={cn("rounded-lg text-4xs font-semibold px-2 py-0.5 border capitalize", getStatusBadge(t.status))}
@@ -877,7 +930,7 @@ export default function AdminFinancialsPage() {
           <div className="bg-background border border-border/80 w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-border/20">
               <h3 className="text-lg font-bold text-foreground">Withdraw Personal Profits</h3>
-              <p className="text-xs text-muted-foreground mt-1">Initiate a secure transfer from platform balances directly to your PayPal account.</p>
+              <p className="text-xs text-muted-foreground mt-1">Initiate a secure transfer from platform balances directly to your personal Card/PayPal account.</p>
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1.5">
@@ -900,6 +953,35 @@ export default function AdminFinancialsPage() {
                   className="rounded-xl text-xs"
                 />
                 <span className="text-3xs text-muted-foreground block">Max withdrawable: ${adminPersonalEarnings.toFixed(2)}</span>
+              </div>
+              
+              {/* Transfer Speed Selector */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Transfer Speed Option</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    onClick={() => setWithdrawSpeed("standard")}
+                    className={cn(
+                      "p-3 rounded-xl border border-border/70 cursor-pointer text-left transition-all hover:border-teal-500",
+                      withdrawSpeed === "standard" ? "border-teal-600 bg-teal-500/5 ring-1 ring-teal-500" : ""
+                    )}
+                  >
+                    <p className="text-xs font-bold">Standard</p>
+                    <p className="text-4xs text-muted-foreground mt-0.5">Free transfer</p>
+                    <p className="text-3xs text-teal-600 font-semibold mt-1">1-3 business days</p>
+                  </div>
+                  <div
+                    onClick={() => setWithdrawSpeed("instant")}
+                    className={cn(
+                      "p-3 rounded-xl border border-border/70 cursor-pointer text-left transition-all hover:border-teal-500",
+                      withdrawSpeed === "instant" ? "border-teal-600 bg-teal-500/5 ring-1 ring-teal-500" : ""
+                    )}
+                  >
+                    <p className="text-xs font-bold">Instant (Momentary)</p>
+                    <p className="text-4xs text-muted-foreground mt-0.5">Deducts flat $5.00 fee</p>
+                    <p className="text-3xs text-teal-600 font-semibold mt-1">Transferred in minutes</p>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="p-6 border-t border-border/20 bg-muted/10 flex justify-end gap-2">
@@ -1018,6 +1100,66 @@ export default function AdminFinancialsPage() {
               </Button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* MODAL 3: Pay Employee Salary Modal */}
+      {showPayEmployeeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-background border border-border/80 w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-border/20">
+              <h3 className="text-lg font-bold text-foreground">Dispatch Employee Payout</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                You are about to transfer salary dues of <strong>${showPayEmployeeModal.baseSalary.toFixed(2)}</strong> to <strong>{showPayEmployeeModal.name}</strong>.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Routing Speed Option</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    onClick={() => setPayEmployeeSpeed("standard")}
+                    className={cn(
+                      "p-3 rounded-xl border border-border/70 cursor-pointer text-left transition-all hover:border-teal-500",
+                      payEmployeeSpeed === "standard" ? "border-teal-600 bg-teal-500/5 ring-1 ring-teal-500" : ""
+                    )}
+                  >
+                    <p className="text-xs font-bold">Standard</p>
+                    <p className="text-4xs text-muted-foreground mt-0.5">Free transfer</p>
+                    <p className="text-3xs text-teal-600 font-semibold mt-1">1-3 business days</p>
+                  </div>
+                  <div
+                    onClick={() => setPayEmployeeSpeed("instant")}
+                    className={cn(
+                      "p-3 rounded-xl border border-border/70 cursor-pointer text-left transition-all hover:border-teal-500",
+                      payEmployeeSpeed === "instant" ? "border-teal-600 bg-teal-500/5 ring-1 ring-teal-500" : ""
+                    )}
+                  >
+                    <p className="text-xs font-bold">Instant (Momentary)</p>
+                    <p className="text-4xs text-muted-foreground mt-0.5">Deducts flat $5.00 fee</p>
+                    <p className="text-3xs text-teal-600 font-semibold mt-1">Transferred in minutes</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-border/20 bg-muted/10 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPayEmployeeModal(null)}
+                className="rounded-xl text-2xs"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handlePaySalarySubmit}
+                className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-2xs font-semibold"
+              >
+                Approve & Dispatch
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

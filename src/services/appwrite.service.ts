@@ -831,8 +831,9 @@ export const appwriteLedgerService = {
     });
   },
 
-  async paypalPayout(payoutEmail: string, amount: number): Promise<any> {
+  async paypalPayout(payoutEmail: string, amount: number, speed: "standard" | "instant"): Promise<any> {
     const db = getDatabases();
+    const fee = speed === "instant" ? 5.00 : 0.00;
     const doc = await db.createDocument(DB_ID, COLLECTIONS.transactionsLedger, generateId("tx"), {
       transactionId: `payout_${Date.now()}`,
       code: `admin_withdrawal`,
@@ -842,8 +843,9 @@ export const appwriteLedgerService = {
       type: "subscription",
       planTier: "pro",
       amount: -amount,
-      feeDeducted: 0,
+      feeDeducted: fee,
       status: "released",
+      transferStatus: speed === "instant" ? "succeeded" : "pending",
       createdAt: new Date().toISOString(),
     });
     return mapDoc<any>(doc as Record<string, unknown>);
@@ -874,6 +876,7 @@ export const appwriteLedgerService = {
       employeeId: `emp_${Date.now()}`,
       ...data,
       paymentStatus: "pending",
+      transferStatus: "pending",
       lastPayoutDate: null,
     });
     return mapDoc<any>(doc as Record<string, unknown>);
@@ -886,6 +889,7 @@ export const appwriteLedgerService = {
     payoutAccount: string;
     paymentMethod: string;
     paymentStatus: string;
+    transferStatus: string;
     lastPayoutDate: string;
   }>): Promise<any> {
     const db = getDatabases();
@@ -893,10 +897,12 @@ export const appwriteLedgerService = {
     return mapDoc<any>(doc as Record<string, unknown>);
   },
 
-  async payEmployeeSalary(docId: string, employeeId: string, name: string, payoutAccount: string, amount: number): Promise<void> {
+  async payEmployeeSalary(docId: string, employeeId: string, name: string, payoutAccount: string, amount: number, speed: "standard" | "instant"): Promise<void> {
     const db = getDatabases();
+    const transferStatusVal = speed === "instant" ? "succeeded" : "pending";
     await db.updateDocument(DB_ID, COLLECTIONS.employeeSalaries, docId, {
       paymentStatus: "paid",
+      transferStatus: transferStatusVal,
       lastPayoutDate: new Date().toISOString(),
     });
     await db.createDocument(DB_ID, COLLECTIONS.transactionsLedger, generateId("tx"), {
@@ -908,8 +914,9 @@ export const appwriteLedgerService = {
       type: "subscription",
       planTier: "free",
       amount: -amount,
-      feeDeducted: 0,
+      feeDeducted: speed === "instant" ? 5.00 : 0.00,
       status: "released",
+      transferStatus: transferStatusVal,
       createdAt: new Date().toISOString(),
     });
   },

@@ -467,6 +467,7 @@ const SCHEMA: Col[] = [
       { key: "amount", type: "float", required: true },
       { key: "feeDeducted", type: "float", required: false, default: 0 },
       { key: "status", type: "enum", elements: ["funded", "approved", "released", "refunded", "failed"], required: true },
+      { key: "transferStatus", type: "string", size: 32, required: false },
       { key: "createdAt", type: "datetime", required: false },
     ],
     indexes: [
@@ -484,6 +485,7 @@ const SCHEMA: Col[] = [
       { key: "payoutAccount", type: "string", size: 255, required: true },
       { key: "paymentStatus", type: "enum", elements: ["paid", "pending", "failed"], required: true },
       { key: "paymentMethod", type: "string", size: 64, required: true },
+      { key: "transferStatus", type: "string", size: 32, required: false },
       { key: "lastPayoutDate", type: "datetime", required: false },
     ],
     indexes: [
