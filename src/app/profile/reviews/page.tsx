@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import type { Rating } from "@/types";
 
-export default function ReviewsPage() {
+export function ReviewsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const targetUserId = searchParams.get("userId") || "";
@@ -191,5 +191,17 @@ export default function ReviewsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ReviewsPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <ReviewsContent />
+    </React.Suspense>
   );
 }
