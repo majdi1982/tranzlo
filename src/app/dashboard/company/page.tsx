@@ -9,6 +9,7 @@ import type { Job, Notification } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AdSenseUnit } from "@/components/adsense-unit";
 
 export default function CompanyDashboard() {
   const { user } = useSession();
@@ -244,6 +245,9 @@ export default function CompanyDashboard() {
           </Card>
         </div>
       </div>
+
+      {/* Google AdSense Banner */}
+      <AdSenseUnit slotId="company_dashboard_banner" />
     </div>
   );
 }

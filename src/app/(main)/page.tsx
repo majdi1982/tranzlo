@@ -18,6 +18,7 @@ import {
   CheckCircle,
   UserPlus,
 } from "lucide-react";
+import { AdSenseUnit } from "@/components/adsense-unit";
 
 const stats = [
   { value: "10K+", label: "Translators" },
@@ -231,6 +232,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Google AdSense Banner */}
+      <div className="container mx-auto px-4 max-w-7xl">
+        <AdSenseUnit slotId="homepage_bottom_ad" />
+      </div>
 
       {/* CTA */}
       <section className="relative py-24 border-t border-border/50 overflow-hidden">

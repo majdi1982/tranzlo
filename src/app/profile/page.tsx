@@ -27,6 +27,7 @@ import type { TranslatorProfile, CompanyProfile, Role } from "@/types";
 import { COUNTRIES } from "@/data/countries";
 import { useDynamicSEO } from "@/hooks/use-dynamic-seo";
 import { ResponsiveSelect } from "@/components/ui/responsive-select";
+import { AdSenseUnit } from "@/components/adsense-unit";
 
 const AVAILABLE_SERVICES = [
   { id: "translation", name: "Translation", defaultUnit: "word" },
@@ -1182,7 +1183,8 @@ function ProfileContent() {
               )}
             </Card>
 
-
+            {/* Google AdSense Unit */}
+            <AdSenseUnit slotId="profile_page_ad" />
           </div>
         ) : (
           /* -------------------- INTERACTIVE EDIT MODE -------------------- */

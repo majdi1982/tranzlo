@@ -7,6 +7,7 @@ import type { BlogPost } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AdSenseUnit } from "@/components/adsense-unit";
 
 export const dynamic = "force-dynamic";
 
@@ -252,6 +253,9 @@ export default async function BlogPage(props: {
                 </CardContent>
               </Card>
             </Link>
+
+            {/* Google AdSense Unit */}
+            <AdSenseUnit slotId="blog_sidebar_ad" />
 
             {/* Widget 3: Freelancer Opportunities */}
             <Link href="/signup" className="block group">
