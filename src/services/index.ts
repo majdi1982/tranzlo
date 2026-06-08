@@ -1,25 +1,6 @@
-import { isMockEnabled } from "@/hooks/use-mock";
-import * as mock from "./mock.service";
 import * as appwrite from "./appwrite.service";
 
 export function getServices() {
-  if (isMockEnabled()) {
-    return {
-      auth: mock.mockAuthService,
-      profile: mock.mockProfileService,
-      job: mock.mockJobService,
-      application: mock.mockApplicationService,
-      message: mock.mockMessageService,
-      notification: mock.mockNotificationService,
-      blog: mock.mockBlogService,
-      hub: mock.mockHubService,
-      complaint: mock.mockComplaintService,
-      dispute: mock.mockDisputeService,
-      verification: mock.mockVerificationService,
-      rating: mock.mockRatingService,
-    };
-  }
-
   return {
     auth: appwrite.appwriteAuthService,
     profile: appwrite.appwriteProfileService,
@@ -33,5 +14,7 @@ export function getServices() {
     dispute: appwrite.appwriteDisputeService,
     verification: appwrite.appwriteVerificationService,
     rating: appwrite.appwriteRatingService,
+    settings: appwrite.appwriteSettingsService,
+    ledger: appwrite.appwriteLedgerService,
   };
 }

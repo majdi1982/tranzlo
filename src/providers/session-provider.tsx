@@ -9,7 +9,7 @@ interface SessionContextValue {
   session: Session | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
-  signup: (email: string, password: string, name: string, role: string) => Promise<User>;
+  signup: (email: string, password: string, name: string, role: "translator" | "company") => Promise<User>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -50,7 +50,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     return loggedInUser;
   }, []);
 
-  const signup = React.useCallback(async (email: string, password: string, name: string, role: string) => {
+  const signup = React.useCallback(async (email: string, password: string, name: string, role: "translator" | "company") => {
     const services = getServices();
     const newUser = await services.auth.signup({ email, password, name, role });
     setUser(newUser);

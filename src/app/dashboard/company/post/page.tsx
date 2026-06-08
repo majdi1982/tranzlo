@@ -483,7 +483,7 @@ export default function PostJobPage() {
       const svc = getServices();
       await svc.job.createJob({
         ...parsed.data,
-        services: JSON.stringify(parsed.data.services),
+        services: JSON.stringify(parsed.data.services) as any,
         budget: finalBudgetMax,
         budgetMin: finalBudgetMin,
         budgetMax: finalBudgetMax,

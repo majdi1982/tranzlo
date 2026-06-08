@@ -21,6 +21,7 @@ import {
   Ticket,
   Globe,
   Star,
+  Megaphone,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -68,6 +69,8 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/admin/language-requests", label: "Change Requests", icon: Globe },
     { href: "/dashboard/admin/blog-review", label: "Blog Review", icon: FileText },
     { href: "/dashboard/admin/notifications", label: "Broadcast", icon: Bell },
+    { href: "/dashboard/admin/ads", label: "Ads Settings", icon: Megaphone },
+    { href: "/dashboard/admin/financials", label: "Financials", icon: FileText },
   ],
   staff: [
     { href: "/dashboard/staff", label: "Overview", icon: LayoutDashboard },

@@ -444,6 +444,52 @@ const SCHEMA: Col[] = [
       { id: "idx_lcr_status", type: "key", attributes: ["status"] },
     ],
   },
+  {
+    id: "system_settings", name: "System Settings",
+    attrs: [
+      { key: "key", type: "string", size: 64, required: true },
+      { key: "value", type: "string", size: 4000, required: true },
+    ],
+    indexes: [
+      { id: "idx_sysset_key", type: "unique", attributes: ["key"] }
+    ]
+  },
+  {
+    id: "transactions_ledger", name: "Transactions Ledger",
+    attrs: [
+      { key: "transactionId", type: "string", size: 128, required: true },
+      { key: "code", type: "string", size: 64, required: true },
+      { key: "userId", type: "string", size: 64, required: true },
+      { key: "userName", type: "string", size: 255, required: true },
+      { key: "userEmail", type: "string", size: 255, required: true },
+      { key: "type", type: "enum", elements: ["subscription", "job_escrow"], required: true },
+      { key: "planTier", type: "string", size: 32, required: true },
+      { key: "amount", type: "float", required: true },
+      { key: "feeDeducted", type: "float", required: false, default: 0 },
+      { key: "status", type: "enum", elements: ["funded", "approved", "released", "refunded", "failed"], required: true },
+      { key: "createdAt", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_ledger_transId", type: "key", attributes: ["transactionId"] },
+      { id: "idx_ledger_status", type: "key", attributes: ["status"] }
+    ]
+  },
+  {
+    id: "employee_salaries", name: "Employee Salaries",
+    attrs: [
+      { key: "employeeId", type: "string", size: 64, required: true },
+      { key: "name", type: "string", size: 255, required: true },
+      { key: "jobTitle", type: "string", size: 255, required: true },
+      { key: "baseSalary", type: "float", required: true },
+      { key: "payoutAccount", type: "string", size: 255, required: true },
+      { key: "paymentStatus", type: "enum", elements: ["paid", "pending", "failed"], required: true },
+      { key: "paymentMethod", type: "string", size: 64, required: true },
+      { key: "lastPayoutDate", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_emp_id", type: "unique", attributes: ["employeeId"] }
+    ]
+  },
 ];
 
 async function main() {

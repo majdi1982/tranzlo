@@ -21,11 +21,20 @@ export function AdSenseUnit({
   const { user, loading } = useSession();
   const [planTier, setPlanTier] = React.useState<string>("free");
   const [checkingPlan, setCheckingPlan] = React.useState(true);
+  const [adsEnabled, setAdsEnabled] = React.useState<boolean>(true);
 
   const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "";
 
   React.useEffect(() => {
     async function checkPlan() {
+      try {
+        const services = getServices();
+        const enabledSetting = await services.settings.getSetting("adsEnabled", "true");
+        setAdsEnabled(enabledSetting === "true");
+      } catch {
+        setAdsEnabled(true);
+      }
+
       if (!user?.$id) {
         setPlanTier("free"); // Guest is considered free
         setCheckingPlan(false);
@@ -58,7 +67,7 @@ export function AdSenseUnit({
 
   // Try to push the ad once component is rendered
   React.useEffect(() => {
-    if (!checkingPlan && planTier === "free" && clientId) {
+    if (!checkingPlan && adsEnabled && planTier === "free" && clientId) {
       try {
         const adsbygoogle = (window as any).adsbygoogle || [];
         adsbygoogle.push({});
@@ -66,10 +75,15 @@ export function AdSenseUnit({
         console.warn("Google AdSense push failed:", e);
       }
     }
-  }, [checkingPlan, planTier, clientId]);
+  }, [checkingPlan, adsEnabled, planTier, clientId]);
 
   if (loading || checkingPlan) {
     return null; // Don't flash ads while loading session
+  }
+
+  // If ads are globally disabled, do not render anything
+  if (!adsEnabled) {
+    return null;
   }
 
   // Hide ads for paid plan tiers (anything other than 'free')

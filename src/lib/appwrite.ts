@@ -70,6 +70,9 @@ export const COLLECTIONS = {
   plans: "plans",
   teamInvitations: "team_invitations",
   promoCodes: "promo_codes",
+  systemSettings: "system_settings",
+  transactionsLedger: "transactions_ledger",
+  employeeSalaries: "employee_salaries",
 };
 
 export { ID, Query };

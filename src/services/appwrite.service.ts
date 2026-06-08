@@ -733,3 +733,184 @@ export const appwriteRatingService = {
     return ratings.reduce((sum, r) => sum + r.stars, 0) / ratings.length;
   },
 };
+
+export const appwriteSettingsService = {
+  async getSetting(key: string, defaultValue: string = ""): Promise<string> {
+    try {
+      const db = getDatabases();
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.systemSettings, [
+        Query.equal("key", key),
+        Query.limit(1),
+      ]);
+      if (res.documents.length > 0) {
+        return res.documents[0].value as string;
+      }
+      return defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  },
+
+  async setSetting(key: string, value: string): Promise<void> {
+    const db = getDatabases();
+    try {
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.systemSettings, [
+        Query.equal("key", key),
+        Query.limit(1),
+      ]);
+      if (res.documents.length > 0) {
+        await db.updateDocument(DB_ID, COLLECTIONS.systemSettings, res.documents[0].$id, { value });
+      } else {
+        await db.createDocument(DB_ID, COLLECTIONS.systemSettings, generateId("setting"), { key, value });
+      }
+    } catch (e) {
+      console.error("Failed to set system setting:", e);
+    }
+  },
+};
+
+export const appwriteLedgerService = {
+  async getTransactions(): Promise<any[]> {
+    try {
+      const db = getDatabases();
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.transactionsLedger, [
+        Query.orderDesc("createdAt"),
+        Query.limit(100),
+      ]);
+      return res.documents.map((d) => mapDoc<any>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
+  },
+
+  async createTransaction(data: {
+    transactionId: string;
+    code: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    type: "subscription" | "job_escrow";
+    planTier: string;
+    amount: number;
+    feeDeducted?: number;
+    status: "funded" | "approved" | "released" | "refunded" | "failed";
+  }): Promise<any> {
+    const db = getDatabases();
+    const doc = await db.createDocument(DB_ID, COLLECTIONS.transactionsLedger, generateId("tx"), {
+      ...data,
+      feeDeducted: data.feeDeducted || 0,
+      createdAt: new Date().toISOString(),
+    });
+    return mapDoc<any>(doc as Record<string, unknown>);
+  },
+
+  async releaseManualPayout(txDocId: string): Promise<void> {
+    const db = getDatabases();
+    const tx = await db.getDocument(DB_ID, COLLECTIONS.transactionsLedger, txDocId);
+    if (!tx || tx.status === "released") return;
+
+    const netPayout = (tx.amount as number) - (tx.feeDeducted as number);
+    const userId = tx.userId as string;
+
+    const profiles = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
+      Query.equal("userId", userId),
+      Query.limit(1),
+    ]);
+    if (profiles.documents.length > 0) {
+      const profile = profiles.documents[0];
+      const newBalance = (profile.availableBalance || 0) + netPayout;
+      await db.updateDocument(DB_ID, COLLECTIONS.translatorProfiles, profile.$id, {
+        availableBalance: newBalance,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    await db.updateDocument(DB_ID, COLLECTIONS.transactionsLedger, txDocId, {
+      status: "released",
+      createdAt: new Date().toISOString(),
+    });
+  },
+
+  async paypalPayout(payoutEmail: string, amount: number): Promise<any> {
+    const db = getDatabases();
+    const doc = await db.createDocument(DB_ID, COLLECTIONS.transactionsLedger, generateId("tx"), {
+      transactionId: `payout_${Date.now()}`,
+      code: `admin_withdrawal`,
+      userId: "admin",
+      userName: "Platform Administrator",
+      userEmail: payoutEmail,
+      type: "subscription",
+      planTier: "pro",
+      amount: -amount,
+      feeDeducted: 0,
+      status: "released",
+      createdAt: new Date().toISOString(),
+    });
+    return mapDoc<any>(doc as Record<string, unknown>);
+  },
+
+  async getEmployees(): Promise<any[]> {
+    try {
+      const db = getDatabases();
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.employeeSalaries, [
+        Query.orderDesc("$createdAt"),
+        Query.limit(100),
+      ]);
+      return res.documents.map((d) => mapDoc<any>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
+  },
+
+  async createEmployee(data: {
+    name: string;
+    jobTitle: string;
+    baseSalary: number;
+    payoutAccount: string;
+    paymentMethod: string;
+  }): Promise<any> {
+    const db = getDatabases();
+    const doc = await db.createDocument(DB_ID, COLLECTIONS.employeeSalaries, generateId("emp"), {
+      employeeId: `emp_${Date.now()}`,
+      ...data,
+      paymentStatus: "pending",
+      lastPayoutDate: null,
+    });
+    return mapDoc<any>(doc as Record<string, unknown>);
+  },
+
+  async updateEmployee(docId: string, data: Partial<{
+    name: string;
+    jobTitle: string;
+    baseSalary: number;
+    payoutAccount: string;
+    paymentMethod: string;
+    paymentStatus: string;
+    lastPayoutDate: string;
+  }>): Promise<any> {
+    const db = getDatabases();
+    const doc = await db.updateDocument(DB_ID, COLLECTIONS.employeeSalaries, docId, data);
+    return mapDoc<any>(doc as Record<string, unknown>);
+  },
+
+  async payEmployeeSalary(docId: string, employeeId: string, name: string, payoutAccount: string, amount: number): Promise<void> {
+    const db = getDatabases();
+    await db.updateDocument(DB_ID, COLLECTIONS.employeeSalaries, docId, {
+      paymentStatus: "paid",
+      lastPayoutDate: new Date().toISOString(),
+    });
+    await db.createDocument(DB_ID, COLLECTIONS.transactionsLedger, generateId("tx"), {
+      transactionId: `payout_salary_${Date.now()}`,
+      code: `salary_${employeeId}`,
+      userId: employeeId,
+      userName: name,
+      userEmail: payoutAccount,
+      type: "subscription",
+      planTier: "free",
+      amount: -amount,
+      feeDeducted: 0,
+      status: "released",
+      createdAt: new Date().toISOString(),
+    });
+  },
+};
