@@ -692,8 +692,59 @@ function ProfileContent() {
     );
   }
 
+  // Person / Organization / ProfessionalService Schema
+  const isPublic = role === "translator" ? translatorData.isPublicPlatform : companyData.isPublicPlatform;
+  const profileJsonLd = profileExists && isPublic ? (role === "translator" ? {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": translatorData.fullName || user?.name,
+    "description": translatorData.bio,
+    "image": avatarUrl,
+    "knowsLanguage": translatorData.languages.map((l) => ({
+      "@type": "Language",
+      "name": l
+    })),
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": translatorData.address,
+      "addressCountry": translatorData.country
+    },
+    ...(ratingVal > 0 && {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": ratingVal,
+        "reviewCount": ratingCount,
+        "bestRating": "5",
+        "worstRating": "1"
+      }
+    }),
+    ...(translatorData.seoKeywords && {
+      "keywords": translatorData.seoKeywords
+    })
+  } : {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": companyData.companyName || "Translation Company",
+    "description": companyData.about,
+    "logo": logoUrl,
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": companyData.address,
+      "addressCountry": companyData.country
+    },
+    ...(companyData.website && {
+      "url": companyData.website
+    })
+  }) : null;
+
   return (
     <AuthGuard>
+      {profileJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }}
+        />
+      )}
       <div className="max-w-4xl mx-auto space-y-6 pt-8 pb-16 px-4">
         {/* Navigation Header */}
         <div className="flex items-center justify-between">

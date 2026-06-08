@@ -173,8 +173,52 @@ export default function JobDetailPage() {
 
   const isProfileMatch = !isTranslator || (hasMatchingLangs && hasMatchingSpecs);
 
+  // JobPosting JSON-LD Schema
+  const jobJsonLd = job ? {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    "title": job.title,
+    "description": job.description,
+    "datePosted": job.createdAt,
+    "validThrough": job.deadline,
+    "employmentType": "CONTRACTOR",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": company?.companyName || "Client on Tranzlo",
+      ...(company?.website && { "sameAs": company.website }),
+      ...(company?.logoUrl && { "logo": company.logoUrl })
+    },
+    "jobLocationType": job.workType === "online" ? "TELECOMMUTE" : "PHYSICAL",
+    ...(job.workType !== "online" && job.country && {
+      "jobLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": job.country
+        }
+      }
+    }),
+    "baseSalary": {
+      "@type": "MonetaryAmount",
+      "currency": "USD",
+      "value": {
+        "@type": "QuantitativeValue",
+        "value": job.budget,
+        "minValue": job.budgetMin || job.budget,
+        "maxValue": job.budgetMax || job.budget,
+        "unitText": "HOUR"
+      }
+    }
+  } : null;
+
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+      {jobJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jobJsonLd) }}
+        />
+      )}
       <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-6">
         <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
