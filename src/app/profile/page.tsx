@@ -40,8 +40,8 @@ const AVAILABLE_SERVICES = [
 function ProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const targetUserId = searchParams.get("userId") || "";
   const { user, refreshUser } = useSession();
+  const targetUserId = searchParams.get("userId") || user?.$id || "";
   const services = getServices();
   const { toast } = useToast();
 
