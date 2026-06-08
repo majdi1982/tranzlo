@@ -777,6 +777,30 @@ function ProfileContent() {
         ) : viewMode ? (
           <div className="space-y-6">
             
+            {/* Chosen Language Pairs Card */}
+            {role === "translator" && translatorData.activePairs.length > 0 && (
+              <Card className="glass-card p-6 border-border/40 rounded-2xl bg-gradient-to-br from-background/30 to-teal-500/5 animate-fade-in">
+                <div className="flex items-center gap-2 mb-4">
+                  <Globe className="h-5 w-5 text-teal-500" />
+                  <h3 className="font-bold text-base text-foreground">Chosen Language Pairs</h3>
+                </div>
+                <div className="flex flex-wrap gap-2.5">
+                  {translatorData.activePairs.map((pair) => {
+                    const [sourceCode, targetCode] = pair.split("-");
+                    const sourceName = LANGUAGES.find(l => l.code === sourceCode)?.name || sourceCode;
+                    const targetName = LANGUAGES.find(l => l.code === targetCode)?.name || targetCode;
+                    return (
+                      <Badge key={pair} variant="outline" className="px-3.5 py-1.5 rounded-xl text-xs font-semibold border-teal-500/20 text-teal-700 bg-teal-500/5 flex items-center gap-2">
+                        <span>{sourceName}</span>
+                        <span className="text-teal-400 font-bold">→</span>
+                        <span>{targetName}</span>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
+
             {/* Biography & Core Text block */}
             <Card className="glass-card p-6 border-border/40 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
@@ -790,6 +814,44 @@ function ProfileContent() {
               </p>
             </Card>
 
+            {/* Services Offered & Rates card */}
+            {role === "translator" && (
+              <Card className="glass-card p-6 border-border/40 rounded-2xl bg-gradient-to-br from-background/30 to-teal-500/5 animate-fade-in">
+                <div className="flex items-center gap-2 mb-4">
+                  <Award className="h-5 w-5 text-teal-500 animate-pulse" />
+                  <h3 className="font-bold text-base text-foreground">Services Offered & Rates</h3>
+                </div>
+                {translatorData.pricing && translatorData.pricing.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {translatorData.pricing.map((item) => {
+                      const serviceName = AVAILABLE_SERVICES.find(s => s.id === item.serviceId)?.name || item.serviceId;
+                      return (
+                        <div key={item.serviceId} className="p-4 rounded-xl border border-border/50 bg-background/50 flex items-center justify-between shadow-sm transition-transform hover:scale-[1.01] hover:border-teal-500/30">
+                          <div className="space-y-1">
+                            <span className="font-bold text-xs text-foreground block">{serviceName}</span>
+                            <span className="text-4xs text-muted-foreground uppercase tracking-wider font-semibold">Unit: {item.unit}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-bold text-teal-600">${item.rate}</span>
+                            <span className="text-4xs text-muted-foreground block font-medium">USD / {item.unit}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 border border-dashed border-border/50 rounded-xl bg-background/20">
+                    <p className="text-xs text-muted-foreground">No services declared yet.</p>
+                    {!isViewingOthers && (
+                      <Button size="sm" variant="outline" onClick={() => setViewMode(false)} className="mt-3 rounded-lg text-2xs hover:bg-teal-50/10">
+                        Add Services & Rates
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </Card>
+            )}
+
             {/* Specializations & Tools pill area */}
             {role === "translator" ? (
               <div className="grid gap-6 md:grid-cols-2">
@@ -799,39 +861,18 @@ function ProfileContent() {
                     <Award className="h-5 w-5 text-teal-500" />
                     <h3 className="font-bold text-base text-foreground">Specializations</h3>
                   </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-xs font-semibold text-foreground mb-2">Spoken & Written Languages</h4>
-                      {translatorData.languages.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {translatorData.languages.map((code) => {
-                            const name = LANGUAGES.find(l => l.code === code)?.name || code;
-                            return (
-                              <Badge key={code} variant="secondary" className="rounded-lg text-2xs font-medium">
-                                {name}
-                              </Badge>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-2xs text-muted-foreground">No languages declared.</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-semibold text-foreground mb-2">Translation Specializations</h4>
-                      {translatorData.specializations.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {translatorData.specializations.map((spec) => (
-                            <Badge key={spec} variant="outline" className="rounded-lg text-2xs border-teal-500/20 text-teal-600 bg-teal-500/5 font-medium">
-                              {spec}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-2xs text-muted-foreground">No specializations declared.</p>
-                      )}
-                    </div>
+                  <div className="space-y-2">
+                    {translatorData.specializations.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {translatorData.specializations.map((spec) => (
+                          <Badge key={spec} variant="outline" className="rounded-lg text-2xs border-teal-500/20 text-teal-600 bg-teal-500/5 font-medium">
+                            {spec}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-2xs text-muted-foreground">No specializations declared.</p>
+                    )}
                   </div>
                 </Card>
 
@@ -1016,43 +1057,6 @@ function ProfileContent() {
               )}
             </Card>
 
-            {/* Services Offered & Rates card */}
-            {role === "translator" && (
-              <Card className="glass-card p-6 border-border/40 rounded-2xl bg-gradient-to-br from-background/30 to-teal-500/5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Award className="h-5 w-5 text-teal-500 animate-pulse" />
-                  <h3 className="font-bold text-base text-foreground">Services Offered & Rates</h3>
-                </div>
-                {translatorData.pricing && translatorData.pricing.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {translatorData.pricing.map((item) => {
-                      const serviceName = AVAILABLE_SERVICES.find(s => s.id === item.serviceId)?.name || item.serviceId;
-                      return (
-                        <div key={item.serviceId} className="p-4 rounded-xl border border-border/50 bg-background/50 flex items-center justify-between shadow-sm transition-transform hover:scale-[1.01] hover:border-teal-500/30">
-                          <div className="space-y-1">
-                            <span className="font-bold text-xs text-foreground block">{serviceName}</span>
-                            <span className="text-4xs text-muted-foreground uppercase tracking-wider font-semibold">Unit: {item.unit}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-sm font-bold text-teal-600">${item.rate}</span>
-                            <span className="text-4xs text-muted-foreground block font-medium">USD / {item.unit}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 border border-dashed border-border/50 rounded-xl bg-background/20">
-                    <p className="text-xs text-muted-foreground">No services declared yet.</p>
-                    {!isViewingOthers && (
-                      <Button size="sm" variant="outline" onClick={() => setViewMode(false)} className="mt-3 rounded-lg text-2xs hover:bg-teal-50/10">
-                        Add Services & Rates
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </Card>
-            )}
 
           </div>
         ) : (
