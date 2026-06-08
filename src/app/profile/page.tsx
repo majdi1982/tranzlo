@@ -777,12 +777,25 @@ function ProfileContent() {
         ) : viewMode ? (
           <div className="space-y-6">
             
-            {/* Chosen Language Pairs Card */}
+            {/* Biography & Core Text block */}
+            <Card className="glass-card p-6 border-border/40 rounded-2xl">
+              <div className="flex items-center gap-2 mb-4">
+                <Briefcase className="h-5 w-5 text-teal-500" />
+                <h3 className="font-bold text-base text-foreground">Biography & About Me</h3>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {role === "translator" 
+                  ? translatorData.bio || "No biography added yet. Click 'Edit Profile' to add a summary of your professional expertise!"
+                  : companyData.about || "No corporate description provided yet. Click 'Edit Profile' to introduce your company details!"}
+              </p>
+            </Card>
+
+            {/* Language Pairs Card */}
             {role === "translator" && translatorData.activePairs.length > 0 && (
               <Card className="glass-card p-6 border-border/40 rounded-2xl bg-gradient-to-br from-background/30 to-teal-500/5 animate-fade-in">
                 <div className="flex items-center gap-2 mb-4">
                   <Globe className="h-5 w-5 text-teal-500" />
-                  <h3 className="font-bold text-base text-foreground">Chosen Language Pairs</h3>
+                  <h3 className="font-bold text-base text-foreground">Language Pairs</h3>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {translatorData.activePairs.map((pair) => {
@@ -801,19 +814,6 @@ function ProfileContent() {
               </Card>
             )}
 
-            {/* Biography & Core Text block */}
-            <Card className="glass-card p-6 border-border/40 rounded-2xl">
-              <div className="flex items-center gap-2 mb-4">
-                <Briefcase className="h-5 w-5 text-teal-500" />
-                <h3 className="font-bold text-base text-foreground">Biography & About Me</h3>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {role === "translator" 
-                  ? translatorData.bio || "No biography added yet. Click 'Edit Profile' to add a summary of your professional expertise!"
-                  : companyData.about || "No corporate description provided yet. Click 'Edit Profile' to introduce your company details!"}
-              </p>
-            </Card>
-
             {/* Services Offered & Rates card */}
             {role === "translator" && (
               <Card className="glass-card p-6 border-border/40 rounded-2xl bg-gradient-to-br from-background/30 to-teal-500/5 animate-fade-in">
@@ -829,7 +829,6 @@ function ProfileContent() {
                         <div key={item.serviceId} className="p-4 rounded-xl border border-border/50 bg-background/50 flex items-center justify-between shadow-sm transition-transform hover:scale-[1.01] hover:border-teal-500/30">
                           <div className="space-y-1">
                             <span className="font-bold text-xs text-foreground block">{serviceName}</span>
-                            <span className="text-4xs text-muted-foreground uppercase tracking-wider font-semibold">Unit: {item.unit}</span>
                           </div>
                           <div className="text-right">
                             <span className="text-sm font-bold text-teal-600">${item.rate}</span>
@@ -861,6 +860,9 @@ function ProfileContent() {
                     <Award className="h-5 w-5 text-teal-500" />
                     <h3 className="font-bold text-base text-foreground">Specializations</h3>
                   </div>
+                  <p className="text-2xs text-muted-foreground mb-4">
+                    Linguists specializing in specific industries guarantee terminology accuracy and native translation flow for targeted subject matter.
+                  </p>
                   <div className="space-y-2">
                     {translatorData.specializations.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
