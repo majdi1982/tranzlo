@@ -734,6 +734,15 @@ function ProfileContent() {
     },
     ...(companyData.website && {
       "url": companyData.website
+    }),
+    ...(ratingVal > 0 && {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": ratingVal,
+        "reviewCount": ratingCount,
+        "bestRating": "5",
+        "worstRating": "1"
+      }
     })
   }) : null;
 
