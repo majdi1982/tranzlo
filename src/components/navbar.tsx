@@ -414,7 +414,7 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {userRole !== "admin" && userRole !== "staff" && (
+                  {userRole !== "admin" && userRole !== "staff" && planTier !== "plus" && (
                     <DropdownMenuItem asChild className="rounded-md cursor-pointer text-primary focus:text-primary font-medium">
                       <Link href="/dashboard/plans" className="flex items-center">
                         <Sparkles className="mr-2 h-4 w-4 text-primary animate-pulse" />

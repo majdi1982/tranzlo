@@ -24,7 +24,7 @@ import { LANGUAGES } from "@/data/languages";
 import { SPECIALIZATIONS } from "@/data/specializations";
 import { DASHBOARD_ROUTES } from "@/constants/roles";
 import type { TranslatorProfile, CompanyProfile, Role } from "@/types";
-import { COUNTRY_CODES } from "@/data/country-codes";
+import { COUNTRIES } from "@/data/countries";
 import { useDynamicSEO } from "@/hooks/use-dynamic-seo";
 import { ResponsiveSelect } from "@/components/ui/responsive-select";
 
@@ -40,16 +40,17 @@ const AVAILABLE_SERVICES = [
 function ProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useSession();
+  const targetUserId = searchParams.get("userId") || "";
+  const { user, refreshUser } = useSession();
+  const services = getServices();
   const { toast } = useToast();
-  const [loading, setLoading] = React.useState(true);
-  const [saving, setSaving] = React.useState(false);
-  const [viewMode, setViewMode] = React.useState(true);
 
-  const targetUserId = searchParams.get("userId") || user?.$id;
+  const [viewMode, setViewMode] = React.useState(false);
   const isViewingOthers = targetUserId !== user?.$id;
   const [targetRole, setTargetRole] = React.useState<Role>("translator");
   const role = isViewingOthers ? targetRole : ((user?.prefs?.role as Role) || "translator");
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (isViewingOthers) {
@@ -63,6 +64,8 @@ function ProfileContent() {
     bio: "",
     hourlyRate: "",
     phone: "",
+    address: "",
+    country: "",
     languages: [] as string[],
     nativeLanguage: "",
     activePairs: [] as string[],
@@ -83,7 +86,10 @@ function ProfileContent() {
     companyName: "",
     fullName: "",
     contactPerson: "",
+    contactPersonTitle: "",
     phone: "",
+    address: "",
+    country: "",
     website: "",
     companySize: "",
     about: "",
@@ -97,6 +103,8 @@ function ProfileContent() {
   });
 
   const [profileExists, setProfileExists] = React.useState(false);
+  const [countrySearch, setCountrySearch] = React.useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = React.useState(false);
   const [avatarUrl, setAvatarUrl] = React.useState("");
   const [logoUrl, setLogoUrl] = React.useState("");
   const [isVerified, setIsVerified] = React.useState(false);
@@ -181,6 +189,8 @@ function ProfileContent() {
             bio: translatorProfile.bio || "",
             hourlyRate: "",
             phone: translatorProfile.phone || "",
+            address: translatorProfile.address || "",
+            country: translatorProfile.country || "",
             languages: translatorProfile.languages || [],
             nativeLanguage: translatorProfile.nativeLanguage || "",
             activePairs: parsedPairs,
@@ -233,7 +243,10 @@ function ProfileContent() {
               companyName: companyProfile.companyName || "",
               fullName: companyProfile.fullName || "",
               contactPerson: companyProfile.contactPerson || "",
+              contactPersonTitle: companyProfile.contactPersonTitle || "",
               phone: companyProfile.phone || "",
+              address: companyProfile.address || "",
+              country: companyProfile.country || "",
               website: companyProfile.website || "",
               companySize: companyProfile.companySize || "",
               about: companyProfile.about || "",
@@ -456,6 +469,8 @@ function ProfileContent() {
           bio: translatorData.bio,
           hourlyRate: 0,
           phone: translatorData.phone,
+          address: translatorData.address,
+          country: translatorData.country,
           languages: translatorData.languages,
           nativeLanguage: translatorData.nativeLanguage,
           languagePairs: JSON.stringify(
@@ -492,11 +507,15 @@ function ProfileContent() {
           }));
           setInitialLanguages(translatorData.languages);
         }
+      } else {
         await services.profile.updateCompanyProfile(user.$id, {
           companyName: companyData.companyName,
           fullName: companyData.fullName,
           contactPerson: companyData.contactPerson,
+          contactPersonTitle: companyData.contactPersonTitle,
           phone: companyData.phone,
+          address: companyData.address,
+          country: companyData.country,
           logoUrl: logoUrl || undefined,
           email: user.email || "",
           website: companyData.website,
@@ -1130,6 +1149,61 @@ function ProfileContent() {
                         className="rounded-xl"
                       />
                     </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="address">Address</Label>
+                        <Input
+                          id="address"
+                          value={translatorData.address}
+                          onChange={(e) => setTranslatorData((p) => ({ ...p, address: e.target.value }))}
+                          placeholder="Your address"
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2 relative">
+                        <Label htmlFor="country">Country</Label>
+                        <div className="relative">
+                          <Input
+                            placeholder="Type to search country..."
+                            value={countrySearch || translatorData.country}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCountrySearch(val);
+                              setTranslatorData((p) => ({ ...p, country: val }));
+                              setShowCountryDropdown(true);
+                            }}
+                            onFocus={() => {
+                              setCountrySearch(translatorData.country);
+                              setShowCountryDropdown(true);
+                            }}
+                            onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
+                            className="rounded-xl"
+                          />
+                          {showCountryDropdown && (
+                            <div className="absolute z-50 w-full mt-1 max-h-40 overflow-y-auto bg-background border border-border/80 rounded-xl shadow-lg divide-y divide-border/20">
+                              {COUNTRIES.filter(c => c.toLowerCase().includes((countrySearch || "").toLowerCase())).length === 0 ? (
+                                <div className="p-3 text-xs text-muted-foreground text-center">No countries found</div>
+                              ) : (
+                                COUNTRIES.filter(c => c.toLowerCase().includes((countrySearch || "").toLowerCase())).map((c) => (
+                                  <div
+                                    key={c}
+                                    onClick={() => {
+                                      setTranslatorData((p) => ({ ...p, country: c }));
+                                      setCountrySearch(c);
+                                      setShowCountryDropdown(false);
+                                    }}
+                                    className="p-2.5 text-xs text-left hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors"
+                                  >
+                                    {c}
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="paypalEmail">PayPal Payout Email</Label>
                       <Input
@@ -1646,15 +1720,82 @@ function ProfileContent() {
                       />
                       <p className="text-4xs text-muted-foreground">PayPal invoice billing email for payments and refunds.</p>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="contactPerson">Contact Person Title</Label>
-                      <Input
-                        id="contactPerson"
-                        value={companyData.contactPerson}
-                        onChange={(e) => setCompanyData((p) => ({ ...p, contactPerson: e.target.value }))}
-                        placeholder="HR Specialist / Procurement Manager"
-                        className="rounded-xl"
-                      />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="contactPerson">Contact Person Name</Label>
+                        <Input
+                          id="contactPerson"
+                          value={companyData.contactPerson}
+                          onChange={(e) => setCompanyData((p) => ({ ...p, contactPerson: e.target.value }))}
+                          placeholder="Jane Doe"
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contactPersonTitle">Contact Person Title</Label>
+                        <Input
+                          id="contactPersonTitle"
+                          value={companyData.contactPersonTitle}
+                          onChange={(e) => setCompanyData((p) => ({ ...p, contactPersonTitle: e.target.value }))}
+                          placeholder="HR Specialist / Procurement Manager"
+                          className="rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="companyAddress">Address</Label>
+                        <Input
+                          id="companyAddress"
+                          value={companyData.address}
+                          onChange={(e) => setCompanyData((p) => ({ ...p, address: e.target.value }))}
+                          placeholder="Company Address"
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2 relative">
+                        <Label htmlFor="companyCountry">Country</Label>
+                        <div className="relative">
+                          <Input
+                            placeholder="Type to search country..."
+                            value={countrySearch || companyData.country}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCountrySearch(val);
+                              setCompanyData((p) => ({ ...p, country: val }));
+                              setShowCountryDropdown(true);
+                            }}
+                            onFocus={() => {
+                              setCountrySearch(companyData.country);
+                              setShowCountryDropdown(true);
+                            }}
+                            onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
+                            className="rounded-xl"
+                          />
+                          {showCountryDropdown && (
+                            <div className="absolute z-50 w-full mt-1 max-h-40 overflow-y-auto bg-background border border-border/80 rounded-xl shadow-lg divide-y divide-border/20">
+                              {COUNTRIES.filter(c => c.toLowerCase().includes((countrySearch || "").toLowerCase())).length === 0 ? (
+                                <div className="p-3 text-xs text-muted-foreground text-center">No countries found</div>
+                              ) : (
+                                COUNTRIES.filter(c => c.toLowerCase().includes((countrySearch || "").toLowerCase())).map((c) => (
+                                  <div
+                                    key={c}
+                                    onClick={() => {
+                                      setCompanyData((p) => ({ ...p, country: c }));
+                                      setCountrySearch(c);
+                                      setShowCountryDropdown(false);
+                                    }}
+                                    className="p-2.5 text-xs text-left hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors"
+                                  >
+                                    {c}
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

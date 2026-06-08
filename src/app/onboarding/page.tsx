@@ -6,7 +6,7 @@ import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { getAccount } from "@/lib/appwrite";
 import { LANGUAGES } from "@/data/languages";
-import { COUNTRY_CODES } from "@/data/country-codes";
+import { COUNTRIES } from "@/data/countries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,12 +63,20 @@ export default function OnboardingPage() {
   const [seoKeywordsInput, setSeoKeywordsInput] = React.useState("");
   const [seoKeywords, setSeoKeywords] = React.useState<string[]>([]);
 
+  // Address and Country fields
+  const [fullName, setFullName] = React.useState("");
+  const [address, setAddress] = React.useState("");
+  const [country, setCountry] = React.useState("");
+  const [countrySearch, setCountrySearch] = React.useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = React.useState(false);
+
   // Company Form State
   const [companyName, setCompanyName] = React.useState("");
   const [website, setWebsite] = React.useState("");
   const [companySize, setCompanySize] = React.useState("1-10");
   const [about, setAbout] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  const [contactPersonTitle, setContactPersonTitle] = React.useState("");
 
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -76,6 +84,10 @@ export default function OnboardingPage() {
   React.useEffect(() => {
     if (user?.prefs?.role) {
       setRole(user.prefs.role as any);
+    }
+    if (user?.name) {
+      setFullName(user.name);
+      setCompanyName(user.name);
     }
   }, [user]);
 
@@ -171,7 +183,7 @@ export default function OnboardingPage() {
           return;
         }
         await services.profile.updateTranslatorProfile(user?.$id || "", {
-          fullName: user?.name || "Linguist Pro",
+          fullName: fullName || user?.name || "Linguist Pro",
           email: user?.email || "",
           languages: selectedLangs,
           nativeLanguage: nativeLang,
@@ -184,6 +196,8 @@ export default function OnboardingPage() {
           hourlyRate: 0,
           bio: bio || "Professional language specialist.",
           phone,
+          address,
+          country,
           catTools: selectedCatTools,
           isPublicPlatform,
           searchEngines: selectedSearchEngines,
@@ -198,10 +212,13 @@ export default function OnboardingPage() {
       } else {
         await services.profile.updateCompanyProfile(user?.$id || "", {
           companyName: companyName || "Enterprise Corp",
-          fullName: user?.name || "Corporate Client",
+          fullName: fullName || user?.name || "Corporate Client",
           contactPerson: user?.name || "Director",
+          contactPersonTitle,
           email: user?.email || "",
           phone,
+          address,
+          country,
           website,
           companySize,
           about: about || "Enterprise service entity.",
@@ -387,6 +404,91 @@ export default function OnboardingPage() {
               {role === "translator" ? (
                 // Translator Specific Form Fields
                 <div className="space-y-6">
+                  {/* Basic Information */}
+                  <div className="p-5 rounded-2xl border border-border/60 bg-accent/5 space-y-4">
+                    <h3 className="text-sm font-bold flex items-center gap-2 text-foreground">
+                      <User className="h-4 w-4 text-primary" />
+                      Basic Information
+                    </h3>
+                    
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="fullName" className="text-xs font-semibold">Full Name</Label>
+                        <Input
+                          id="fullName"
+                          placeholder="Your full name"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="bg-background/80 rounded-lg text-sm"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <Label htmlFor="phone" className="text-xs font-semibold">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          placeholder="+123456789"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className="bg-background/80 rounded-lg text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="address" className="text-xs font-semibold">Address</Label>
+                        <Input
+                          id="address"
+                          placeholder="e.g. 123 Main St, Apartment 4"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          className="bg-background/80 rounded-lg text-sm"
+                        />
+                      </div>
+                      
+                      <div className="space-y-1.5 relative">
+                        <Label htmlFor="country" className="text-xs font-semibold">Country</Label>
+                        <div className="relative">
+                          <Input
+                            placeholder="Type to search country..."
+                            value={countrySearch || country}
+                            onChange={(e) => {
+                              setCountrySearch(e.target.value);
+                              setCountry(e.target.value);
+                              setShowCountryDropdown(true);
+                            }}
+                            onFocus={() => setShowCountryDropdown(true)}
+                            onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
+                            className="bg-background/80 rounded-lg text-sm"
+                          />
+                          {showCountryDropdown && (
+                            <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto bg-background border border-border/80 rounded-lg shadow-xl divide-y divide-border/20">
+                              {COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())).length === 0 ? (
+                                <div className="p-3 text-xs text-muted-foreground text-center">No countries found</div>
+                              ) : (
+                                COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())).map((c) => (
+                                  <div
+                                    key={c}
+                                    onClick={() => {
+                                      setCountry(c);
+                                      setCountrySearch(c);
+                                      setShowCountryDropdown(false);
+                                    }}
+                                    className="p-2.5 text-xs text-left hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors"
+                                  >
+                                    {c}
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Language Profile Setup */}
                   <div className="space-y-4">
                     <div className="space-y-2">
@@ -529,15 +631,100 @@ export default function OnboardingPage() {
               ) : (
                 // Company Specific Form Fields
                 <div className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName" className="text-sm font-semibold">Company Name</Label>
-                    <Input
-                      id="companyName"
-                      placeholder="Tranzlo Enterprise"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      className="bg-background rounded-md"
-                    />
+                  {/* Basic Information */}
+                  <div className="p-5 rounded-2xl border border-border/60 bg-accent/5 space-y-4">
+                    <h3 className="text-sm font-bold flex items-center gap-2 text-foreground">
+                      <User className="h-4 w-4 text-primary" />
+                      Basic Information
+                    </h3>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="companyName" className="text-xs font-semibold">Company Name</Label>
+                        <Input
+                          id="companyName"
+                          placeholder="Tranzlo Enterprise"
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                          className="bg-background/80 rounded-lg text-sm"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="contactPersonTitle" className="text-xs font-semibold">Contact Person Title</Label>
+                        <Input
+                          id="contactPersonTitle"
+                          placeholder="e.g. Director, Manager, Owner"
+                          value={contactPersonTitle}
+                          onChange={(e) => setContactPersonTitle(e.target.value)}
+                          className="bg-background/80 rounded-lg text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="address" className="text-xs font-semibold">Address</Label>
+                        <Input
+                          id="address"
+                          placeholder="e.g. 123 Corporate Blvd"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          className="bg-background/80 rounded-lg text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 relative">
+                        <Label htmlFor="country" className="text-xs font-semibold">Country</Label>
+                        <div className="relative">
+                          <Input
+                            placeholder="Type to search country..."
+                            value={countrySearch || country}
+                            onChange={(e) => {
+                              setCountrySearch(e.target.value);
+                              setCountry(e.target.value);
+                              setShowCountryDropdown(true);
+                            }}
+                            onFocus={() => setShowCountryDropdown(true)}
+                            onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
+                            className="bg-background/80 rounded-lg text-sm"
+                          />
+                          {showCountryDropdown && (
+                            <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto bg-background border border-border/80 rounded-lg shadow-xl divide-y divide-border/20">
+                              {COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())).length === 0 ? (
+                                <div className="p-3 text-xs text-muted-foreground text-center">No countries found</div>
+                              ) : (
+                                COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())).map((c) => (
+                                  <div
+                                    key={c}
+                                    onClick={() => {
+                                      setCountry(c);
+                                      setCountrySearch(c);
+                                      setShowCountryDropdown(false);
+                                    }}
+                                    className="p-2.5 text-xs text-left hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors"
+                                  >
+                                    {c}
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="phone" className="text-xs font-semibold">Contact Phone Number</Label>
+                      <Input
+                        id="phone"
+                        placeholder="+123456789"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="bg-background/80 rounded-lg text-sm"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">

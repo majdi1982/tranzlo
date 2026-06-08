@@ -642,7 +642,7 @@ export default function PostJobPage() {
                           <SelectTrigger id="country"><SelectValue placeholder="Select country" /></SelectTrigger>
                           <SelectContent>
                             {COUNTRIES.map((c) => (
-                              <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

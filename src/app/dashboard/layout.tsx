@@ -64,6 +64,7 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/admin/promo-codes", label: "Promo Codes", icon: Ticket },
     { href: "/dashboard/admin/language-requests", label: "Change Requests", icon: Globe },
     { href: "/dashboard/admin/blog-review", label: "Blog Review", icon: FileText },
+    { href: "/dashboard/admin/notifications", label: "Broadcast", icon: Bell },
   ],
   staff: [
     { href: "/dashboard/staff", label: "Overview", icon: LayoutDashboard },

@@ -52,7 +52,9 @@ const DATABASE_ID = databaseId || "tranzlo_main";
 // Appwrite database events this function will listen to:
 const TRACKED_EVENTS = [
   `databases.${DATABASE_ID}.collections.applications.documents.create`,
-  `databases.${DATABASE_ID}.collections.applications.documents.update`
+  `databases.${DATABASE_ID}.collections.applications.documents.update`,
+  `databases.${DATABASE_ID}.collections.notifications.documents.create`,
+  `databases.${DATABASE_ID}.collections.jobs.documents.create`
 ];
 
 async function main() {

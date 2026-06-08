@@ -7,6 +7,8 @@ export interface BaseProfile {
   role: Role;
   avatarUrl?: string;
   phone?: string;
+  address?: string;
+  country?: string;
   isVerified: boolean;
   verificationStatus: VerificationStatus;
   planTier: string;
@@ -54,6 +56,7 @@ export interface CompanyProfile extends BaseProfile {
   companyName: string;
   fullName: string;
   contactPerson: string;
+  contactPersonTitle?: string;
   registrationDoc?: string;
   taxDoc?: string;
   founderIdUrl?: string;
