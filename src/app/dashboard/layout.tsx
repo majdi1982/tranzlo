@@ -20,6 +20,7 @@ import {
   User,
   Ticket,
   Globe,
+  Star,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -44,6 +45,7 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/translator/applications", label: "My Applications", icon: FileText },
     { href: "/dashboard/translator/team", label: "Team", icon: Users },
     { href: "/dashboard/verification", label: "Verification", icon: Shield },
+    { href: "/dashboard/ratings", label: "Ratings", icon: Star },
     { href: "/profile", label: "Profile", icon: User },
   ],
   company: [
@@ -52,6 +54,7 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/company/post", label: "Post a Job", icon: FileText },
     { href: "/dashboard/company/team", label: "Team", icon: Users },
     { href: "/dashboard/verification", label: "Verification", icon: Shield },
+    { href: "/dashboard/ratings", label: "Ratings", icon: Star },
     { href: "/profile", label: "Profile", icon: User },
   ],
   admin: [

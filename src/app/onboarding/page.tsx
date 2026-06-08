@@ -448,43 +448,16 @@ export default function OnboardingPage() {
                         />
                       </div>
                       
-                      <div className="space-y-1.5 relative">
-                        <Label htmlFor="country" className="text-xs font-semibold">Country</Label>
-                        <div className="relative">
-                          <Input
-                            placeholder="Type to search country..."
-                            value={countrySearch || country}
-                            onChange={(e) => {
-                              setCountrySearch(e.target.value);
-                              setCountry(e.target.value);
-                              setShowCountryDropdown(true);
-                            }}
-                            onFocus={() => setShowCountryDropdown(true)}
-                            onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
-                            className="bg-background/80 rounded-lg text-sm"
-                          />
-                          {showCountryDropdown && (
-                            <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto bg-background border border-border/80 rounded-lg shadow-xl divide-y divide-border/20">
-                              {COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())).length === 0 ? (
-                                <div className="p-3 text-xs text-muted-foreground text-center">No countries found</div>
-                              ) : (
-                                COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())).map((c) => (
-                                  <div
-                                    key={c}
-                                    onClick={() => {
-                                      setCountry(c);
-                                      setCountrySearch(c);
-                                      setShowCountryDropdown(false);
-                                    }}
-                                    className="p-2.5 text-xs text-left hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors"
-                                  >
-                                    {c}
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          )}
-                        </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">Country</Label>
+                        <ResponsiveSelect
+                          options={COUNTRIES.map(c => ({ value: c, label: c }))}
+                          value={country}
+                          onChange={setCountry}
+                          placeholder="Select Country"
+                          searchPlaceholder="Search country..."
+                          label="Country"
+                        />
                       </div>
                     </div>
                   </div>
@@ -675,43 +648,16 @@ export default function OnboardingPage() {
                         />
                       </div>
 
-                      <div className="space-y-1.5 relative">
-                        <Label htmlFor="country" className="text-xs font-semibold">Country</Label>
-                        <div className="relative">
-                          <Input
-                            placeholder="Type to search country..."
-                            value={countrySearch || country}
-                            onChange={(e) => {
-                              setCountrySearch(e.target.value);
-                              setCountry(e.target.value);
-                              setShowCountryDropdown(true);
-                            }}
-                            onFocus={() => setShowCountryDropdown(true)}
-                            onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
-                            className="bg-background/80 rounded-lg text-sm"
-                          />
-                          {showCountryDropdown && (
-                            <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto bg-background border border-border/80 rounded-lg shadow-xl divide-y divide-border/20">
-                              {COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())).length === 0 ? (
-                                <div className="p-3 text-xs text-muted-foreground text-center">No countries found</div>
-                              ) : (
-                                COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())).map((c) => (
-                                  <div
-                                    key={c}
-                                    onClick={() => {
-                                      setCountry(c);
-                                      setCountrySearch(c);
-                                      setShowCountryDropdown(false);
-                                    }}
-                                    className="p-2.5 text-xs text-left hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors"
-                                  >
-                                    {c}
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          )}
-                        </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">Country</Label>
+                        <ResponsiveSelect
+                          options={COUNTRIES.map(c => ({ value: c, label: c }))}
+                          value={country}
+                          onChange={setCountry}
+                          placeholder="Select Country"
+                          searchPlaceholder="Search country..."
+                          label="Country"
+                        />
                       </div>
                     </div>
 

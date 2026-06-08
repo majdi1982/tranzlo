@@ -6,7 +6,7 @@ import Image from "next/image";
 import { 
   Save, ArrowLeft, Loader2, X, Upload, User, Building2, CheckCircle, 
   Edit3, Eye, FileText, Download, Globe, Award, Briefcase, 
-  DollarSign, Key, Settings, ExternalLink, ChevronRight, Check, Sparkles
+  DollarSign, Key, Settings, ExternalLink, ChevronRight, Check, Sparkles, MapPin
 } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
@@ -100,7 +100,11 @@ function ProfileContent() {
     searchEngines: [] as string[],
     seoKeywords: "",
     paypalEmail: "",
+    planTier: "free",
   });
+
+  const [ratingVal, setRatingVal] = React.useState<number>(0);
+  const [ratingCount, setRatingCount] = React.useState<number>(0);
 
   const [profileExists, setProfileExists] = React.useState(false);
   const [countrySearch, setCountrySearch] = React.useState("");
@@ -150,6 +154,16 @@ function ProfileContent() {
       try {
         const services = getServices();
         let foundProfile = false;
+
+        // Fetch ratings info
+        try {
+          const avg = await services.rating.getAverageRating(targetUserId);
+          const all = await services.rating.getRatings(targetUserId);
+          setRatingVal(avg || 0);
+          setRatingCount(all?.length || 0);
+        } catch (e) {
+          console.error("Failed to load ratings", e);
+        }
 
         // If viewing others, check translator profile first
         const translatorProfile = await services.profile.getTranslatorProfile(targetUserId);
@@ -257,6 +271,7 @@ function ProfileContent() {
               searchEngines: companyProfile.searchEngines || [],
               seoKeywords: companyProfile.seoKeywords || "",
               paypalEmail: companyProfile.paypalEmail || "",
+              planTier: companyProfile.planTier || "free",
             });
             foundProfile = true;
           }
@@ -762,6 +777,35 @@ function ProfileContent() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <Globe className="h-3.5 w-3.5 text-muted-foreground/60" /> {user?.email}
                 </p>
+
+                {/* Country and Address Info */}
+                {((role === "translator" ? (translatorData.country || translatorData.address) : (companyData.country || companyData.address))) && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground/60" />
+                    <span>
+                      {[
+                        role === "translator" ? translatorData.address : companyData.address,
+                        role === "translator" ? translatorData.country : companyData.country
+                      ].filter(Boolean).join(", ")}
+                    </span>
+                  </p>
+                )}
+                
+                {/* Interactive Rating Indicator */}
+                <div 
+                  className="flex items-center gap-1.5 mt-1 cursor-pointer hover:opacity-85 transition-opacity" 
+                  onClick={() => router.push(`/profile/reviews?userId=${targetUserId}`)}
+                >
+                  <div className="flex items-center text-amber-500 text-sm">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i}>
+                        {i < Math.round(ratingVal) ? "★" : "☆"}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-xs font-semibold text-foreground/90">{ratingVal.toFixed(1)}</span>
+                  <span className="text-3xs text-muted-foreground">({ratingCount} {ratingCount === 1 ? "review" : "reviews"})</span>
+                </div>
               </div>
             </div>
 
@@ -772,8 +816,8 @@ function ProfileContent() {
                   <span>Verified: <strong className={isVerified ? "text-teal-500" : "text-amber-500"}>{isVerified ? "Yes" : "No"}</strong></span>
                 )}
               </div>
-              <Badge variant="outline" className="bg-accent/10 border-accent/20 text-muted-foreground capitalize">
-                Plan Tier: {role === "translator" ? "Free Member" : "Standard Partner"}
+              <Badge variant="outline" className="bg-teal-500/10 border-teal-500/20 text-teal-600 font-medium capitalize">
+                Plan Tier: {role === "translator" ? (translatorData.planTier || "free") : (companyData.planTier || "free")}
               </Badge>
             </div>
           </Card>
