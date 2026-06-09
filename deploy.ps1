@@ -28,6 +28,8 @@ scp -o StrictHostKeyChecking=no "nginx/default.conf" "${VPS_USER}@${VPS_HOST}:${
 scp -o StrictHostKeyChecking=no "scripts/setup-vps.sh" "${VPS_USER}@${VPS_HOST}:${PROJECT_DIR}/scripts/setup-vps.sh"
 scp -o StrictHostKeyChecking=no "scripts/certbot-ssl.sh" "${VPS_USER}@${VPS_HOST}:${PROJECT_DIR}/scripts/certbot-ssl.sh"
 scp -o StrictHostKeyChecking=no "scripts/backup-cron.sh" "${VPS_USER}@${VPS_HOST}:${PROJECT_DIR}/scripts/backup-cron.sh"
+scp -o StrictHostKeyChecking=no "google-service-account.json" "${VPS_USER}@${VPS_HOST}:${PROJECT_DIR}/google-service-account.json"
+
 
 # Upload env
 Write-Host "[4/5] Uploading secure environment credentials..."
