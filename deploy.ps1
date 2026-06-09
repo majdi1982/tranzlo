@@ -27,6 +27,7 @@ scp -o StrictHostKeyChecking=no "docker-compose.redis.yml" "${VPS_USER}@${VPS_HO
 scp -o StrictHostKeyChecking=no "nginx/default.conf" "${VPS_USER}@${VPS_HOST}:${PROJECT_DIR}/nginx/default.conf"
 scp -o StrictHostKeyChecking=no "scripts/setup-vps.sh" "${VPS_USER}@${VPS_HOST}:${PROJECT_DIR}/scripts/setup-vps.sh"
 scp -o StrictHostKeyChecking=no "scripts/certbot-ssl.sh" "${VPS_USER}@${VPS_HOST}:${PROJECT_DIR}/scripts/certbot-ssl.sh"
+scp -o StrictHostKeyChecking=no "scripts/backup-cron.sh" "${VPS_USER}@${VPS_HOST}:${PROJECT_DIR}/scripts/backup-cron.sh"
 
 # Upload env
 Write-Host "[4/5] Uploading secure environment credentials..."
@@ -34,7 +35,7 @@ scp -o StrictHostKeyChecking=no "$LOCAL_ENV" "${VPS_USER}@${VPS_HOST}:${PROJECT_
 
 # Execute
 Write-Host "[5/5] Executing Remote Deployment script..."
-ssh -o StrictHostKeyChecking=no "${VPS_USER}@${VPS_HOST}" "chmod +x ${PROJECT_DIR}/deploy.sh && chmod +x ${PROJECT_DIR}/scripts/*.sh && ${PROJECT_DIR}/deploy.sh"
+ssh -o StrictHostKeyChecking=no "${VPS_USER}@${VPS_HOST}" "chmod +x ${PROJECT_DIR}/deploy.sh && chmod +x ${PROJECT_DIR}/scripts/*.sh && ${PROJECT_DIR}/deploy.sh && ${PROJECT_DIR}/scripts/backup-cron.sh"
 
 Write-Host "=================================================="
 Write-Host "✅ Deployment Successful and Verified!"
