@@ -34,7 +34,7 @@ fi
 
 # 4. Synchronize Frontend files to its target folder
 echo "🧹 Syncing frontend source code..."
-rsync -av --exclude='frontend' --exclude='workers' --exclude='nginx' --exclude='redis' --exclude='n8n' --exclude='logs' --exclude='appwrite' --exclude='.git' "$BASE_DIR/" "$TARGET_FRONTEND/"
+rsync -av --delete --exclude='frontend' --exclude='workers' --exclude='nginx' --exclude='redis' --exclude='n8n' --exclude='logs' --exclude='appwrite' --exclude='.git' "$BASE_DIR/" "$TARGET_FRONTEND/"
 cp "$BASE_DIR/docker-compose.frontend.yml" "$TARGET_FRONTEND/docker-compose.yml"
 
 # 5. Handle environment variables for frontend
