@@ -229,7 +229,17 @@ export default function JobDetailPage() {
               <h1 className="text-3xl font-bold">{job.title}</h1>
               <p className="text-lg text-muted-foreground mt-1">
                 <Globe className="inline h-4 w-4 mr-1" />
-                {getLanguageName(job.sourceLanguage)} → {getLanguageName(job.targetLanguage)}
+                {jobSourceLangs.map((src, i) => (
+                  <span key={src}>
+                    {i > 0 && <span className="mx-1">|</span>}
+                    {jobTargetLangs.map((tgt, j) => (
+                      <span key={tgt}>
+                        {j > 0 && <span className="mx-0.5">·</span>}
+                        {getLanguageName(src)} → {getLanguageName(tgt)}
+                      </span>
+                    ))}
+                  </span>
+                ))}
               </p>
             </div>
             <div className="text-right shrink-0">
@@ -404,29 +414,24 @@ export default function JobDetailPage() {
                 </div>
               )}
 
-              {/* Language Pair Selector — only profile-matching pairs */}
+              {/* Language Pair Selector */}
               {isTranslator && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium">Select Language Pair</label>
-                  <p className="text-xs text-muted-foreground">Choose the language pair you will translate. Only pairs matching your profile languages are shown.</p>
+                  <p className="text-xs text-muted-foreground">Choose the language pair you will translate.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {(() => {
                       const list: any[] = [];
                       jobSourceLangs.forEach(src => {
                         jobTargetLangs.forEach(tgt => {
-                          const matchesProfile = transLangs.includes(src) && transLangs.includes(tgt);
-                          if (!matchesProfile) return;
                           list.push({ id: `${src}-${tgt}`, src, tgt });
                         });
                       });
-                      if (list.length === 0) {
-                        return (
-                          <div className="col-span-full p-4 text-center text-sm text-muted-foreground border border-dashed border-border/50 rounded-xl">
-                            No matching language pairs found. Update your profile languages to match this job.
-                          </div>
-                        );
-                      }
-                      return list.map((p) => {
+                      return list.length === 0 ? (
+                        <div className="col-span-full p-4 text-center text-sm text-muted-foreground border border-dashed border-border/50 rounded-xl">
+                          No language pairs available for this job.
+                        </div>
+                      ) : list.map((p) => {
                         const isSelected = selectedPair === p.id;
                         return (
                           <div

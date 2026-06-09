@@ -337,7 +337,11 @@ export default function JobsPage() {
                           <CardTitle className="text-lg">{job.title}</CardTitle>
                           <CardDescription className="mt-1">
                             <Globe className="inline h-3.5 w-3.5 mr-1" />
-                            {getLanguageName(job.sourceLanguage)} → {getLanguageName(job.targetLanguage)}
+                            {(() => {
+                              const srcs = (job.sourceLanguage || "").split(",").map(s => s.trim()).filter(Boolean);
+                              const tgts = (job.targetLanguage || "").split(",").map(t => t.trim()).filter(Boolean);
+                              return srcs.flatMap(src => tgts.map(tgt => `${getLanguageName(src)} → ${getLanguageName(tgt)}`)).join(" · ");
+                            })()}
                           </CardDescription>
                         </div>
                         <div className="text-right shrink-0">
