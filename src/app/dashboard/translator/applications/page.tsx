@@ -169,7 +169,11 @@ export default function MyApplicationsPage() {
                           <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Globe className="h-3.5 w-3.5 text-muted-foreground/60" />
-                              {getLanguageName(app.job.sourceLanguage)} → {getLanguageName(app.job.targetLanguage)}
+                              {(() => {
+                                const srcs = (app.job.sourceLanguage || "").split(",").map(s => s.trim()).filter(Boolean);
+                                const tgts = (app.job.targetLanguage || "").split(",").map(t => t.trim()).filter(Boolean);
+                                return srcs.flatMap(src => tgts.map(tgt => `${getLanguageName(src)} → ${getLanguageName(tgt)}`)).join(" · ");
+                              })()}
                             </span>
                             <span className="flex items-center gap-1 font-semibold text-teal-600">
                               <DollarSign className="h-3.5 w-3.5" />${app.job.budget}

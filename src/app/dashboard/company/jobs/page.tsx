@@ -269,7 +269,11 @@ function JobCard({
             <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Globe className="h-3.5 w-3.5" />
-                {getLanguageName(job.sourceLanguage)} → {getLanguageName(job.targetLanguage)}
+                {(() => {
+                  const srcs = (job.sourceLanguage || "").split(",").map(s => s.trim()).filter(Boolean);
+                  const tgts = (job.targetLanguage || "").split(",").map(t => t.trim()).filter(Boolean);
+                  return srcs.flatMap(src => tgts.map(tgt => `${getLanguageName(src)} → ${getLanguageName(tgt)}`)).join(" · ");
+                })()}
               </span>
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />

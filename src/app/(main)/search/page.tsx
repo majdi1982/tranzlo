@@ -863,7 +863,11 @@ export default function SearchHubPage() {
                                 <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground">
                                   <span className="flex items-center gap-1 text-cyan-400 bg-cyan-950/20 px-1 border border-cyan-500/10 text-[9px] uppercase tracking-wider font-bold">
                                     <Globe className="h-2.5 w-2.5" />
-                                    {getLanguageName(j.sourceLanguage)} &rarr; {getLanguageName(j.targetLanguage)}
+                                    {(() => {
+                                      const srcs = (j.sourceLanguage || "").split(",").map((s: string) => s.trim()).filter(Boolean);
+                                      const tgts = (j.targetLanguage || "").split(",").map((t: string) => t.trim()).filter(Boolean);
+                                      return srcs.flatMap((src: string) => tgts.map((tgt: string) => `${getLanguageName(src)} → ${getLanguageName(tgt)}`)).join(" · ");
+                                    })()}
                                   </span>
                                   <span className="text-border">•</span>
                                   <span className="text-emerald-400 font-bold">${j.budget || "0"}</span>

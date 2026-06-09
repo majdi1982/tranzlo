@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AdSenseUnit } from "@/components/adsense-unit";
+import { getLanguageName } from "@/data/languages";
 
 export default function TranslatorDashboard() {
   const { user } = useSession();
@@ -183,7 +184,11 @@ export default function TranslatorDashboard() {
                     <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{job.title}</p>
                     <div className="flex items-center gap-3 mt-1.5 text-2xs text-muted-foreground">
                       <span className="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-medium">
-                        {job.sourceLanguage} → {job.targetLanguage}
+                        {(() => {
+                          const srcs = (job.sourceLanguage || "").split(",").map(s => s.trim()).filter(Boolean);
+                          const tgts = (job.targetLanguage || "").split(",").map(t => t.trim()).filter(Boolean);
+                          return srcs.flatMap(src => tgts.map(tgt => `${getLanguageName(src)} → ${getLanguageName(tgt)}`)).join(" · ");
+                        })()}
                       </span>
                       <span>•</span>
                       <span>Deadline: {new Date(job.deadline).toLocaleDateString()}</span>
