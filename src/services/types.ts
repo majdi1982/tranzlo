@@ -54,6 +54,7 @@ export interface IJobService {
   getJobs(filters?: Record<string, unknown>): Promise<Job[]>;
   updateJob(jobId: string, data: Partial<Job>): Promise<Job>;
   closeJob(jobId: string): Promise<Job>;
+  inviteTranslator(jobId: string, translatorId: string): Promise<Job>;
 }
 
 export interface IApplicationService {
@@ -66,6 +67,12 @@ export interface IApplicationService {
     testStatus?: string,
     testSolutionUrl?: string
   ): Promise<Application>;
+  updateApplicationWithFeedback(
+    applicationId: string,
+    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string }
+  ): Promise<Application>;
+  selectTranslator(jobId: string, selectedAppId: string): Promise<void>;
+  getInvitedJobs(translatorId: string): Promise<Job[]>;
 }
 
 export interface IMessageService {
@@ -76,6 +83,13 @@ export interface IMessageService {
 }
 
 export interface INotificationService {
+  createNotification(data: {
+    userId: string;
+    type: string;
+    title: string;
+    body: string;
+    data?: Record<string, unknown>;
+  }): Promise<Notification>;
   getNotifications(userId: string): Promise<Notification[]>;
   markAsRead(notificationId: string): Promise<void>;
   getUnreadCount(userId: string): Promise<number>;

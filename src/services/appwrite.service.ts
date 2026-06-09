@@ -245,8 +245,23 @@ export const appwriteJobService = {
     const db = getDatabases();
     const doc = await db.createDocument(DB_ID, COLLECTIONS.jobs, generateId("job"), {
       ...data,
+      maxApplicants: data.maxApplicants || null,
       status: "open",
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    return mapDoc<Job>(doc as Record<string, unknown>);
+  },
+
+  async inviteTranslator(jobId: string, translatorId: string): Promise<Job> {
+    const db = getDatabases();
+    const job = await db.getDocument(DB_ID, COLLECTIONS.jobs, jobId);
+    const invited: string[] = (job.invitedTranslators as string[]) || [];
+    if (!invited.includes(translatorId)) {
+      invited.push(translatorId);
+    }
+    const doc = await db.updateDocument(DB_ID, COLLECTIONS.jobs, jobId, {
+      invitedTranslators: invited,
       updatedAt: new Date().toISOString(),
     });
     return mapDoc<Job>(doc as Record<string, unknown>);
@@ -284,6 +299,16 @@ export const appwriteJobService = {
   },
 
   async closeJob(jobId: string): Promise<Job> {
+    const job = await appwriteJobService.getJob(jobId);
+    if (job && job.requiresTest) {
+      const now = new Date().toISOString();
+      const deadline = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+      return appwriteJobService.updateJob(jobId, {
+        status: "closed",
+        testDistributedAt: now,
+        testDeadline: deadline,
+      });
+    }
     return appwriteJobService.updateJob(jobId, { status: "closed" });
   },
 };
@@ -291,12 +316,43 @@ export const appwriteJobService = {
 export const appwriteApplicationService = {
   async apply(data: ApplyInput & { translatorId: string }): Promise<Application> {
     const db = getDatabases();
+
+    // Fetch job for bid range validation and maxApplicants check
+    const job = await appwriteJobService.getJob(data.jobId);
+    if (!job) throw new Error("Job not found");
+
+    if (job.status !== "open") throw new Error("Job is not open for applications");
+
+    // Validate bid against budget range
+    if (data.bidAmount) {
+      const min = job.budgetMin || 0;
+      const max = job.budgetMax || job.budget;
+      if (data.bidAmount < min || data.bidAmount > max) {
+        throw new Error(`Bid must be between $${min} and $${max} USD`);
+      }
+    }
+
+    // Check max applicants limit
+    const existingApps = await db.listDocuments(DB_ID, COLLECTIONS.applications, [
+      Query.equal("jobId", data.jobId),
+    ]);
+    if (job.maxApplicants && existingApps.total >= job.maxApplicants) {
+      throw new Error("This job has reached the maximum number of applicants");
+    }
+
     const doc = await db.createDocument(DB_ID, COLLECTIONS.applications, generateId("application"), {
       ...data,
       status: "submitted",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
+
+    // Auto-close job if max applicants reached
+    const updatedTotal = existingApps.total + 1;
+    if (job.maxApplicants && updatedTotal >= job.maxApplicants) {
+      await appwriteJobService.closeJob(data.jobId);
+    }
+
     return mapDoc<Application>(doc as Record<string, unknown>);
   },
 
@@ -339,6 +395,65 @@ export const appwriteApplicationService = {
     }
     const doc = await db.updateDocument(DB_ID, COLLECTIONS.applications, applicationId, updateData);
     return mapDoc<Application>(doc as Record<string, unknown>);
+  },
+
+  async updateApplicationWithFeedback(
+    applicationId: string,
+    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string }
+  ): Promise<Application> {
+    const db = getDatabases();
+    const updateData: Record<string, any> = {
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    if (data.testStatus === "passed" || data.testStatus === "failed") {
+      updateData.testGradedAt = new Date().toISOString();
+    }
+    const doc = await db.updateDocument(DB_ID, COLLECTIONS.applications, applicationId, updateData);
+    return mapDoc<Application>(doc as Record<string, unknown>);
+  },
+
+  async selectTranslator(jobId: string, selectedAppId: string): Promise<void> {
+    const db = getDatabases();
+    const apps = await appwriteApplicationService.getApplications(jobId);
+
+    // Accept the selected translator
+    const selected = apps.find((a) => a.$id === selectedAppId);
+    if (selected) {
+      await db.updateDocument(DB_ID, COLLECTIONS.applications, selectedAppId, {
+        status: "accepted",
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    // Reject all other applicants with pending status
+    for (const app of apps) {
+      if (app.$id !== selectedAppId && (app.status === "submitted" || app.status === "viewed" || app.status === "shortlisted")) {
+        await db.updateDocument(DB_ID, COLLECTIONS.applications, app.$id, {
+          status: "rejected",
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    // Update job status to filled
+    await appwriteJobService.updateJob(jobId, {
+      status: "filled",
+      activeTranslatorId: selected?.translatorId,
+    });
+  },
+
+  async getInvitedJobs(translatorId: string): Promise<Job[]> {
+    try {
+      const db = getDatabases();
+      const result = await db.listDocuments(DB_ID, COLLECTIONS.jobs, [
+        Query.equal("invitedTranslators", translatorId),
+        Query.equal("status", "open"),
+      ]);
+      return result.documents.map((d) => mapDoc<Job>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
   },
 };
 
@@ -384,6 +499,26 @@ export const appwriteMessageService = {
 };
 
 export const appwriteNotificationService = {
+  async createNotification(data: {
+    userId: string;
+    type: string;
+    title: string;
+    body: string;
+    data?: Record<string, unknown>;
+  }): Promise<Notification> {
+    const db = getDatabases();
+    const doc = await db.createDocument(DB_ID, COLLECTIONS.notifications, generateId("notification"), {
+      userId: data.userId,
+      type: data.type,
+      title: data.title,
+      body: data.body,
+      data: data.data ? JSON.stringify(data.data) : "",
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
+    return mapDoc<Notification>(doc as Record<string, unknown>);
+  },
+
   async getNotifications(userId: string): Promise<Notification[]> {
     const db = getDatabases();
     const result = await db.listDocuments(DB_ID, COLLECTIONS.notifications, [

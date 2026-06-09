@@ -35,6 +35,8 @@ export default function JobDetailPage() {
   const [testSolutionUploading, setTestSolutionUploading] = React.useState(false);
   const testSolutionFileInputRef = React.useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [appsCount, setAppsCount] = React.useState(0);
+  const [isInvited, setIsInvited] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const isOwner = user && job?.companyId === user.$id;
 
@@ -53,17 +55,21 @@ export default function JobDetailPage() {
           setSelectedPair(`${sourceLangs[0]}-${targetLangs[0]}`);
         }
 
-        const [companyData, myApps] = await Promise.all([
+        const [companyData, myApps, jobApps] = await Promise.all([
           services.profile.getCompanyProfile(jobData.companyId),
           user ? services.application.getMyApplications(user.$id) : Promise.resolve([]),
+          services.application.getApplications(jobData.$id),
         ]);
         setCompany(companyData);
+        setAppsCount(jobApps.length);
         const existing = myApps.find((a) => a.jobId === jobData.$id);
         if (existing) setApplication(existing);
 
         if (user && user.prefs?.role === "translator") {
           const profileData = await services.profile.getTranslatorProfile(user.$id);
           setTranslatorProfile(profileData);
+          const invitedList = jobData.invitedTranslators || [];
+          setIsInvited(invitedList.includes(user.$id));
         }
       } catch {
         // silent
@@ -258,6 +264,16 @@ export default function JobDetailPage() {
               <Badge variant="secondary" className="flex items-center gap-1">
                 <TestTube className="h-3 w-3" /> Test Required
               </Badge>
+            )}
+            {isInvited && (
+              <Badge variant="default" className="flex items-center gap-1 bg-teal-600">
+                <CheckCircle2 className="h-3 w-3" /> Invited
+              </Badge>
+            )}
+            {job.maxApplicants && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                {appsCount}/{job.maxApplicants} applicants
+              </span>
             )}
           </div>
 

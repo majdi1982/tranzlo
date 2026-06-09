@@ -36,7 +36,12 @@ export type NotificationType =
   | "blog_post_approved"
   | "blog_post_rejected"
   | "trial_ending"
-  | "upgrade_required";
+  | "upgrade_required"
+  | "invitation"
+  | "test_distributed"
+  | "test_reminder"
+  | "translator_selected"
+  | "job_closed_max_applicants";
 
 export type PlanTier = "free" | "starter" | "professional" | "enterprise";
 

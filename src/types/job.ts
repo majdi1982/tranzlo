@@ -22,6 +22,10 @@ export interface Job {
   testWordCount?: number;
   maxTestApplicants?: number;
   maxHires?: number;
+  maxApplicants?: number;
+  invitedTranslators?: string[];
+  testDistributedAt?: string;
+  testDeadline?: string;
   reviewerType: "company" | "translator";
   activeTranslatorId?: string;
   status: JobStatus;

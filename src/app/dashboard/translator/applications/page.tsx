@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { FileText, Eye, Globe, DollarSign, Calendar, Clock, CheckCircle, AlertCircle, Inbox } from "lucide-react";
+import { FileText, Eye, Globe, DollarSign, Calendar, Clock, CheckCircle, AlertCircle, Inbox, TestTube, XCircle } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -183,6 +183,29 @@ export default function MyApplicationsPage() {
                         {app.coverLetter && (
                           <div className="mt-3 p-3 rounded-xl bg-accent/5 border border-border/20">
                             <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">{app.coverLetter}</p>
+                          </div>
+                        )}
+                        {app.testStatus && app.testStatus !== "none" && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <TestTube className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">Test: </span>
+                            <Badge variant={app.testStatus === "passed" ? "success" : app.testStatus === "failed" ? "destructive" : "warning"} className="text-3xs">
+                              {app.testStatus}
+                            </Badge>
+                            {app.testFeedback && (
+                              <span className="text-xs text-muted-foreground ml-2">
+                                Feedback: {app.testFeedback}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {app.status === "rejected" && app.rejectionReason && (
+                          <div className="mt-2 flex items-start gap-2 p-2 rounded-md bg-rose-500/10 border border-rose-500/20">
+                            <XCircle className="h-3.5 w-3.5 text-rose-500 mt-0.5 shrink-0" />
+                            <div>
+                              <span className="text-xs font-semibold text-rose-600">Rejection reason: </span>
+                              <span className="text-xs text-rose-600">{app.rejectionReason}</span>
+                            </div>
                           </div>
                         )}
                       </div>

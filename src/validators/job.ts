@@ -29,6 +29,7 @@ export const createJobSchema = z.object({
   testDuration: z.number().positive("Duration must be positive").optional(),
   testWordCount: z.number().positive("Word count must be positive").max(250, "Word count must be at most 250 words").optional(),
   maxTestApplicants: z.number().positive("Maximum test applicants must be positive").optional(),
+  maxApplicants: z.number().positive("Maximum applicants must be positive").optional(),
   maxHires: z.number().positive("Maximum hires must be positive").optional(),
   reviewerType: z.enum(["company", "translator"]),
 });

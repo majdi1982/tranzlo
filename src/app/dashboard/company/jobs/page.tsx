@@ -146,6 +146,9 @@ function JobCard({
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = React.useState<string>("");
   const [gradingLoading, setGradingLoading] = React.useState<string | null>(null);
+  const [feedbackText, setFeedbackText] = React.useState<Record<string, string>>({});
+  const [rejectReason, setRejectReason] = React.useState("");
+  const [rejectDialogApp, setRejectDialogApp] = React.useState<any | null>(null);
   const [profiles, setProfiles] = React.useState<Record<string, any>>({});
   const [selectedProfile, setSelectedProfile] = React.useState<any | null>(null);
   const { toast } = useToast();
@@ -156,13 +159,50 @@ function JobCard({
       const services = getServices();
       const app = apps.find(a => a.$id === applicationId);
       if (!app) return;
-      await services.application.updateApplicationStatus(applicationId, app.status, testStatus);
-      setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, testStatus, testGradedAt: new Date().toISOString() } : a));
-      toast({ title: `Test marked as ${testStatus === "passed" ? "Passed ✓" : "Failed ✗"}.`, variant: "success" });
+      const feedback = feedbackText[applicationId] || "";
+      await services.application.updateApplicationWithFeedback(applicationId, {
+        testStatus,
+        testFeedback: feedback || undefined,
+      });
+      setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, testStatus, testFeedback: feedback, testGradedAt: new Date().toISOString() } : a));
+      toast({ title: `Test marked as ${testStatus === "passed" ? "Passed" : "Failed"}.`, variant: "success" });
     } catch {
       toast({ title: "Failed to update test status", variant: "destructive" });
     } finally {
       setGradingLoading(null);
+    }
+  }
+
+  async function handleRejectWithReason(applicationId: string) {
+    if (!rejectReason.trim()) {
+      toast({ title: "Please provide a rejection reason", variant: "destructive" });
+      return;
+    }
+    try {
+      const services = getServices();
+      await services.application.updateApplicationWithFeedback(applicationId, {
+        status: "rejected",
+        rejectionReason: rejectReason.trim(),
+      });
+      setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, status: "rejected", rejectionReason: rejectReason.trim() } : a));
+      toast({ title: "Applicant rejected with reason", variant: "success" });
+      setRejectDialogApp(null);
+      setRejectReason("");
+    } catch {
+      toast({ title: "Failed to reject applicant", variant: "destructive" });
+    }
+  }
+
+  async function handleSelectTranslator(applicationId: string) {
+    try {
+      const services = getServices();
+      await services.application.selectTranslator(job.$id, applicationId);
+      // Refresh apps
+      const results = await services.application.getApplications(job.$id);
+      setApps(results);
+      toast({ title: "Translator selected. Other applicants rejected.", variant: "success" });
+    } catch {
+      toast({ title: "Failed to select translator", variant: "destructive" });
     }
   }
 
@@ -277,9 +317,10 @@ function JobCard({
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Close this job?</DialogTitle>
-                          <DialogDescription>
-                            This will close "{job.title}" and remove it from public listings.
-                          </DialogDescription>
+                        <DialogDescription>
+                          This will close "{job.title}" and remove it from public listings.
+                          {job.requiresTest && " The test will be distributed to all applicants with a 48-hour deadline."}
+                        </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                           <Button variant="outline" onClick={() => setShowCloseDialog(false)}>Cancel</Button>
@@ -460,29 +501,53 @@ function JobCard({
                                           })()
                                         )}
 
-                                        {/* Grading Buttons */}
+                                        {/* Test Feedback Textarea */}
                                         {app.testStatus === "pending" && (
-                                          <div className="flex items-center gap-2 mt-2 pt-1 border-t border-border/10">
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              disabled={gradingLoading === app.$id}
-                                              onClick={() => handleGradeTest(app.$id, "passed")}
-                                              className="h-7 text-3xs font-bold text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/10 rounded-md py-0 px-2"
-                                            >
-                                              {gradingLoading === app.$id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                                              Pass Test (نجح)
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              disabled={gradingLoading === app.$id}
-                                              onClick={() => handleGradeTest(app.$id, "failed")}
-                                              className="h-7 text-3xs font-bold text-rose-500 border-rose-500/20 hover:bg-rose-500/10 rounded-md py-0 px-2"
-                                            >
-                                              {gradingLoading === app.$id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                                              Fail Test (رفض)
-                                            </Button>
+                                          <div className="space-y-2 mt-2">
+                                            <textarea
+                                              placeholder="Optional feedback on the test solution..."
+                                              value={feedbackText[app.$id] || ""}
+                                              onChange={(e) => setFeedbackText((prev) => ({ ...prev, [app.$id]: e.target.value }))}
+                                              className="w-full text-xs p-2 rounded-md border border-border/30 bg-background resize-none h-16"
+                                            />
+                                            <div className="flex items-center gap-2 pt-1 border-t border-border/10">
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={gradingLoading === app.$id}
+                                                onClick={() => handleGradeTest(app.$id, "passed")}
+                                                className="h-7 text-3xs font-bold text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/10 rounded-md py-0 px-2"
+                                              >
+                                                {gradingLoading === app.$id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                                                Pass Test
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={gradingLoading === app.$id}
+                                                onClick={() => handleGradeTest(app.$id, "failed")}
+                                                className="h-7 text-3xs font-bold text-rose-500 border-rose-500/20 hover:bg-rose-500/10 rounded-md py-0 px-2"
+                                              >
+                                                {gradingLoading === app.$id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                                                Fail Test
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {/* Show test feedback if graded */}
+                                        {app.testFeedback && (
+                                          <div className="mt-2 p-2 rounded-md bg-muted/20 border border-border/20">
+                                            <span className="text-2xs font-semibold text-muted-foreground uppercase">Feedback: </span>
+                                            <span className="text-xs text-muted-foreground">{app.testFeedback}</span>
+                                          </div>
+                                        )}
+
+                                        {/* Show rejection reason */}
+                                        {app.status === "rejected" && app.rejectionReason && (
+                                          <div className="mt-2 p-2 rounded-md bg-rose-500/10 border border-rose-500/20">
+                                            <span className="text-2xs font-semibold text-rose-600 uppercase">Rejection reason: </span>
+                                            <span className="text-xs text-rose-600">{app.rejectionReason}</span>
                                           </div>
                                         )}
                                       </div>
@@ -539,14 +604,26 @@ function JobCard({
                                       <span className="text-3xs text-muted-foreground uppercase font-semibold">Proposed Bid</span>
                                     </div>
 
-                                    {!activeApp && app.status === "submitted" && (
-                                      <Button
-                                        size="sm"
-                                        onClick={() => setHiringApp(app)}
-                                        className="h-8 rounded-md font-semibold text-xs shadow-md shadow-primary/10"
-                                      >
-                                        Hire & Pay
-                                      </Button>
+                                    {!activeApp && (app.status === "submitted" || app.status === "shortlisted") && (
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => setRejectDialogApp(app)}
+                                          className="h-8 rounded-md font-semibold text-xs text-rose-500 border-rose-500/20 hover:bg-rose-500/10"
+                                        >
+                                          Reject
+                                        </Button>
+                                        {app.testStatus === "passed" || !job.requiresTest ? (
+                                          <Button
+                                            size="sm"
+                                            onClick={() => handleSelectTranslator(app.$id)}
+                                            className="h-8 rounded-md font-semibold text-xs shadow-md shadow-primary/10"
+                                          >
+                                            Select & Hire
+                                          </Button>
+                                        ) : null}
+                                      </div>
                                     )}
                                   </div>
                                 </div>
@@ -562,6 +639,33 @@ function JobCard({
             )}
           </div>
         )}
+
+        {/* Reject with Reason Dialog */}
+        <Dialog open={!!rejectDialogApp} onOpenChange={(open) => { if (!open) { setRejectDialogApp(null); setRejectReason(""); } }}>
+          <DialogContent className="max-w-sm bg-card border border-border/50">
+            <DialogHeader>
+              <DialogTitle>Reject Applicant</DialogTitle>
+              <DialogDescription>Provide a reason for rejecting this applicant. They will see this message.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 my-2">
+              <textarea
+                placeholder="Reason for rejection..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="w-full text-sm p-3 rounded-md border border-border/30 bg-background resize-none h-24"
+              />
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={!rejectReason.trim()}
+                onClick={() => rejectDialogApp && handleRejectWithReason(rejectDialogApp.$id)}
+                className="w-full"
+              >
+                Reject Applicant
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Secure PayPal Checkout Modal */}
         <Dialog open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>

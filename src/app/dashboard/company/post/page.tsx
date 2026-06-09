@@ -303,6 +303,7 @@ export default function PostJobPage() {
   const [testFileUrl, setTestFileUrl] = React.useState("");
   const [testDuration, setTestDuration] = React.useState("24");
   const [testWordCount, setTestWordCount] = React.useState("150");
+  const [maxApplicants, setMaxApplicants] = React.useState("");
   const [testUploading, setTestUploading] = React.useState(false);
   const testFileInputRef = React.useRef<HTMLInputElement>(null);
   const [reviewerType, setReviewerType] = React.useState<"company" | "translator">("company");
@@ -435,6 +436,7 @@ export default function PostJobPage() {
     const formData = {
       title,
       description,
+      maxApplicants: maxApplicants ? Number(maxApplicants) : undefined,
       sourceLanguage: sourceLanguages.join(", "),
       targetLanguage: targetLanguages.join(", "),
       country: (workType === "onsite" || workType === "hybrid") ? country : undefined,
@@ -943,6 +945,27 @@ export default function PostJobPage() {
                       </div>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Job Limits</CardTitle>
+                  <CardDescription>Set limits on applications for this job</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="maxApplicants">Maximum Applicants (Optional)</Label>
+                    <Input
+                      id="maxApplicants"
+                      type="number"
+                      min="1"
+                      value={maxApplicants}
+                      onChange={(e) => setMaxApplicants(e.target.value)}
+                      placeholder="e.g. 10"
+                    />
+                    <p className="text-xs text-muted-foreground">When this limit is reached, the job will auto-close.</p>
+                  </div>
                 </CardContent>
               </Card>
 
