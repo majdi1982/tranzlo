@@ -4,7 +4,10 @@ import { execSync } from "child_process";
 import { google } from "googleapis";
 
 // Load .env.local if available
-const envPath = path.resolve(process.cwd(), ".env.local");
+let envPath = path.resolve(process.cwd(), ".env.local");
+if (!fs.existsSync(envPath)) {
+  envPath = path.resolve(process.cwd(), "frontend", ".env.local");
+}
 if (fs.existsSync(envPath)) {
   for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
     const t = line.trim();
@@ -21,6 +24,7 @@ if (fs.existsSync(envPath)) {
     }
   }
 }
+
 
 const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
 const CREDENTIALS_PATH = process.env.GOOGLE_SERVICE_ACCOUNT_JSON_PATH || path.resolve(process.cwd(), "google-service-account.json");
