@@ -411,46 +411,44 @@ export default function JobDetailPage() {
                 </div>
               )}
 
-              {/* Language Pair Selector */}
+              {/* Language Pair Selector — only profile-matching pairs */}
               {isTranslator && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium">Select Language Pair</label>
-                  <p className="text-xs text-muted-foreground">Choose the language pair you will translate. Pairs matching your profile languages are highlighted with a glowing border.</p>
+                  <p className="text-xs text-muted-foreground">Choose the language pair you will translate. Only pairs matching your profile languages are shown.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {(() => {
                       const list: any[] = [];
                       jobSourceLangs.forEach(src => {
                         jobTargetLangs.forEach(tgt => {
-                          const pairId = `${src}-${tgt}`;
                           const matchesProfile = transLangs.includes(src) && transLangs.includes(tgt);
-                          list.push({ id: pairId, src, tgt, matchesProfile });
+                          if (!matchesProfile) return;
+                          list.push({ id: `${src}-${tgt}`, src, tgt });
                         });
                       });
+                      if (list.length === 0) {
+                        return (
+                          <div className="col-span-full p-4 text-center text-sm text-muted-foreground border border-dashed border-border/50 rounded-xl">
+                            No matching language pairs found. Update your profile languages to match this job.
+                          </div>
+                        );
+                      }
                       return list.map((p) => {
                         const isSelected = selectedPair === p.id;
                         return (
                           <div
                             key={p.id}
-                            onClick={() => isProfileMatch && setSelectedPair(p.id)}
+                            onClick={() => setSelectedPair(p.id)}
                             className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 relative overflow-hidden select-none flex items-center justify-between ${
                               isSelected
                                 ? "border-teal-500 bg-teal-500/10 shadow-[0_0_15px_rgba(20,184,166,0.2)]"
-                                : p.matchesProfile
-                                ? "border-teal-500 bg-teal-500/5 hover:border-teal-500/80 shadow-[0_0_12px_rgba(20,184,166,0.3)] animate-pulse"
-                                : "border-border/60 hover:border-border hover:bg-accent/40"
+                                : "border-teal-500/30 bg-teal-500/5 hover:border-teal-500/60"
                             }`}
                           >
-                            <div>
-                              <span className="text-sm font-bold text-foreground">
-                                {getLanguageName(p.src)} → {getLanguageName(p.tgt)}
-                              </span>
-                              {p.matchesProfile && (
-                                <span className="block text-[10px] text-teal-600 font-semibold mt-1">
-                                  ✨ Fits Profile (مطابق)
-                                </span>
-                              )}
-                            </div>
-                            <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-teal-500 bg-teal-500 text-white" : "border-muted-foreground"}`}>
+                            <span className="text-sm font-bold text-foreground">
+                              {getLanguageName(p.src)} → {getLanguageName(p.tgt)}
+                            </span>
+                            <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-teal-500 bg-teal-500 text-white" : "border-teal-400/50"}`}>
                               {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
                             </div>
                           </div>
@@ -489,39 +487,42 @@ export default function JobDetailPage() {
                 />
               </div>
               {job.requiresTest && (
-                <div className="flex flex-col gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-600">
-                  <div className="flex items-start gap-2">
-                    <TestTube className="h-5 w-5 mt-0.5 shrink-0 text-amber-500" />
-                    <div>
-                      <span className="font-bold text-foreground block">Recruitment Test Required</span>
-                      <span className="text-xs text-muted-foreground">The client requires completing a brief test before reviewing applications.</span>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-xs p-2 rounded-lg bg-card/50 border border-border/30">
-                    <div>
-                      <span className="text-muted-foreground block text-[10px] uppercase font-bold">Max word count</span>
-                      <span className="font-semibold text-foreground">{job.testWordCount || 250} words</span>
+                <div className="relative overflow-hidden flex flex-col gap-3 p-5 rounded-xl bg-gradient-to-br from-teal-600/10 via-teal-500/5 to-emerald-600/10 border border-teal-500/20 text-sm shadow-[0_0_30px_rgba(20,184,166,0.08)]">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-start gap-3 relative z-10">
+                    <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/20">
+                      <TestTube className="h-4 w-4 text-white" />
                     </div>
                     <div>
-                      <span className="text-muted-foreground block text-[10px] uppercase font-bold">Allowed Time</span>
-                      <span className="font-semibold text-foreground">{job.testDuration || 24} hours</span>
+                      <span className="font-bold text-teal-600 block text-sm">Translation Test — Show Your Skills</span>
+                      <span className="text-xs text-muted-foreground">Complete this brief test to stand out. The client reviews your translation before making a decision.</span>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 pt-1.5">
+                  <div className="grid grid-cols-2 gap-3 text-xs p-3 rounded-lg bg-white/40 dark:bg-white/5 border border-teal-500/10 relative z-10">
+                    <div>
+                      <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">Max word count</span>
+                      <span className="font-semibold text-teal-600">{job.testWordCount || 250} words</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">Allowed Time</span>
+                      <span className="font-semibold text-teal-600">{job.testDuration || 24} hours</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1 relative z-10">
                     {job.testFileUrl && (
                       <a
                         href={job.testFileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-lg hover:from-teal-500 hover:to-emerald-500 transition-all shadow-md shadow-teal-600/20"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         <span>Download Test File</span>
                       </a>
                     )}
-                    
+
                     <input
                       ref={testSolutionFileInputRef}
                       type="file"
@@ -535,7 +536,7 @@ export default function JobDetailPage() {
                       size="sm"
                       disabled={testSolutionUploading}
                       onClick={() => testSolutionFileInputRef.current?.click()}
-                      className="gap-1.5 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                      className="gap-1.5 border-teal-500/40 text-teal-600 hover:bg-teal-500/10 hover:text-teal-500"
                     >
                       {testSolutionUploading ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -544,10 +545,10 @@ export default function JobDetailPage() {
                       )}
                       <span>Upload My Translation</span>
                     </Button>
-                    
+
                     {testSolutionUrl ? (
-                      <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
-                        ✓ Solution Uploaded!
+                      <span className="text-xs font-semibold flex items-center gap-1 bg-emerald-500/10 text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                        ✓ Solution Uploaded
                       </span>
                     ) : (
                       <span className="text-2xs text-muted-foreground">Solution file is required to apply.</span>
