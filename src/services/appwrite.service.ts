@@ -299,17 +299,13 @@ export const appwriteJobService = {
   },
 
   async closeJob(jobId: string): Promise<Job> {
-    const job = await appwriteJobService.getJob(jobId);
-    if (job && job.requiresTest) {
-      const now = new Date().toISOString();
-      const deadline = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
-      return appwriteJobService.updateJob(jobId, {
-        status: "closed",
-        testDistributedAt: now,
-        testDeadline: deadline,
-      });
-    }
-    return appwriteJobService.updateJob(jobId, { status: "closed" });
+    const now = new Date().toISOString();
+    const deadline = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    return appwriteJobService.updateJob(jobId, {
+      status: "closed",
+      testDistributedAt: now,
+      testDeadline: deadline,
+    });
   },
 };
 

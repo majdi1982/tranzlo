@@ -299,7 +299,6 @@ export default function PostJobPage() {
     { serviceId: "translation", quantity: 1000, unit: "word", rate: 0.08, rateMin: 0.04, rateMax: 0.08, isFixed: true }
   ]);
   const [requiredCatTools, setRequiredCatTools] = React.useState<string[]>([]);
-  const [requiresTest, setRequiresTest] = React.useState(false);
   const [testFileUrl, setTestFileUrl] = React.useState("");
   const [testDuration, setTestDuration] = React.useState("24");
   const [testWordCount, setTestWordCount] = React.useState("150");
@@ -409,20 +408,18 @@ export default function PostJobPage() {
     e.preventDefault();
     setErrors({});
  
-    if (requiresTest) {
-      if (!testFileUrl) {
-        setErrors((prev) => ({ ...prev, testFile: "Test file is required when 'Require translation test' is active." }));
-        toast({ title: "Please upload a test document", variant: "destructive" });
-        return;
-      }
-      if (!testDuration || Number(testDuration) <= 0) {
-        setErrors((prev) => ({ ...prev, testDuration: "Test duration must be a positive number." }));
-        return;
-      }
-      if (!testWordCount || Number(testWordCount) <= 0 || Number(testWordCount) > 250) {
-        setErrors((prev) => ({ ...prev, testWordCount: "Word count must be between 1 and 250 words." }));
-        return;
-      }
+    if (!testFileUrl) {
+      setErrors((prev) => ({ ...prev, testFile: "Test file is required." }));
+      toast({ title: "Please upload a test document", variant: "destructive" });
+      return;
+    }
+    if (!testDuration || Number(testDuration) <= 0) {
+      setErrors((prev) => ({ ...prev, testDuration: "Test duration must be a positive number." }));
+      return;
+    }
+    if (!testWordCount || Number(testWordCount) <= 0 || Number(testWordCount) > 250) {
+      setErrors((prev) => ({ ...prev, testWordCount: "Word count must be between 1 and 250 words." }));
+      return;
     }
  
     const finalBudgetMin = Math.round(totalBudgetMin);
@@ -456,10 +453,10 @@ export default function PostJobPage() {
         isFixed: s.isFixed
       })),
       requiredCatTools: requiredCatTools.length > 0 ? requiredCatTools : undefined,
-      requiresTest,
-      testFileUrl: requiresTest ? testFileUrl : undefined,
-      testDuration: requiresTest ? Number(testDuration) : undefined,
-      testWordCount: requiresTest ? Number(testWordCount) : undefined,
+      requiresTest: true,
+      testFileUrl,
+      testDuration: Number(testDuration),
+      testWordCount: Number(testWordCount),
       reviewerType,
     };
  
@@ -864,87 +861,83 @@ export default function PostJobPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Translator Testing</CardTitle>
-                  <CardDescription>Configure recruitment testing for applicants</CardDescription>
+                  <CardTitle>
+                    <div className="flex items-center gap-2">
+                      <TestTube className="h-4 w-4 text-teal-600" />
+                      Translation Test — Required
+                    </div>
+                  </CardTitle>
+                  <CardDescription>Upload a test file — all shortlisted translators will receive it automatically</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <input id="requiresTest" type="checkbox" checked={requiresTest} onChange={(e) => setRequiresTest(e.target.checked)} className="h-4 w-4 rounded border-input text-teal-600 focus:ring-teal-500" />
-                    <Label htmlFor="requiresTest" className="flex items-center gap-2 text-sm font-normal cursor-pointer select-none">
-                      <TestTube className="h-4 w-4 text-muted-foreground" />
-                      Require a translation test from applicants
-                    </Label>
-                  </div>
-                  {requiresTest && (
-                    <div className="space-y-4 ml-7 p-4 border border-border/40 rounded-xl bg-muted/20">
-                      <p className="text-xs text-muted-foreground">Applicants will be asked to complete a short test translation before their application is considered.</p>
-                      
-                      <div className="space-y-2">
-                        <Label>Test Document / File (Required)</Label>
-                        <input
-                          ref={testFileInputRef}
-                          type="file"
-                          accept=".pdf,.doc,.docx"
-                          className="hidden"
-                          onChange={handleTestUpload}
-                        />
-                        <div className="flex items-center gap-3">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={testUploading}
-                            onClick={() => testFileInputRef.current?.click()}
-                            className="gap-1.5"
-                          >
-                            {testUploading ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <Upload className="h-3.5 w-3.5" />
-                            )}
-                            Upload Test File
-                          </Button>
-                          {testFileUrl ? (
-                            <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
-                              ✓ File uploaded successfully
-                            </span>
+                  <div className="p-4 border border-border/40 rounded-xl bg-muted/20">
+                    <p className="text-xs text-muted-foreground mb-4">Translators will apply without a test. Once you shortlist them, the test file becomes available for them to download and submit their solution.</p>
+                    
+                    <div className="space-y-2">
+                      <Label>Test Document / File</Label>
+                      <input
+                        ref={testFileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="hidden"
+                        onChange={handleTestUpload}
+                      />
+                      <div className="flex items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={testUploading}
+                          onClick={() => testFileInputRef.current?.click()}
+                          className="gap-1.5"
+                        >
+                          {testUploading ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <span className="text-xs text-muted-foreground">No file selected (PDF/Word)</span>
+                            <Upload className="h-3.5 w-3.5" />
                           )}
-                        </div>
-                        {errors.testFile && <p className="text-xs text-destructive">{errors.testFile}</p>}
+                          Upload Test File
+                        </Button>
+                        {testFileUrl ? (
+                          <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
+                            ✓ File uploaded successfully
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No file selected (PDF/Word)</span>
+                        )}
+                      </div>
+                      {errors.testFile && <p className="text-xs text-destructive">{errors.testFile}</p>}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="testWordCount">Maximum Word Count (Max 250 words)</Label>
+                        <Input
+                          id="testWordCount"
+                          type="number"
+                          max="250"
+                          min="1"
+                          value={testWordCount}
+                          onChange={(e) => setTestWordCount(e.target.value)}
+                          placeholder="e.g. 150"
+                        />
+                        {errors.testWordCount && <p className="text-xs text-destructive">{errors.testWordCount}</p>}
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="testWordCount">Maximum Word Count (Max 250 words)</Label>
-                          <Input
-                            id="testWordCount"
-                            type="number"
-                            max="250"
-                            min="1"
-                            value={testWordCount}
-                            onChange={(e) => setTestWordCount(e.target.value)}
-                            placeholder="e.g. 150"
-                          />
-                          {errors.testWordCount && <p className="text-xs text-destructive">{errors.testWordCount}</p>}
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="testDuration">Allowed Time (Hours)</Label>
-                          <Input
-                            id="testDuration"
-                            type="number"
-                            min="1"
-                            value={testDuration}
-                            onChange={(e) => setTestDuration(e.target.value)}
-                            placeholder="e.g. 24"
-                          />
-                          {errors.testDuration && <p className="text-xs text-destructive">{errors.testDuration}</p>}
-                        </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="testDuration">Allowed Time (Hours)</Label>
+                        <Input
+                          id="testDuration"
+                          type="number"
+                          min="1"
+                          value={testDuration}
+                          onChange={(e) => setTestDuration(e.target.value)}
+                          placeholder="e.g. 24"
+                        />
+                        {errors.testDuration && <p className="text-xs text-destructive">{errors.testDuration}</p>}
                       </div>
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
 

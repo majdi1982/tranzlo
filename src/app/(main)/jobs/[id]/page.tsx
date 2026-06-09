@@ -33,6 +33,7 @@ export default function JobDetailPage() {
   const [selectedPair, setSelectedPair] = React.useState("");
   const [testSolutionUrl, setTestSolutionUrl] = React.useState("");
   const [testSolutionUploading, setTestSolutionUploading] = React.useState(false);
+  const [testSubmitting, setTestSubmitting] = React.useState(false);
   const testSolutionFileInputRef = React.useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [appsCount, setAppsCount] = React.useState(0);
@@ -100,11 +101,6 @@ export default function JobDetailPage() {
 
   async function handleApply() {
     if (!user || !job) return;
-    if (job.requiresTest && !testSolutionUrl) {
-      toast({ title: "Please complete and upload the required test solution file.", variant: "destructive" });
-      return;
-    }
-    
     // Validate bid amount range
     const min = job.budgetMin || 0;
     const max = job.budgetMax || job.budget;
@@ -131,9 +127,6 @@ export default function JobDetailPage() {
         translatorId: user.$id,
         bidAmount: bidVal,
         languagePair: friendlyPair,
-        testSolutionUrl: job.requiresTest ? testSolutionUrl : undefined,
-        testStatus: job.requiresTest ? "pending" : "none",
-        testSubmittedAt: job.requiresTest ? new Date().toISOString() : undefined,
       } as any);
       toast({ title: "Application submitted!", variant: "success" });
       router.refresh();
@@ -486,8 +479,41 @@ export default function JobDetailPage() {
                   className="min-h-[140px]"
                 />
               </div>
-              {job.requiresTest && (
-                <div className="relative overflow-hidden flex flex-col gap-3 p-5 rounded-xl bg-gradient-to-br from-teal-600/10 via-teal-500/5 to-emerald-600/10 border border-teal-500/20 text-sm shadow-[0_0_30px_rgba(20,184,166,0.08)]">
+              <Button onClick={handleApply} disabled={submitting || coverLetter.length < 20 || !bidAmount || !isProfileMatch}>
+                {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                Submit Application
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {application && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Application</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <span className="text-sm">
+                  You applied on {new Date(application.createdAt).toLocaleDateString()}
+                  {application.status !== "submitted" && (
+                    <> · Status: <Badge variant={
+                      application.status === "accepted" ? "default" :
+                      application.status === "rejected" ? "destructive" : "secondary"
+                    }>{application.status}</Badge></>
+                  )}
+                </span>
+              </div>
+              {application.bidAmount && (
+                <div className="text-sm text-muted-foreground mt-2">
+                  Proposed Bid Price: <span className="font-semibold text-foreground">${application.bidAmount.toLocaleString()}</span>
+                </div>
+              )}
+
+              {/* Test section — visible when shortlisted and job requires test */}
+              {job.requiresTest && application.status === "shortlisted" && (
+                <div className="relative overflow-hidden flex flex-col gap-3 p-5 rounded-xl bg-gradient-to-br from-teal-600/10 via-teal-500/5 to-emerald-600/10 border border-teal-500/20 text-sm shadow-[0_0_30px_rgba(20,184,166,0.08)] mt-4">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
                   <div className="flex items-start gap-3 relative z-10">
                     <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/20">
@@ -495,7 +521,7 @@ export default function JobDetailPage() {
                     </div>
                     <div>
                       <span className="font-bold text-teal-600 block text-sm">Translation Test — Show Your Skills</span>
-                      <span className="text-xs text-muted-foreground">Complete this brief test to stand out. The client reviews your translation before making a decision.</span>
+                      <span className="text-xs text-muted-foreground">The company has invited you to complete a test. Submit your translation below.</span>
                     </div>
                   </div>
 
@@ -546,45 +572,42 @@ export default function JobDetailPage() {
                       <span>Upload My Translation</span>
                     </Button>
 
-                    {testSolutionUrl ? (
+                    {testSolutionUrl && !application.testSolutionUrl ? (
+                      <Button
+                        size="sm"
+                        disabled={testSubmitting}
+                        onClick={async () => {
+                          setTestSubmitting(true);
+                          try {
+                            const svc = getServices();
+                            await svc.application.updateApplicationStatus(application.$id, application.status, "pending", testSolutionUrl);
+                            setApplication({ ...application, testSolutionUrl, testSubmittedAt: new Date().toISOString(), testStatus: "pending" as any });
+                            toast({ title: "Test solution submitted!", variant: "success" });
+                          } catch {
+                            toast({ title: "Failed to submit test", variant: "destructive" });
+                          } finally {
+                            setTestSubmitting(false);
+                          }
+                        }}
+                        className="h-8 text-xs font-bold bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-lg hover:from-teal-500 hover:to-emerald-500"
+                      >
+                        {testSubmitting ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                        Submit Test
+                      </Button>
+                    ) : null}
+                    {application.testSolutionUrl && (
                       <span className="text-xs font-semibold flex items-center gap-1 bg-emerald-500/10 text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                        ✓ Solution Uploaded
+                        ✓ Solution Submitted
                       </span>
-                    ) : (
-                      <span className="text-2xs text-muted-foreground">Solution file is required to apply.</span>
                     )}
                   </div>
-                </div>
-              )}
-              <Button onClick={handleApply} disabled={submitting || coverLetter.length < 20 || !bidAmount || !isProfileMatch || (job.requiresTest && !testSolutionUrl)}>
-                {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-                Submit Application
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
-        {application && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Application</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <span className="text-sm">
-                  You applied on {new Date(application.createdAt).toLocaleDateString()}
-                  {application.status !== "submitted" && (
-                    <> · Status: <Badge variant={
-                      application.status === "accepted" ? "default" :
-                      application.status === "rejected" ? "destructive" : "secondary"
-                    }>{application.status}</Badge></>
+                  {application.testFeedback && (
+                    <div className="p-3 rounded-lg bg-teal-500/5 border border-teal-500/10 relative z-10">
+                      <span className="text-2xs font-semibold text-teal-600 uppercase tracking-wider">Feedback: </span>
+                      <span className="text-xs text-muted-foreground">{application.testFeedback}</span>
+                    </div>
                   )}
-                </span>
-              </div>
-              {application.bidAmount && (
-                <div className="text-sm text-muted-foreground mt-2">
-                  Proposed Bid Price: <span className="font-semibold text-foreground">${application.bidAmount.toLocaleString()}</span>
                 </div>
               )}
             </CardContent>
