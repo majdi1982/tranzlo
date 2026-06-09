@@ -12,6 +12,3 @@ subscribe-service/
 **.node-persist**
 **_IGNORE_**
 # end managed
-
-google-service-account.json
-
