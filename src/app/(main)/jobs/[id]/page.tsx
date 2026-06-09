@@ -36,6 +36,7 @@ export default function JobDetailPage() {
   const [testSubmitting, setTestSubmitting] = React.useState(false);
   const testSolutionFileInputRef = React.useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [submitted, setSubmitted] = React.useState(false);
   const [appsCount, setAppsCount] = React.useState(0);
   const [isInvited, setIsInvited] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
@@ -128,8 +129,17 @@ export default function JobDetailPage() {
         bidAmount: bidVal,
         languagePair: friendlyPair,
       } as any);
-      toast({ title: "Application submitted!", variant: "success" });
-      router.refresh();
+      setSubmitted(true);
+      setApplication({
+        $id: "",
+        jobId: job!.$id,
+        translatorId: user.$id,
+        coverLetter,
+        bidAmount: bidVal,
+        languagePair: friendlyPair,
+        status: "submitted",
+        createdAt: new Date().toISOString(),
+      } as any);
     } catch {
       toast({ title: "Failed to apply", variant: "destructive" });
     } finally {
@@ -362,7 +372,7 @@ export default function JobDetailPage() {
           </Card>
         )}
 
-        {user && !isOwner && job.status === "open" && !application && (
+        {user && !isOwner && job.status === "open" && !application && !submitted && (
           <Card>
             <CardHeader>
               <CardTitle>Apply for this Job</CardTitle>
@@ -492,7 +502,29 @@ export default function JobDetailPage() {
           </Card>
         )}
 
-        {application && (
+        {submitted && (
+          <div className="flex flex-col items-center text-center py-10 px-4 rounded-xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/5 to-transparent animate-fade-in">
+            <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
+              <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+            </div>
+            <h2 className="text-xl font-extrabold text-foreground">Application Submitted!</h2>
+            <p className="text-sm text-muted-foreground mt-2 max-w-md">
+              You have successfully applied for <span className="font-semibold text-foreground">{job.title}</span>.
+              {selectedPair && <><br />Language pair: <span className="font-semibold">{getLanguageName(selectedPair.split("-")[0])} → {getLanguageName(selectedPair.split("-")[1])}</span></>}
+              {bidAmount && <><br />Bid: <span className="font-semibold">${Number(bidAmount).toLocaleString()} USD</span></>}
+            </p>
+            <div className="flex gap-3 mt-6">
+              <Button onClick={() => router.push("/dashboard/translator/applications")}>
+                View My Applications
+              </Button>
+              <Button variant="outline" onClick={() => router.push("/jobs")}>
+                Browse More Jobs
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {application && !submitted && (
           <Card>
             <CardHeader>
               <CardTitle>Your Application</CardTitle>
