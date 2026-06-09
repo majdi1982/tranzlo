@@ -4,10 +4,11 @@ import { execSync } from "child_process";
 import { google } from "googleapis";
 
 // Load .env.local if available
-let envPath = path.resolve(process.cwd(), ".env.local");
+let envPath = path.resolve(process.cwd(), "frontend", ".env.local");
 if (!fs.existsSync(envPath)) {
-  envPath = path.resolve(process.cwd(), "frontend", ".env.local");
+  envPath = path.resolve(process.cwd(), ".env.local");
 }
+
 if (fs.existsSync(envPath)) {
   for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
     const t = line.trim();
@@ -36,11 +37,6 @@ async function runBackup() {
 
   if (!FOLDER_ID) {
     console.error("❌ GOOGLE_DRIVE_FOLDER_ID is not configured in environment variables.");
-    process.exit(1);
-  }
-
-  if (!fs.existsSync(CREDENTIALS_PATH)) {
-    console.error(`❌ Google Service Account key not found at path: ${CREDENTIALS_PATH}`);
     process.exit(1);
   }
 
@@ -80,13 +76,31 @@ async function runBackup() {
     console.log(`   ✅ Archive created successfully at: ${archivePath}`);
 
     // 3. Authenticate with Google Drive API
-    console.log("🔑 Authenticating with Google Drive Service Account...");
-    const auth = new google.auth.GoogleAuth({
-      keyFile: CREDENTIALS_PATH,
-      scopes: ["https://www.googleapis.com/auth/drive"],
-    });
+    let auth;
+    if (process.env.GOOGLE_REFRESH_TOKEN) {
+      console.log("🔑 Authenticating with Google Drive OAuth2 (Refresh Token)...");
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET
+      );
+      oauth2Client.setCredentials({
+        refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+      });
+      auth = oauth2Client;
+    } else {
+      console.log("🔑 Authenticating with Google Drive Service Account...");
+      if (!fs.existsSync(CREDENTIALS_PATH)) {
+        console.error(`❌ Google Service Account key not found at path: ${CREDENTIALS_PATH}`);
+        process.exit(1);
+      }
+      auth = new google.auth.GoogleAuth({
+        keyFile: CREDENTIALS_PATH,
+        scopes: ["https://www.googleapis.com/auth/drive"],
+      });
+    }
     const drive = google.drive({ version: "v3", auth });
     console.log("   ✅ Google Drive API client authorized.");
+
 
     // 4. Upload Backup to Google Drive Folder
     console.log(`📤 Uploading backup archive to Google Drive folder: ${FOLDER_ID}...`);
