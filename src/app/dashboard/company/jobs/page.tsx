@@ -195,6 +195,17 @@ function JobCard({
     }
   }
 
+  async function handleShortlistTranslator(applicationId: string) {
+    try {
+      const services = getServices();
+      await services.application.updateApplicationStatus(applicationId, "shortlisted");
+      setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, status: "shortlisted" } : a));
+      toast({ title: "Translator invited to take the test.", variant: "success" });
+    } catch {
+      toast({ title: "Failed to invite translator to test", variant: "destructive" });
+    }
+  }
+
   async function handleSelectTranslator(applicationId: string) {
     try {
       const services = getServices();
@@ -672,6 +683,15 @@ function JobCard({
                                         >
                                           Reject
                                         </Button>
+                                        {job.requiresTest && app.status === "submitted" && (
+                                          <Button
+                                            size="sm"
+                                            onClick={() => handleShortlistTranslator(app.$id)}
+                                            className="h-8 rounded-md font-semibold text-xs bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-500/20"
+                                          >
+                                            Invite to Test
+                                          </Button>
+                                        )}
                                         {app.testStatus === "passed" || !job.requiresTest ? (
                                           <Button
                                             size="sm"
