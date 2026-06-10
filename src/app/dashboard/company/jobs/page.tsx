@@ -726,9 +726,6 @@ function JobCard({
 
         {/* Secure PayPal Checkout Modal */}
         <Dialog open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>
-          <DialogContent className="max-w-xl bg-card border border-border/50 max-h-[90vh] overflow-y-auto w-11/12 p-6 rounded-2xl">
-        {/* Secure PayPal Checkout Modal */}
-        <Dialog open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>
           <DialogContent className="max-w-xl bg-card border border-border/50 max-h-[90vh] overflow-y-auto w-11/12 p-0 rounded-2xl overflow-hidden shadow-2xl">
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 p-6 border-b border-border/20">
               <DialogHeader>
