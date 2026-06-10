@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { getLanguageName } from "@/data/languages";
 import { PayPalButton } from "@/components/paypal-button";
@@ -195,14 +196,13 @@ function JobCard({
     }
   }
 
-  async function handleShortlistTranslator(applicationId: string, jobId: string) {
+  async function handleShortlistTranslator(applicationId: string) {
     try {
       const services = getServices();
       await services.application.updateApplicationStatus(applicationId, "shortlisted");
       
       const app = apps.find((a) => a.$id === applicationId);
-      const job = jobs.find((j) => j.$id === jobId);
-      if (app && user && job && job.testFileUrl) {
+      if (app && user && job.testFileUrl) {
         // Create Conversation
         const conv = await services.message.createConversation([user.$id, app.translatorId]);
         
@@ -232,18 +232,17 @@ function JobCard({
     }
   }
 
-  async function handleSelectTranslator(applicationId: string, jobId: string) {
+  async function handleSelectTranslator(applicationId: string) {
     try {
       const services = getServices();
-      await services.application.selectTranslator(jobId, applicationId);
+      await services.application.selectTranslator(job.$id, applicationId);
       
       // Refresh apps
-      const results = await services.application.getApplications(jobId);
+      const results = await services.application.getApplications(job.$id);
       setApps(results);
 
       const app = results.find(a => a.$id === applicationId);
-      const job = jobs.find(j => j.$id === jobId);
-      if (app && user && job) {
+      if (app && user) {
         // 1. Create Conversation
         const conv = await services.message.createConversation([user.$id, app.translatorId]);
         
@@ -317,10 +316,20 @@ function JobCard({
       const conv = await services.message.createConversation([user.$id, hiringApp.translatorId]);
       
       // 2. Send Initial Welcome Message
+      let contentStr = `Hello! Escrow deposit of $${hiringApp.bidAmount || job.budget} has been secured for the project "${job.title}". Language Pair: ${hiringApp.languagePair || 'N/A'}. You can now start working.`;
+      
+      if (job.deadline) {
+        contentStr += `\nDeadline: ${new Date(job.deadline).toLocaleDateString()}`;
+      }
+      
+      if (job.visibility === "private" && job.translationFileUrl) {
+        contentStr += `\n\nHere is the private translation file for this job: ${job.translationFileUrl}`;
+      }
+
       await services.message.sendMessage({
         conversationId: conv.$id,
         senderId: user.$id,
-        content: `Hello! Escrow deposit of $${hiringApp.bidAmount || job.budget} has been secured for the project "${job.title}". Language Pair: ${hiringApp.languagePair || 'N/A'}. You can now start working.`,
+        content: contentStr,
       });
 
       // 3. Send Notification
@@ -713,7 +722,7 @@ function JobCard({
                                         {job.requiresTest && app.status === "submitted" && (
                                           <Button
                                             size="sm"
-                                            onClick={() => handleShortlistTranslator(app.$id, job.$id)}
+                                            onClick={() => handleShortlistTranslator(app.$id)}
                                             className="h-8 rounded-md font-semibold text-xs bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-500/20"
                                           >
                                             Invite to Test
@@ -722,7 +731,7 @@ function JobCard({
                                         {app.testStatus === "passed" || !job.requiresTest ? (
                                           <Button
                                             size="sm"
-                                            onClick={() => handleSelectTranslator(app.$id, job.$id)}
+                                            onClick={() => handleSelectTranslator(app.$id)}
                                             className="h-8 rounded-md font-semibold text-xs shadow-md shadow-primary/10"
                                           >
                                             Select & Hire
@@ -772,62 +781,127 @@ function JobCard({
           </DialogContent>
         </Dialog>
 
-        {/* Secure PayPal Checkout Modal */}
+        {/* Unified Approval & Checkout Modal */}
         <Sheet open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>
-          <SheetContent side="right" className="bg-card border-l border-border/50 max-h-screen overflow-y-auto sm:max-w-md w-full p-0 shadow-2xl">
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 p-6 border-b border-border/20">
+          <SheetContent side="right" className="bg-card border-l border-border/50 max-h-screen overflow-y-auto sm:max-w-xl w-full p-0 shadow-2xl flex flex-col">
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 p-8 border-b border-border/20 sticky top-0 z-20">
               <SheetHeader className="text-left">
-                <SheetTitle className="flex items-center gap-2 text-2xl font-black text-white">
-                  <ShieldCheck className="h-7 w-7 text-emerald-400" />
-                  Secure Escrow
+                <SheetTitle className="flex items-center gap-3 text-2xl font-black text-white">
+                  <ShieldCheck className="h-8 w-8 text-emerald-400" />
+                  Contract Approval & Payment
                 </SheetTitle>
                 <SheetDescription className="text-base text-slate-300 mt-2 font-medium">
-                  Funds are held safely until you approve the final delivery.
+                  Review the translator's proposal and secure the contract via escrow. Funds are held safely until you approve the final delivery.
                 </SheetDescription>
               </SheetHeader>
             </div>
 
             {hiringApp && (
-              <div className="p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                {/* 1. Translator Information */}
                 <div className="space-y-4">
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="h-4 w-4" /> Contract Details
+                    <User className="h-4 w-4" /> Translator Profile
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl border border-border/40 bg-accent/5">
-                      <span className="block text-xs text-muted-foreground mb-1">Target Project</span>
-                      <span className="block font-semibold text-foreground text-sm truncate">{job.title}</span>
+                  {profiles[hiringApp.translatorId] ? (
+                    <div className="flex items-start gap-5 p-5 rounded-xl border border-border/40 bg-accent/5">
+                      <Avatar className="h-16 w-16 border-2 border-primary/20">
+                        <AvatarImage src={profiles[hiringApp.translatorId].avatarUrl} alt={profiles[hiringApp.translatorId].fullName} />
+                        <AvatarFallback className="text-lg bg-primary/10 text-primary">{profiles[hiringApp.translatorId].fullName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-lg">{profiles[hiringApp.translatorId].fullName}</h4>
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
+                            ★ {profiles[hiringApp.translatorId].rating?.toFixed(1) || "New"}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {profiles[hiringApp.translatorId].languages?.map((lang: string) => (
+                            <span key={lang} className="text-xs bg-muted px-2 py-0.5 rounded-md text-muted-foreground border border-border/50">{lang}</span>
+                          ))}
+                        </div>
+                        <p className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
+                          <Briefcase className="h-3.5 w-3.5" />
+                          {profiles[hiringApp.translatorId].completedJobs} jobs completed
+                        </p>
+                      </div>
                     </div>
-                    <div className="p-4 rounded-xl border border-border/40 bg-accent/5">
-                      <span className="block text-xs text-muted-foreground mb-1">Linguist ID</span>
-                      <span className="block font-semibold text-foreground text-sm">{hiringApp.translatorId.slice(-6).toUpperCase()}</span>
+                  ) : (
+                    <div className="p-5 rounded-xl border border-border/40 bg-accent/5 flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-full bg-muted animate-pulse" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 w-1/3 bg-muted animate-pulse rounded" />
+                        <div className="h-3 w-1/2 bg-muted animate-pulse rounded" />
+                      </div>
                     </div>
+                  )}
+                </div>
+
+                {/* 2. Application Details */}
+                <div className="space-y-4">
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    <FileText className="h-4 w-4" /> Application Details
+                  </h3>
+                  <div className="p-5 rounded-xl border border-border/40 bg-accent/5 space-y-4">
+                    <div>
+                      <span className="block text-xs text-muted-foreground mb-1.5 font-semibold">Cover Letter</span>
+                      <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap bg-background p-4 rounded-lg border border-border/30">
+                        {hiringApp.coverLetter || "No cover letter provided."}
+                      </p>
+                    </div>
+                    {job.requiresTest && (
+                      <div className="pt-4 border-t border-border/30">
+                        <span className="block text-xs text-muted-foreground mb-1.5 font-semibold">Test Evaluation</span>
+                        <div className="flex items-center gap-3">
+                          <Badge className={hiringApp.testStatus === "passed" ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-muted text-muted-foreground"}>
+                            {hiringApp.testStatus === "passed" ? "Passed" : hiringApp.testStatus || "Pending"}
+                          </Badge>
+                          {hiringApp.testSolutionUrl && (
+                            <Link href={hiringApp.testSolutionUrl} target="_blank" className="text-xs text-primary hover:underline flex items-center gap-1">
+                              <ExternalLink className="h-3 w-3" /> View Submitted Test
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex items-center justify-between">
-                  <div>
-                    <span className="block text-sm font-bold text-foreground">Escrow Amount</span>
-                    <span className="block text-xs text-muted-foreground mt-0.5">100% Secure & Refundable</span>
+                {/* 3. Escrow Summary & Checkout */}
+                <div className="space-y-4 pt-4">
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" /> Escrow Deposit & Checkout
+                  </h3>
+                  <div className="p-6 rounded-xl border-2 border-primary/20 bg-primary/5 flex items-center justify-between shadow-inner">
+                    <div>
+                      <span className="block text-base font-bold text-foreground">Total Escrow Amount</span>
+                      <span className="block text-xs text-muted-foreground mt-1">100% Secure & Refundable upon cancellation</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-4xl font-black text-primary">${hiringApp.bidAmount || job.budget}</span>
+                      <span className="block text-xs font-semibold text-emerald-600 mt-1 uppercase tracking-wide">Ready to deposit</span>
+                    </div>
                   </div>
-                  <span className="text-3xl font-black text-primary">${hiringApp.bidAmount || job.budget}</span>
-                </div>
 
-                <div className="w-full relative z-10 flex flex-col justify-center min-h-[160px] bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-border/30">
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <Lock className="h-4 w-4 text-emerald-500" />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">SSL Encrypted Checkout</span>
+                  <div className="w-full relative z-10 flex flex-col justify-center bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-border/30 shadow-sm mt-6">
+                    <div className="flex items-center justify-center gap-2 mb-5">
+                      <Lock className="h-4 w-4 text-emerald-500" />
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">SSL Encrypted Checkout</span>
+                    </div>
+                    <div className="min-h-[150px] flex items-center justify-center">
+                      <PayPalButton
+                        amount={hiringApp.bidAmount || job.budget}
+                        applicationId={hiringApp.$id}
+                        onSuccess={handleHiringSuccess}
+                      />
+                    </div>
                   </div>
-                  <PayPalButton
-                    amount={hiringApp.bidAmount || job.budget}
-                    applicationId={hiringApp.$id}
-                    onSuccess={handleHiringSuccess}
-                  />
                 </div>
               </div>
             )}
-            <div className="px-6 pb-6 pt-2">
-              <Button variant="ghost" onClick={() => setHiringApp(null)} className="w-full text-muted-foreground hover:text-foreground bg-muted/50">
+            <div className="p-6 border-t border-border/20 bg-muted/20">
+              <Button variant="outline" onClick={() => setHiringApp(null)} className="w-full font-semibold border-border/50 hover:bg-muted/50">
                 Cancel
               </Button>
             </div>
