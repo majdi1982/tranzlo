@@ -853,6 +853,7 @@ export default function EditJobPage() {
                   {errors.specializations && <p className="text-xs text-destructive mt-2">{errors.specializations}</p>}
                 </CardContent>
               </Card>
+              )}
 
               <Card>
                 <CardHeader>
