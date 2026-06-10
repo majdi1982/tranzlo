@@ -34,6 +34,9 @@ export interface Job {
   activeTranslatorId?: string;
   externalTranslatorEmail?: string;
   previousTranslatorId?: string;
+  visibility?: "public" | "private";
+  privateType?: "internal" | "external";
+  translationFileUrl?: string;
   status: JobStatus;
   createdAt: string;
   updatedAt: string;

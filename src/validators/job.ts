@@ -34,6 +34,9 @@ export const createJobSchema = z.object({
   reviewerType: z.enum(["company", "translator"]),
   externalTranslatorEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   previousTranslatorId: z.string().optional().or(z.literal("")),
+  visibility: z.enum(["public", "private"]).default("public"),
+  privateType: z.enum(["internal", "external"]).optional(),
+  translationFileUrl: z.string().optional(),
 });
 
 export const updateJobSchema = createJobSchema.partial();

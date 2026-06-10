@@ -313,6 +313,14 @@ export default function EditJobPage() {
   const [requiresTest, setRequiresTest] = React.useState(true);
   const [externalTranslatorEmail, setExternalTranslatorEmail] = React.useState("");
   const [previousTranslatorId, setPreviousTranslatorId] = React.useState("");
+  
+  // Visibility and Translation File State
+  const [visibility, setVisibility] = React.useState<"public" | "private">("public");
+  const [privateType, setPrivateType] = React.useState<"internal" | "external">("internal");
+  const [translationFileUrl, setTranslationFileUrl] = React.useState("");
+  const [translationFileUploading, setTranslationFileUploading] = React.useState(false);
+  const translationFileInputRef = React.useRef<HTMLInputElement>(null);
+  
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
@@ -343,6 +351,9 @@ export default function EditJobPage() {
         if (job.reviewerType) setReviewerType(job.reviewerType as any);
         if (job.externalTranslatorEmail) setExternalTranslatorEmail(job.externalTranslatorEmail);
         if (job.previousTranslatorId) setPreviousTranslatorId(job.previousTranslatorId);
+        if (job.visibility) setVisibility(job.visibility as any);
+        if (job.privateType) setPrivateType(job.privateType as any);
+        if (job.translationFileUrl) setTranslationFileUrl(job.translationFileUrl);
       }
     }).catch((err) => {
       toast({ title: "Failed to load job", description: err.message, variant: "destructive" });
@@ -442,6 +453,24 @@ export default function EditJobPage() {
     }
   }
 
+  async function handleTranslationFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setTranslationFileUploading(true);
+    try {
+      const storage = getStorage();
+      const uploaded = await storage.createFile(BUCKETS.COMPANY_DOCUMENTS, ID.unique(), file);
+      const fileUrl = storage.getFileView(BUCKETS.COMPANY_DOCUMENTS, uploaded.$id).toString();
+      setTranslationFileUrl(fileUrl);
+      toast({ title: "Translation file uploaded successfully", variant: "success" });
+    } catch {
+      toast({ title: "Failed to upload translation file", variant: "destructive" });
+    } finally {
+      setTranslationFileUploading(false);
+      if (translationFileInputRef.current) translationFileInputRef.current.value = "";
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
@@ -469,7 +498,13 @@ export default function EditJobPage() {
       toast({ title: "Total budget cannot be negative. Please check service rates.", variant: "destructive" });
       return;
     }
- 
+    
+    if (!translationFileUrl) {
+      setErrors((prev) => ({ ...prev, translationFile: "Translation file is required." }));
+      toast({ title: "Please upload the translation file", variant: "destructive" });
+      return;
+    }
+
     const formData = {
       title,
       description,
@@ -500,6 +535,9 @@ export default function EditJobPage() {
       reviewerType,
       externalTranslatorEmail: externalTranslatorEmail || undefined,
       previousTranslatorId: previousTranslatorId || undefined,
+      visibility,
+      privateType: visibility === "private" ? privateType : undefined,
+      translationFileUrl,
     };
  
     const parsed = createJobSchema.safeParse(formData);
@@ -561,6 +599,53 @@ export default function EditJobPage() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
+                  <CardTitle>Job Visibility</CardTitle>
+                  <CardDescription>Determine who can see and apply for this job</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="visibility" value="public" checked={visibility === "public"} onChange={() => setVisibility("public")} className="h-4 w-4" />
+                      <span className="font-medium">Public</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="visibility" value="private" checked={visibility === "private"} onChange={() => setVisibility("private")} className="h-4 w-4" />
+                      <span className="font-medium">Private</span>
+                    </label>
+                  </div>
+
+                  {visibility === "private" && (
+                    <div className="pt-2 border-t border-border/50">
+                      <Label className="mb-3 block text-muted-foreground">Private Invitation Type</Label>
+                      <div className="flex gap-6">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="privateType" value="internal" checked={privateType === "internal"} onChange={() => setPrivateType("internal")} className="h-4 w-4" />
+                          <span className="text-sm">Internal - Invite platform translators</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="privateType" value="external" checked={privateType === "external"} onChange={() => setPrivateType("external")} className="h-4 w-4" />
+                          <span className="text-sm">External - Invite via Email</span>
+                        </label>
+                      </div>
+
+                      {privateType === "external" && (
+                        <div className="mt-4 space-y-2">
+                          <Label htmlFor="externalEmail">Translator Email</Label>
+                          <Input id="externalEmail" type="email" value={externalTranslatorEmail} onChange={(e) => setExternalTranslatorEmail(e.target.value)} placeholder="translator@example.com" />
+                        </div>
+                      )}
+                      {privateType === "internal" && (
+                        <div className="mt-4 p-4 border rounded-md bg-muted/20">
+                          <p className="text-sm text-muted-foreground">Based on your selected languages and specializations, we will suggest compatible translators for you to invite directly after posting.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
                   <CardTitle>Job Details</CardTitle>
                   <CardDescription>Basic information about the project</CardDescription>
                 </CardHeader>
@@ -574,6 +659,24 @@ export default function EditJobPage() {
                     <Label htmlFor="description">Description</Label>
                     <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the project scope, requirements, and any specific instructions..." className="min-h-[140px]" />
                     {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
+                  </div>
+                  
+                  <div className="pt-4 border-t border-border/50">
+                    <Label className="block mb-2 font-semibold">Upload Translation File</Label>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      This is the actual source document that needs translation. It will remain hidden and automatically sent to the translator in the chat only after you officially hire them.
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <input type="file" ref={translationFileInputRef} onChange={handleTranslationFileUpload} className="hidden" accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.ppt,.pptx" />
+                      <div className="flex items-center gap-3">
+                        <Button type="button" variant="outline" onClick={() => translationFileInputRef.current?.click()} disabled={translationFileUploading}>
+                          {translationFileUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                          {translationFileUrl ? "Change Translation File" : "Upload Translation File"}
+                        </Button>
+                        {translationFileUrl && <span className="text-xs text-success font-medium">File attached</span>}
+                      </div>
+                      {errors.translationFile && <p className="text-xs text-destructive mt-1">{errors.translationFile}</p>}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -708,6 +811,7 @@ export default function EditJobPage() {
                 </CardContent>
               </Card>
 
+              {visibility === "public" && (
               <Card>
                 <CardHeader>
                   <CardTitle>Specializations</CardTitle>
@@ -856,6 +960,7 @@ export default function EditJobPage() {
                 </CardContent>
               </Card>
 
+              {visibility === "public" && (
               <Card>
                 <CardHeader>
                   <CardTitle>Required CAT Tools</CardTitle>
@@ -899,7 +1004,9 @@ export default function EditJobPage() {
                   )}
                 </CardContent>
               </Card>
+              )}
 
+              {visibility === "public" && (
               <Card>
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div>
@@ -995,7 +1102,9 @@ export default function EditJobPage() {
                   </CardContent>
                 )}
               </Card>
+              )}
 
+              {visibility === "public" && (
               <Card>
                 <CardHeader>
                   <CardTitle>Targeted Translator (Optional)</CardTitle>
@@ -1030,6 +1139,7 @@ export default function EditJobPage() {
                   </div>
                 </CardContent>
               </Card>
+              )}
 
               <Card>
                 <CardHeader>
