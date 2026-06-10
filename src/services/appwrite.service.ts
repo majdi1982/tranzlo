@@ -562,7 +562,7 @@ export const appwriteMessageService = {
     const db = getDatabases();
     const doc = await db.createDocument(DB_ID, COLLECTIONS.conversations, generateId("conversation"), {
       participants,
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     });
     return mapDoc<Conversation>(doc as Record<string, unknown>);
   },

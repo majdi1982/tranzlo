@@ -227,8 +227,9 @@ function JobCard({
 
       setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, status: "shortlisted" } : a));
       toast({ title: "Translator invited to take the test and message sent.", variant: "success" });
-    } catch {
-      toast({ title: "Failed to invite translator to test", variant: "destructive" });
+    } catch (error: any) {
+      console.error("handleShortlistTranslator error:", error);
+      toast({ title: "Failed to invite translator to test", description: error?.message || String(error), variant: "destructive" });
     }
   }
 
