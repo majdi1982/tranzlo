@@ -23,6 +23,7 @@ import { SERVICE_TYPES, SERVICE_UNITS } from "@/data/service-types";
 import { CAT_TOOLS } from "@/data/cat-tools";
 import { createJobSchema } from "@/validators";
 import { getStorage, ID, BUCKETS } from "@/lib/appwrite";
+import type { TranslatorProfile } from "@/types";
 
 interface SearchableLanguageSelectProps {
   id: string;
@@ -320,7 +321,27 @@ export default function PostJobPage() {
   const [translationFileUploading, setTranslationFileUploading] = React.useState(false);
   const translationFileInputRef = React.useRef<HTMLInputElement>(null);
   
+  const [suggestedTranslators, setSuggestedTranslators] = React.useState<(TranslatorProfile & { hasWorkedBefore: boolean })[]>([]);
+  const [selectedTranslators, setSelectedTranslators] = React.useState<string[]>([]);
+  const [loadingTranslators, setLoadingTranslators] = React.useState(false);
+  
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    if (visibility === "private" && privateType === "internal" && sourceLanguages.length > 0 && targetLanguages.length > 0) {
+      setLoadingTranslators(true);
+      const svc = getServices();
+      svc.profile.getSuggestedTranslators(sourceLanguages, targetLanguages, specializations, user?.$id || "").then(res => {
+        setSuggestedTranslators(res);
+      }).catch(err => {
+        console.error("Failed to load suggested translators", err);
+        setSuggestedTranslators([]);
+      }).finally(() => setLoadingTranslators(false));
+    } else {
+      setSuggestedTranslators([]);
+      setSelectedTranslators([]);
+    }
+  }, [visibility, privateType, sourceLanguages, targetLanguages, specializations, user?.$id]);
 
   const availableServiceTypes = SERVICE_TYPES.filter(
     (s) => !services.find((r) => r.serviceId === s.id)
@@ -500,6 +521,7 @@ export default function PostJobPage() {
       visibility,
       privateType: visibility === "private" ? privateType : undefined,
       translationFileUrl,
+      invitedTranslators: visibility === "private" && privateType === "internal" ? selectedTranslators : undefined,
     };
  
     const parsed = createJobSchema.safeParse(formData);
@@ -598,8 +620,60 @@ export default function PostJobPage() {
                         </div>
                       )}
                       {privateType === "internal" && (
-                        <div className="mt-4 p-4 border rounded-md bg-muted/20">
-                          <p className="text-sm text-muted-foreground">Based on your selected languages and specializations, we will suggest compatible translators for you to invite directly after posting.</p>
+                        <div className="mt-4 space-y-4">
+                          <Label>Suggested Translators</Label>
+                          {sourceLanguages.length === 0 || targetLanguages.length === 0 ? (
+                            <div className="p-4 border rounded-md bg-muted/20">
+                              <p className="text-sm text-muted-foreground text-center">Please select at least one source and target language first.</p>
+                            </div>
+                          ) : loadingTranslators ? (
+                            <div className="flex items-center justify-center p-8 border rounded-md">
+                              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : suggestedTranslators.length === 0 ? (
+                            <div className="p-4 border rounded-md bg-muted/20 text-center">
+                              <p className="text-sm text-muted-foreground">No translators found matching your language requirements.</p>
+                            </div>
+                          ) : (
+                            <div className="border rounded-md divide-y max-h-[300px] overflow-y-auto">
+                              {suggestedTranslators.map(translator => (
+                                <label key={translator.userId} className="flex items-start gap-4 p-4 cursor-pointer hover:bg-muted/30 transition-colors">
+                                  <input 
+                                    type="checkbox" 
+                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-600 cursor-pointer"
+                                    checked={selectedTranslators.includes(translator.userId)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedTranslators(prev => [...prev, translator.userId]);
+                                      } else {
+                                        setSelectedTranslators(prev => prev.filter(id => id !== translator.userId));
+                                      }
+                                    }}
+                                  />
+                                  <div className="flex-1 space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-semibold">{translator.fullName}</span>
+                                      {translator.hasWorkedBefore && (
+                                        <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-[10px] py-0 px-1.5 h-4 flex items-center gap-1">
+                                          <span className="text-[10px]">⭐</span> Previous Hire
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {translator.languages.slice(0, 4).map(l => (
+                                        <span key={l} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{l}</span>
+                                      ))}
+                                      {translator.languages.length > 4 && <span className="text-[10px] text-muted-foreground">+{translator.languages.length - 4} more</span>}
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                                      <span className="flex items-center gap-1">★ {translator.rating?.toFixed(1) || "New"}</span>
+                                      <span>{translator.completedJobs} jobs</span>
+                                    </div>
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

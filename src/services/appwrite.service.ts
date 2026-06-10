@@ -238,18 +238,88 @@ export const appwriteProfileService = {
       return [];
     }
   },
+
+  async getSuggestedTranslators(sourceLanguages: string[], targetLanguages: string[], specializations: string[], companyId: string): Promise<(TranslatorProfile & { hasWorkedBefore: boolean })[]> {
+    try {
+      const db = getDatabases();
+      
+      const docs = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
+        Query.equal("isPublicPlatform", true),
+        Query.equal("onboardingComplete", true),
+        Query.limit(200),
+      ]);
+      const allTranslators = docs.documents.map((d) => mapDoc<TranslatorProfile>(d as Record<string, unknown>));
+      
+      const filtered = allTranslators.filter(t => {
+        const hasSource = sourceLanguages.some(lang => t.languages?.includes(lang));
+        const hasTarget = targetLanguages.some(lang => t.languages?.includes(lang));
+        return hasSource && hasTarget;
+      });
+
+      const companyJobs = await db.listDocuments(DB_ID, COLLECTIONS.jobs, [
+        Query.equal("companyId", companyId),
+        Query.limit(100)
+      ]);
+      const jobIds = companyJobs.documents.map(j => j.$id);
+      
+      let pastHires = new Set<string>();
+      if (jobIds.length > 0) {
+        // Find accepted/hired applications for these jobs
+        const apps = await db.listDocuments(DB_ID, COLLECTIONS.applications, [
+          Query.equal("jobId", jobIds),
+          Query.equal("status", "hired"),
+          Query.limit(500)
+        ]);
+        apps.documents.forEach(app => pastHires.add(app.translatorId as string));
+      }
+
+      const mapped = filtered.map(t => ({
+        ...t,
+        hasWorkedBefore: pastHires.has(t.userId)
+      }));
+
+      return mapped.sort((a, b) => {
+        if (a.hasWorkedBefore && !b.hasWorkedBefore) return -1;
+        if (!a.hasWorkedBefore && b.hasWorkedBefore) return 1;
+        return 0;
+      });
+    } catch {
+      return [];
+    }
+  },
 };
 
 export const appwriteJobService = {
-  async createJob(data: CreateJobInput & { companyId: string }): Promise<Job> {
+  async createJob(data: CreateJobInput & { companyId: string; invitedTranslators?: string[] }): Promise<Job> {
     const db = getDatabases();
+    
+    // Extract invitedTranslators before saving, as they might not be part of the job schema natively if we just want to notify
+    const { invitedTranslators, ...jobData } = data;
+    
     const doc = await db.createDocument(DB_ID, COLLECTIONS.jobs, generateId("job"), {
-      ...data,
-      maxApplicants: data.maxApplicants || null,
+      ...jobData,
+      maxApplicants: jobData.maxApplicants || null,
       status: "open",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
+    
+    // If there are invited internal translators, send them a notification
+    if (invitedTranslators && invitedTranslators.length > 0) {
+      const promises = invitedTranslators.map(translatorId => 
+        db.createDocument(DB_ID, COLLECTIONS.notifications, generateId("notif"), {
+          userId: translatorId,
+          type: "invitation",
+          title: "You have been invited to a private job",
+          body: `A company has invited you to apply for their private job: ${jobData.title}`,
+          data: JSON.stringify({ jobId: doc.$id }),
+          read: false,
+          createdAt: new Date().toISOString()
+        })
+      );
+      await Promise.allSettled(promises);
+    }
+    
     return mapDoc<Job>(doc as Record<string, unknown>);
   },
 
@@ -297,13 +367,35 @@ export const appwriteJobService = {
     const now = new Date().getTime();
     const createdAt = new Date(existingJob.createdAt).getTime();
     if (now - createdAt > 60 * 60 * 1000) {
-      throw new Error("لا يمكن تعديل الوظيفة بعد مرور ساعة من نشرها.");
+      throw new Error("Jobs cannot be edited 1 hour after posting.");
     }
 
     const doc = await db.updateDocument(DB_ID, COLLECTIONS.jobs, jobId, {
       ...data,
       updatedAt: new Date().toISOString(),
     });
+    
+    // If invitedTranslators changed, send notifications to the newly invited ones
+    if (data.invitedTranslators && Array.isArray(data.invitedTranslators)) {
+      const existingInvited = Array.isArray(existingJob.invitedTranslators) ? existingJob.invitedTranslators as string[] : [];
+      const newInvites = data.invitedTranslators.filter(id => !existingInvited.includes(id));
+      
+      if (newInvites.length > 0) {
+        const promises = newInvites.map(translatorId => 
+          db.createDocument(DB_ID, COLLECTIONS.notifications, generateId("notif"), {
+            userId: translatorId,
+            type: "invitation",
+            title: "You have been invited to a private job",
+            body: `A company has invited you to apply for their private job: ${existingJob.title}`,
+            data: JSON.stringify({ jobId }),
+            read: false,
+            createdAt: new Date().toISOString()
+          })
+        );
+        await Promise.allSettled(promises);
+      }
+    }
+
     return mapDoc<Job>(doc as Record<string, unknown>);
   },
 

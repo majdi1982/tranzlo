@@ -37,6 +37,7 @@ export const createJobSchema = z.object({
   visibility: z.enum(["public", "private"]).default("public"),
   privateType: z.enum(["internal", "external"]).optional(),
   translationFileUrl: z.string().optional(),
+  invitedTranslators: z.array(z.string()).optional(),
 });
 
 export const updateJobSchema = createJobSchema.partial();
