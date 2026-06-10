@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, Briefcase, MoreHorizontal, Globe, MapPin, DollarSign, Calendar, Eye, XCircle, Users, Loader2, CheckCircle2, ExternalLink, FileText, ShieldAlert } from "lucide-react";
+import { Plus, Briefcase, MoreHorizontal, Globe, MapPin, DollarSign, Calendar, Eye, XCircle, Users, Loader2, CheckCircle2, ExternalLink, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -727,34 +727,52 @@ function JobCard({
         {/* Secure PayPal Checkout Modal */}
         <Dialog open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>
           <DialogContent className="max-w-xl bg-card border border-border/50 max-h-[90vh] overflow-y-auto w-11/12 p-6 rounded-2xl">
-            <DialogHeader className="mb-4">
-              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
-                Secure Contract Escrow
-              </DialogTitle>
-              <DialogDescription className="text-base text-muted-foreground mt-2">
-                Deposit funds securely using PayPal. The funds will be held in platform escrow until translator delivery.
-              </DialogDescription>
-            </DialogHeader>
+        {/* Secure PayPal Checkout Modal */}
+        <Dialog open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>
+          <DialogContent className="max-w-xl bg-card border border-border/50 max-h-[90vh] overflow-y-auto w-11/12 p-0 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 p-6 border-b border-border/20">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-2xl font-black text-white">
+                  <ShieldCheck className="h-7 w-7 text-emerald-400" />
+                  Secure Escrow
+                </DialogTitle>
+                <DialogDescription className="text-base text-slate-300 mt-2 font-medium">
+                  Funds are held safely until you approve the final delivery.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
 
             {hiringApp && (
-              <div className="space-y-6">
-                <div className="p-5 rounded-xl bg-accent/10 border border-border/30 space-y-4">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Contract Target:</span>
-                    <span className="font-semibold text-foreground text-right w-2/3 truncate">{job.title}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Linguist ID:</span>
-                    <span className="font-semibold text-foreground">{hiringApp.translatorId.slice(-6).toUpperCase()}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-4 mt-2 border-t border-border/20">
-                    <span className="text-foreground font-bold">Total Escrow Hold:</span>
-                    <span className="text-primary text-xl font-black">${hiringApp.bidAmount || job.budget} USD</span>
+              <div className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    <FileText className="h-4 w-4" /> Contract Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl border border-border/40 bg-accent/5">
+                      <span className="block text-xs text-muted-foreground mb-1">Target Project</span>
+                      <span className="block font-semibold text-foreground text-sm truncate">{job.title}</span>
+                    </div>
+                    <div className="p-4 rounded-xl border border-border/40 bg-accent/5">
+                      <span className="block text-xs text-muted-foreground mb-1">Linguist ID</span>
+                      <span className="block font-semibold text-foreground text-sm">{hiringApp.translatorId.slice(-6).toUpperCase()}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="w-full relative z-10 flex flex-col justify-center min-h-[160px] bg-background/50 rounded-xl p-4 border border-border/20">
+                <div className="p-5 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex items-center justify-between">
+                  <div>
+                    <span className="block text-sm font-bold text-foreground">Escrow Amount</span>
+                    <span className="block text-xs text-muted-foreground mt-0.5">100% Secure & Refundable</span>
+                  </div>
+                  <span className="text-3xl font-black text-primary">${hiringApp.bidAmount || job.budget}</span>
+                </div>
+
+                <div className="w-full relative z-10 flex flex-col justify-center min-h-[160px] bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-border/30">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <Lock className="h-4 w-4 text-emerald-500" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">SSL Encrypted Checkout</span>
+                  </div>
                   <PayPalButton
                     amount={hiringApp.bidAmount || job.budget}
                     applicationId={hiringApp.$id}
@@ -763,9 +781,9 @@ function JobCard({
                 </div>
               </div>
             )}
-            <DialogFooter className="mt-4 sm:justify-start">
-              <Button variant="outline" onClick={() => setHiringApp(null)} className="w-full sm:w-auto mt-2 sm:mt-0">
-                Cancel Checkout
+            <DialogFooter className="px-6 pb-6 pt-2 sm:justify-start">
+              <Button variant="ghost" onClick={() => setHiringApp(null)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground">
+                Cancel
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -816,58 +834,86 @@ function JobCard({
         {/* Translator Profile Detail Modal */}
         {selectedProfile && (
           <Dialog open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
-            <DialogContent className="max-w-md bg-card border border-border/50">
-              <DialogHeader>
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0 uppercase border border-primary/20">
+            <DialogContent className="max-w-2xl bg-card border border-border/50 p-0 rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto w-11/12 shadow-2xl">
+              <div className="relative h-32 bg-gradient-to-r from-primary/20 to-cyan-500/20 border-b border-border/20">
+                <div className="absolute -bottom-10 left-6">
+                  <div className="h-20 w-20 rounded-2xl bg-card flex items-center justify-center text-3xl font-black text-primary border-4 border-card shadow-lg ring-1 ring-border/20 uppercase">
                     {selectedProfile.fullName?.slice(0, 2) || "TR"}
-                  </div>
-                  <div>
-                    <DialogTitle>{selectedProfile.fullName}</DialogTitle>
-                    <DialogDescription className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-amber-500 font-semibold">★ {selectedProfile.rating || "4.8"}</span>
-                      <span>({selectedProfile.completedJobs || 12} projects completed)</span>
-                    </DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-              <div className="space-y-4 my-4 text-sm">
-                <div className="space-y-1.5">
-                  <span className="text-xs text-muted-foreground font-semibold uppercase">Bio</span>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{selectedProfile.bio || "No biography provided."}</p>
-                </div>
-                <div className="space-y-1.5">
-                  <span className="text-xs text-muted-foreground font-semibold uppercase">Language Capabilities</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedProfile.languages?.map((lang: string) => (
-                      <Badge key={lang} variant="outline" className="text-xs">{getLanguageName(lang)}</Badge>
-                    )) || <span className="text-xs text-muted-foreground">No languages registered.</span>}
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <span className="text-xs text-muted-foreground font-semibold uppercase">Specializations</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedProfile.specializations?.map((spec: string) => (
-                      <Badge key={spec} variant="secondary" className="text-xs">{spec}</Badge>
-                    )) || <span className="text-xs text-muted-foreground">None listed.</span>}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 border-t border-border/20 pt-3">
-                  <div>
-                    <span className="text-xs text-muted-foreground block font-semibold uppercase">Hourly Rate</span>
-                    <span className="text-sm font-bold text-primary">${selectedProfile.hourlyRate || 30}/hr</span>
-                  </div>
-                  <div>
-                    <span className="text-xs text-muted-foreground block font-semibold uppercase">Plan Level</span>
-                    <span className="text-sm font-bold text-foreground capitalize">{selectedProfile.planTier || "Pro"} Member</span>
                   </div>
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" size="sm" onClick={() => setSelectedProfile(null)} className="w-full">
+              
+              <div className="pt-12 px-6 pb-8 space-y-8">
+                <DialogHeader className="text-left space-y-1">
+                  <DialogTitle className="text-2xl font-black text-foreground">{selectedProfile.fullName}</DialogTitle>
+                  <DialogDescription className="flex flex-wrap items-center gap-3">
+                    <span className="flex items-center gap-1 text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
+                      <Star className="h-3.5 w-3.5 fill-current" />
+                      {selectedProfile.rating || "4.8"}
+                    </span>
+                    <span className="text-sm font-semibold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
+                      {selectedProfile.completedJobs || 12} Projects
+                    </span>
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 space-y-6">
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                        <User className="h-4 w-4" /> Professional Bio
+                      </h3>
+                      <p className="text-sm text-foreground/90 leading-relaxed p-4 rounded-xl bg-accent/5 border border-border/20 min-h-[120px]">
+                        {selectedProfile.bio || "No biography provided. This translator prefers to let their work speak for itself."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                        <Languages className="h-4 w-4" /> Languages
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProfile.languages?.length ? selectedProfile.languages.map((lang: string) => (
+                          <Badge key={lang} variant="secondary" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                            {getLanguageName(lang)}
+                          </Badge>
+                        )) : <span className="text-xs text-muted-foreground italic">Not specified</span>}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                        <Award className="h-4 w-4" /> Specializations
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProfile.specializations?.length ? selectedProfile.specializations.map((spec: string) => (
+                          <Badge key={spec} variant="outline" className="border-border/40 text-foreground/80 bg-background shadow-sm">
+                            {spec}
+                          </Badge>
+                        )) : <span className="text-xs text-muted-foreground italic">General</span>}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 border-t border-border/20 pt-4">
+                      <div>
+                        <span className="text-xs text-muted-foreground block font-semibold uppercase">Hourly Rate</span>
+                        <span className="text-sm font-bold text-primary">${selectedProfile.hourlyRate || 30}/hr</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground block font-semibold uppercase">Plan Level</span>
+                        <span className="text-sm font-bold text-foreground capitalize">{selectedProfile.planTier || "Pro"} Member</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 pb-6 flex justify-end">
+                <Button variant="outline" onClick={() => setSelectedProfile(null)}>
                   Close Profile
                 </Button>
-              </DialogFooter>
+              </div>
             </DialogContent>
           </Dialog>
         )}
