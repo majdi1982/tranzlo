@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { getLanguageName } from "@/data/languages";
 import { PayPalButton } from "@/components/paypal-button";
@@ -725,18 +726,18 @@ function JobCard({
         </Dialog>
 
         {/* Secure PayPal Checkout Modal */}
-        <Dialog open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>
-          <DialogContent className="max-w-xl bg-card border border-border/50 max-h-[90vh] overflow-y-auto w-11/12 p-0 rounded-2xl overflow-hidden shadow-2xl">
+        <Sheet open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>
+          <SheetContent side="right" className="bg-card border-l border-border/50 max-h-screen overflow-y-auto sm:max-w-md w-full p-0 shadow-2xl">
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 p-6 border-b border-border/20">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-2xl font-black text-white">
+              <SheetHeader className="text-left">
+                <SheetTitle className="flex items-center gap-2 text-2xl font-black text-white">
                   <ShieldCheck className="h-7 w-7 text-emerald-400" />
                   Secure Escrow
-                </DialogTitle>
-                <DialogDescription className="text-base text-slate-300 mt-2 font-medium">
+                </SheetTitle>
+                <SheetDescription className="text-base text-slate-300 mt-2 font-medium">
                   Funds are held safely until you approve the final delivery.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
             </div>
 
             {hiringApp && (
@@ -778,13 +779,13 @@ function JobCard({
                 </div>
               </div>
             )}
-            <DialogFooter className="px-6 pb-6 pt-2 sm:justify-start">
-              <Button variant="ghost" onClick={() => setHiringApp(null)} className="w-full sm:w-auto text-muted-foreground hover:text-foreground">
+            <div className="px-6 pb-6 pt-2">
+              <Button variant="ghost" onClick={() => setHiringApp(null)} className="w-full text-muted-foreground hover:text-foreground bg-muted/50">
                 Cancel
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </div>
+          </SheetContent>
+        </Sheet>
         {/* Document Preview Modal for Companies */}
         {previewUrl && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -829,30 +830,29 @@ function JobCard({
           </div>
         )}
         {/* Translator Profile Detail Modal */}
-        {selectedProfile && (
-          <Dialog open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
-            <DialogContent className="max-w-2xl bg-card border border-border/50 p-0 rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto w-11/12 shadow-2xl">
-              <div className="relative h-32 bg-gradient-to-r from-primary/20 to-cyan-500/20 border-b border-border/20">
-                <div className="absolute -bottom-10 left-6">
-                  <div className="h-20 w-20 rounded-2xl bg-card flex items-center justify-center text-3xl font-black text-primary border-4 border-card shadow-lg ring-1 ring-border/20 uppercase">
-                    {selectedProfile.fullName?.slice(0, 2) || "TR"}
-                  </div>
+        <Sheet open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
+          <SheetContent side="right" className="bg-card border-l border-border/50 p-0 overflow-y-auto sm:max-w-lg w-full shadow-2xl">
+            <div className="relative h-32 bg-gradient-to-r from-primary/20 to-cyan-500/20 border-b border-border/20">
+              <div className="absolute -bottom-10 left-6">
+                <div className="h-20 w-20 rounded-2xl bg-card flex items-center justify-center text-3xl font-black text-primary border-4 border-card shadow-lg ring-1 ring-border/20 uppercase">
+                  {selectedProfile.fullName?.slice(0, 2) || "TR"}
                 </div>
               </div>
-              
-              <div className="pt-12 px-6 pb-8 space-y-8">
-                <DialogHeader className="text-left space-y-1">
-                  <DialogTitle className="text-2xl font-black text-foreground">{selectedProfile.fullName}</DialogTitle>
-                  <DialogDescription className="flex flex-wrap items-center gap-3">
-                    <span className="flex items-center gap-1 text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      {selectedProfile.rating || "4.8"}
-                    </span>
-                    <span className="text-sm font-semibold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
-                      {selectedProfile.completedJobs || 12} Projects
-                    </span>
-                  </DialogDescription>
-                </DialogHeader>
+            </div>
+            
+            <div className="pt-12 px-6 pb-8 space-y-8">
+              <SheetHeader className="text-left space-y-1">
+                <SheetTitle className="text-2xl font-black text-foreground">{selectedProfile.fullName}</SheetTitle>
+                <SheetDescription className="flex flex-wrap items-center gap-3">
+                  <span className="flex items-center gap-1 text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
+                    <Star className="h-3.5 w-3.5 fill-current" />
+                    {selectedProfile.rating || "4.8"}
+                  </span>
+                  <span className="text-sm font-semibold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
+                    {selectedProfile.completedJobs || 12} Projects
+                  </span>
+                </SheetDescription>
+              </SheetHeader>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-6">
@@ -907,13 +907,12 @@ function JobCard({
                 </div>
               </div>
               <div className="px-6 pb-6 flex justify-end">
-                <Button variant="outline" onClick={() => setSelectedProfile(null)}>
+                <Button variant="outline" onClick={() => setSelectedProfile(null)} className="w-full">
                   Close Profile
                 </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-        )}
+          </SheetContent>
+        </Sheet>
       </CardContent>
     </Card>
   );
