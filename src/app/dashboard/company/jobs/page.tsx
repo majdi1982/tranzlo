@@ -324,34 +324,35 @@ function JobCard({
                     <DropdownMenuItem onSelect={() => setShowCloseDialog(true)} className="text-destructive flex items-center gap-2">
                       <XCircle className="h-4 w-4" /> Close Job
                     </DropdownMenuItem>
-                    <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Close this job?</DialogTitle>
-                        <DialogDescription>
-                          This will close "{job.title}" and remove it from public listings.
-                          {job.requiresTest && " The test will be distributed to all applicants with a 48-hour deadline."}
-                        </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setShowCloseDialog(false)}>Cancel</Button>
-                          <Button
-                            variant="destructive"
-                            disabled={closingId === job.$id}
-                            onClick={() => {
-                              onClose(job.$id);
-                              setShowCloseDialog(false);
-                            }}
-                          >
-                            Close Job
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
                   </>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            
+            <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Close this job?</DialogTitle>
+                <DialogDescription>
+                  This will close "{job.title}" and remove it from public listings.
+                  {job.requiresTest && " The test will be distributed to all applicants with a 48-hour deadline."}
+                </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowCloseDialog(false)}>Cancel</Button>
+                  <Button
+                    variant="destructive"
+                    disabled={closingId === job.$id}
+                    onClick={() => {
+                      onClose(job.$id);
+                      setShowCloseDialog(false);
+                    }}
+                  >
+                    Close Job
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 

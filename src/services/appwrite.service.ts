@@ -308,13 +308,16 @@ export const appwriteJobService = {
   },
 
   async closeJob(jobId: string): Promise<Job> {
+    const db = getDatabases();
     const now = new Date().toISOString();
     const deadline = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
-    return appwriteJobService.updateJob(jobId, {
+    const doc = await db.updateDocument(DB_ID, COLLECTIONS.jobs, jobId, {
       status: "closed",
       testDistributedAt: now,
       testDeadline: deadline,
+      updatedAt: now,
     });
+    return mapDoc<Job>(doc as Record<string, unknown>);
   },
 };
 
