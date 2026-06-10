@@ -500,10 +500,45 @@ module.exports = async function (context) {
   // 4. EVENT: JOB CREATED (databases.*.collections.jobs.documents.create)
   // ---------------------------------------------------------------------------
   if (triggerEvent.includes("collections.jobs.documents.create")) {
-    const { title: jobTitle, sourceLanguage, targetLanguage, budget } = doc;
+    const { title: jobTitle, sourceLanguage, targetLanguage, budget, externalTranslatorEmail } = doc;
     log(`💼 New Job Created: "${jobTitle}" (${sourceLanguage} ➔ ${targetLanguage})`);
 
     try {
+      // 1. External Translator Email Invitation
+      if (externalTranslatorEmail) {
+        log(`   📧 Found external translator email: ${externalTranslatorEmail}. Sending invitation...`);
+        const inviteHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; padding: 20px; }
+              .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 30px; text-align: center; }
+              h2 { color: #4f46e5; margin-bottom: 20px; }
+              p { font-size: 16px; line-height: 1.5; color: #4b5563; }
+              .btn { display: inline-block; background-color: #4f46e5; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h2>You've been invited to a translation job!</h2>
+              <p>A client on Tranzlo has specifically requested you for their upcoming project: <strong>${jobTitle}</strong>.</p>
+              <p>Project Budget: $${budget}</p>
+              <p>Please sign up or log in to Tranzlo to review the full requirements and accept the job.</p>
+              <a href="https://tranzlo.net/signup?role=translator" class="btn">View Job on Tranzlo</a>
+            </div>
+          </body>
+          </html>
+        `;
+        await sendEmail({
+          to: externalTranslatorEmail,
+          subject: `Tranzlo: Invitation to Translation Job "${jobTitle}"`,
+          html: inviteHtml,
+          log,
+          error
+        });
+      }
       const transDocs = await db.listDocuments(databaseId, "translator_profiles", [
         Query.limit(100)
       ]);

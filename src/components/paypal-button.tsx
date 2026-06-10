@@ -24,7 +24,7 @@ export function PayPalButton({ amount, applicationId, onSuccess, onError }: PayP
   React.useEffect(() => {
     let active = true;
     const clientId = process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5";
-    const scriptId = "paypal-sdk-script";
+    const scriptId = "paypal-sdk-script-capture";
 
     const initButtons = () => {
       if (!window.paypal || !buttonRef.current) return;
@@ -84,7 +84,7 @@ export function PayPalButton({ amount, applicationId, onSuccess, onError }: PayP
     } else {
       const script = document.createElement("script");
       script.id = scriptId;
-      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
       script.async = true;
       script.addEventListener("load", initButtons);
       document.body.appendChild(script);

@@ -29,8 +29,7 @@ const PLANS = {
         "Account setup & preparation: Free"
       ],
       tier: "free",
-      buttonText: "Current Plan",
-      paypalPlanId: null
+      buttonText: "Current Plan"
     },
     {
       name: "Pro Member",
@@ -45,8 +44,7 @@ const PLANS = {
         "Account setup & preparation: Free"
       ],
       tier: "pro",
-      buttonText: isAnnual ? "Subscribe Pro Annual" : "Subscribe Pro Monthly",
-      paypalPlanId: isAnnual ? "P-34E03651943893946NIQFS3Y" : "P-6BH643160R158860TNIQF2KQ"
+      buttonText: isAnnual ? "Subscribe Pro Annual" : "Subscribe Pro Monthly"
     },
     {
       name: "Plus Member",
@@ -61,8 +59,7 @@ const PLANS = {
         "Account setup & preparation: Free"
       ],
       tier: "plus",
-      buttonText: isAnnual ? "Upgrade to Plus Annual" : "Upgrade to Plus Monthly",
-      paypalPlanId: isAnnual ? "P-8R773786AM2534425NIQFULQ" : "P-6W050275X4975753MNIQFZPQ"
+      buttonText: isAnnual ? "Upgrade to Plus Annual" : "Upgrade to Plus Monthly"
     }
   ],
   company: (isAnnual: boolean) => [
@@ -79,8 +76,7 @@ const PLANS = {
         "Account setup & preparation: Free"
       ],
       tier: "free",
-      buttonText: "Current Plan",
-      paypalPlanId: null
+      buttonText: "Current Plan"
     },
     {
       name: "Pro Business",
@@ -95,8 +91,7 @@ const PLANS = {
         "Account setup & preparation: Free"
       ],
       tier: "pro",
-      buttonText: "Subscribe Pro Annual",
-      paypalPlanId: "P-8JB63458CY1027604NIQF5FQ"
+      buttonText: "Subscribe Pro Annual"
     },
     {
       name: "Plus Business",
@@ -111,8 +106,7 @@ const PLANS = {
         "Account setup & preparation: Free"
       ],
       tier: "plus",
-      buttonText: "Upgrade to Plus Annual",
-      paypalPlanId: "P-30J14765A4566030ANIQFWDA"
+      buttonText: "Upgrade to Plus Annual"
     }
   ]
 };
@@ -178,7 +172,7 @@ export default function PlansPage() {
     }
 
     const plan = userPlans.find((p: any) => p.tier === processingPlan);
-    if (!plan || !plan.paypalPlanId) return;
+    if (!plan) return;
 
     const mode = process.env.NEXT_PUBLIC_PAYPAL_MODE || "live";
     const clientId = mode === "live"
@@ -196,50 +190,43 @@ export default function PlansPage() {
       if ((window as any).paypal) {
         container.innerHTML = ""; // Clear existing loading spinner
         
-        const payload: any = {
-          plan_id: plan.paypalPlanId,
-          custom_id: appliedPromo ? `${user?.$id}:${appliedPromo.code}` : user?.$id
-        };
-
-        // Apply discount percentage as billing cycles override
+        let finalPrice = parseFloat(plan.price.replace("$", ""));
         if (appliedPromo && appliedPromo.discountType === "percentage" && appliedPromo.discountPercent < 100) {
-          const originalVal = parseFloat(plan.price.replace("$", ""));
-          const discountedVal = (originalVal * (1 - appliedPromo.discountPercent / 100)).toFixed(2);
-          payload.plan = {
-            billing_cycles: [
-              {
-                sequence: 1,
-                total_cycles: 1,
-                pricing_scheme: {
-                  fixed_price: {
-                    value: discountedVal,
-                    currency_code: "USD"
-                  }
-                }
-              }
-            ]
-          };
+          finalPrice = parseFloat((finalPrice * (1 - appliedPromo.discountPercent / 100)).toFixed(2));
         }
+
+        const customId = `plan_upgrade:${user?.$id}:${role}:${plan.tier}:${appliedPromo?.code || 'none'}`;
 
         (window as any).paypal.Buttons({
           style: {
             shape: "rect",
             color: "blue",
             layout: "vertical",
-            label: "subscribe"
+            label: "pay"
           },
-          createSubscription: function(data: any, actions: any) {
-            return actions.subscription.create(payload);
+          createOrder: function(data: any, actions: any) {
+            return actions.order.create({
+              purchase_units: [{
+                custom_id: customId,
+                description: `Upgrade to ${plan.name} (${isAnnual ? "Annual" : "Monthly"})`,
+                amount: {
+                  currency_code: "USD",
+                  value: finalPrice.toFixed(2)
+                }
+              }]
+            });
           },
           onApprove: function(data: any, actions: any) {
-            alert(`🎉 Subscription successful! ID: ${data.subscriptionID}. Your account will be upgraded within a few moments.`);
-            setProcessingPlan(null);
-            setIsCheckoutOpen(false);
-            window.location.reload();
+            return actions.order.capture().then(function(details: any) {
+              alert(`🎉 Payment successful! Order ID: ${details.id}. Your account will be upgraded within a few moments.`);
+              setProcessingPlan(null);
+              setIsCheckoutOpen(false);
+              window.location.reload();
+            });
           },
           onError: function(err: any) {
-            console.error("Subscription Error:", err);
-            alert("❌ Payment could not be processed. Please try again.");
+            console.error("Payment Error Data:", err);
+            alert("❌ Payment could not be processed. Please check the console for details and try again.");
             setProcessingPlan(null);
             setIsCheckoutOpen(false);
           }
@@ -250,13 +237,13 @@ export default function PlansPage() {
       }
     };
 
-    const scriptId = "paypal-checkout-subscription-script";
+    const scriptId = "paypal-sdk-script-capture";
     let script = document.getElementById(scriptId) as HTMLScriptElement;
 
-    if (!script) {
+    if (!script && !(window as any).paypal) {
       script = document.createElement("script");
       script.id = scriptId;
-      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&vault=true&intent=subscription`;
+      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
       script.onload = renderButton;
       document.body.appendChild(script);
     } else {
@@ -265,8 +252,7 @@ export default function PlansPage() {
     }
   }, [processingPlan, isCheckoutOpen, appliedPromo, user?.$id, userPlans]);
 
-  const handleSubscribe = (planId: string | null, planTier: string) => {
-    if (!planId) return;
+  const handleSubscribe = (planTier: string) => {
     const plan = userPlans.find((p: any) => p.tier === planTier);
     if (!plan) return;
     setSelectedPlan(plan);
@@ -632,14 +618,14 @@ export default function PlansPage() {
                       <Button className="w-full rounded-xl bg-muted text-muted-foreground hover:bg-muted cursor-default" disabled>
                         Active Plan
                       </Button>
-                    ) : plan.paypalPlanId ? (
+                    ) : plan.price !== "$0" ? (
                       <Button 
                         className={`w-full rounded-xl shadow-md ${
                           isPlus 
                             ? "bg-primary text-primary-foreground hover:bg-primary/95" 
                             : "variant-outline"
                         }`}
-                        onClick={() => handleSubscribe(plan.paypalPlanId, plan.tier)}
+                        onClick={() => handleSubscribe(plan.tier)}
                       >
                         {plan.buttonText}
                       </Button>

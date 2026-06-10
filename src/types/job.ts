@@ -5,10 +5,14 @@ export interface Job {
   companyId: string;
   title: string;
   description: string;
+  jobType: "translation" | "proofreading" | "localization" | "transcription" | "subtitling";
   sourceLanguage: string;
   targetLanguage: string;
   country?: string;
-  workType: "onsite" | "online";
+  workType?: "onsite" | "online" | "hybrid";
+  duration?: number;
+  wordCount?: number;
+  industry?: string;
   budget: number;
   budgetMin?: number;
   budgetMax?: number;
@@ -28,6 +32,8 @@ export interface Job {
   testDeadline?: string;
   reviewerType: "company" | "translator";
   activeTranslatorId?: string;
+  externalTranslatorEmail?: string;
+  previousTranslatorId?: string;
   status: JobStatus;
   createdAt: string;
   updatedAt: string;

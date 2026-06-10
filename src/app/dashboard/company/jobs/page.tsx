@@ -314,6 +314,13 @@ function JobCard({
                 </DropdownMenuItem>
                 {job.status === "open" && (
                   <>
+                    {new Date().getTime() - new Date(job.createdAt).getTime() <= 60 * 60 * 1000 && (
+                      <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/company/jobs/${job.$id}/edit`} className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" /> Edit Job
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onSelect={() => setShowCloseDialog(true)} className="text-destructive flex items-center gap-2">
                       <XCircle className="h-4 w-4" /> Close Job
                     </DropdownMenuItem>

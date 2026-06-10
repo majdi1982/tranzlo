@@ -291,6 +291,15 @@ export const appwriteJobService = {
 
   async updateJob(jobId: string, data: Partial<Job>): Promise<Job> {
     const db = getDatabases();
+    const existingJob = await appwriteJobService.getJob(jobId);
+    if (!existingJob) throw new Error("Job not found");
+    
+    const now = new Date().getTime();
+    const createdAt = new Date(existingJob.createdAt).getTime();
+    if (now - createdAt > 60 * 60 * 1000) {
+      throw new Error("لا يمكن تعديل الوظيفة بعد مرور ساعة من نشرها.");
+    }
+
     const doc = await db.updateDocument(DB_ID, COLLECTIONS.jobs, jobId, {
       ...data,
       updatedAt: new Date().toISOString(),
@@ -457,7 +466,7 @@ export const appwriteMessageService = {
   async getConversations(userId: string): Promise<Conversation[]> {
     const db = getDatabases();
     const result = await db.listDocuments(DB_ID, COLLECTIONS.conversations, [
-      Query.search("participants", userId),
+      Query.contains("participants", userId),
     ]);
     return result.documents.map((d) => mapDoc<Conversation>(d as Record<string, unknown>));
   },

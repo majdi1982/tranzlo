@@ -5,18 +5,7 @@
 
 const { Client, Databases, Query } = require("node-appwrite");
 
-// Map PayPal Plan IDs to Tranzlo Plan Tiers ("pro", "plus") and Roles ("translator", "company")
-const PLAN_MAP = {
-  // Translator Plans
-  "P-6BH643160R158860TNIQF2KQ": { tier: "pro", role: "translator" }, // Monthly Pro ($18)
-  "P-34E03651943893946NIQFS3Y": { tier: "pro", role: "translator" }, // Annual Pro ($120)
-  "P-6W050275X4975753MNIQFZPQ": { tier: "plus", role: "translator" },     // Monthly Plus ($25)
-  "P-8R773786AM2534425NIQFULQ": { tier: "plus", role: "translator" },     // Annual Plus ($200)
 
-  // Company Plans (Annual Only)
-  "P-8JB63458CY1027604NIQF5FQ": { tier: "pro", role: "company" },    // Annual Pro ($200)
-  "P-30J14765A4566030ANIQFWDA": { tier: "plus", role: "company" }         // Annual Plus ($300)
-};
 
 module.exports = async function (context) {
   const { req, res, log, error } = context;
@@ -51,6 +40,15 @@ module.exports = async function (context) {
 
   // 1. HANDLE MEMBERSHIP SUBSCRIPTIONS
   if (eventType === "BILLING.SUBSCRIPTION.ACTIVATED" || eventType === "BILLING.SUBSCRIPTION.CREATED") {
+    // Map PayPal Plan IDs dynamically from environment variables
+    const PLAN_MAP = {};
+    if (process.env.NEXT_PUBLIC_PAYPAL_PLAN_TRANSLATOR_PRO_MONTHLY) PLAN_MAP[process.env.NEXT_PUBLIC_PAYPAL_PLAN_TRANSLATOR_PRO_MONTHLY] = { tier: "pro", role: "translator" };
+    if (process.env.NEXT_PUBLIC_PAYPAL_PLAN_TRANSLATOR_PRO_ANNUAL) PLAN_MAP[process.env.NEXT_PUBLIC_PAYPAL_PLAN_TRANSLATOR_PRO_ANNUAL] = { tier: "pro", role: "translator" };
+    if (process.env.NEXT_PUBLIC_PAYPAL_PLAN_TRANSLATOR_PLUS_MONTHLY) PLAN_MAP[process.env.NEXT_PUBLIC_PAYPAL_PLAN_TRANSLATOR_PLUS_MONTHLY] = { tier: "plus", role: "translator" };
+    if (process.env.NEXT_PUBLIC_PAYPAL_PLAN_TRANSLATOR_PLUS_ANNUAL) PLAN_MAP[process.env.NEXT_PUBLIC_PAYPAL_PLAN_TRANSLATOR_PLUS_ANNUAL] = { tier: "plus", role: "translator" };
+    if (process.env.NEXT_PUBLIC_PAYPAL_PLAN_COMPANY_PRO_ANNUAL) PLAN_MAP[process.env.NEXT_PUBLIC_PAYPAL_PLAN_COMPANY_PRO_ANNUAL] = { tier: "pro", role: "company" };
+    if (process.env.NEXT_PUBLIC_PAYPAL_PLAN_COMPANY_PLUS_ANNUAL) PLAN_MAP[process.env.NEXT_PUBLIC_PAYPAL_PLAN_COMPANY_PLUS_ANNUAL] = { tier: "plus", role: "company" };
+
     const subscriptionId = resource.id;
     const planId = resource.plan_id;
 
@@ -126,13 +124,73 @@ module.exports = async function (context) {
     }
   }
 
-  // 2. HANDLE JOB ESCROW PAYMENTS (PAYPAL CAPTURE)
+  // 2. HANDLE JOB ESCROW PAYMENTS (PAYPAL CAPTURE) AND PLAN UPGRADES (ONE-TIME)
   if (eventType === "PAYMENT.CAPTURE.COMPLETED") {
     const captureId = resource.id;
     const amount = parseFloat(resource.amount.value);
 
-    // Custom field containing "jobId:applicationId"
     const customMetadata = resource.custom_id || "";
+    
+    // Check if it's a plan upgrade: "plan_upgrade:userId:role:tier:promoCode"
+    if (customMetadata.startsWith("plan_upgrade:")) {
+      const parts = customMetadata.split(":");
+      const userId = parts[1];
+      const role = parts[2];
+      const tier = parts[3];
+      const promoCode = parts[4] === "none" ? "" : parts[4];
+      
+      log(`💎 Processing One-Time plan upgrade ${captureId} for user ${userId} (${role}) to tier ${tier} (Promo: ${promoCode})`);
+      
+      const collection = role === "translator" ? "translator_profiles" : "company_profiles";
+      
+      try {
+        const docs = await db.listDocuments(databaseId, collection, [
+          Query.equal("userId", userId),
+          Query.limit(1)
+        ]);
+  
+        if (docs.documents.length === 0) {
+          error(`❌ Profile not found for userId: ${userId}`);
+          return res.json({ success: false, error: "Profile not found" }, 404);
+        }
+  
+        const profile = docs.documents[0];
+        const updatePayload = {
+          planTier: tier,
+          paypalSubscriptionId: `ORDER_${captureId}`, // Keep track using order ID
+          updatedAt: new Date().toISOString()
+        };
+        
+        if (promoCode) {
+          updatePayload.promoCodeUsed = promoCode;
+          try {
+            const promoDocs = await db.listDocuments(databaseId, "promo_codes", [
+              Query.equal("code", promoCode),
+              Query.limit(1)
+            ]);
+            if (promoDocs.documents.length > 0) {
+              const promo = promoDocs.documents[0];
+              await db.updateDocument(databaseId, "promo_codes", promo.$id, {
+                usedCount: (promo.usedCount || 0) + 1
+              });
+              log(`   ✅ Incremented usage count for promo code ${promoCode}`);
+            }
+          } catch (promoErr) {
+            error(`❌ Failed to increment promo code usage: ${promoErr.message}`);
+          }
+        }
+        
+        await db.updateDocument(databaseId, collection, profile.$id, updatePayload);
+  
+        log(`   ✅ SUCCESS: Profile upgraded successfully!`);
+        return res.json({ success: true, message: `Upgraded to ${tier}` });
+      } catch (dbErr) {
+        error("❌ DB upgrade execution failed: " + dbErr.message);
+        return res.json({ success: false, error: dbErr.message }, 500);
+      }
+    }
+
+    // Otherwise, treat as Escrow Payment
     const [jobId, applicationId] = customMetadata.split(":");
 
     log(`💳 Processing payment capture ${captureId} of $${amount} (Job: ${jobId}, Application: ${applicationId})`);

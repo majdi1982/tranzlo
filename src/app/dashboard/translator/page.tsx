@@ -2,15 +2,18 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Briefcase, CheckCircle, Star, FileText, ArrowRight, TrendingUp, Bell, Clock, Award, DollarSign } from "lucide-react";
+import { Briefcase, CheckCircle, Star, FileText, ArrowRight, TrendingUp, Bell, Clock, Award, DollarSign, Loader2 } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import type { Job, Application, Notification } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AdSenseUnit } from "@/components/adsense-unit";
 import { getLanguageName } from "@/data/languages";
+import type { TranslatorProfile } from "@/types/profile";
 
 export default function TranslatorDashboard() {
   const { user } = useSession();
@@ -19,21 +22,33 @@ export default function TranslatorDashboard() {
   const [notifs, setNotifs] = React.useState<Notification[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [rating, setRating] = React.useState(0);
+  const [profile, setProfile] = React.useState<TranslatorProfile | null>(null);
+  
+  // Withdrawal State
+  const [withdrawing, setWithdrawing] = React.useState(false);
+  const [paypalEmail, setPaypalEmail] = React.useState("");
+  const [withdrawSuccess, setWithdrawSuccess] = React.useState<string | null>(null);
+  const [withdrawError, setWithdrawError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     async function load() {
       try {
         const services = getServices();
-        const [openJobs, myApps, notifications, avgRating] = await Promise.all([
+        const [openJobs, myApps, notifications, avgRating, userProfile] = await Promise.all([
           services.job.getJobs({ status: "open" }),
           services.application.getMyApplications(user?.$id || ""),
           services.notification.getNotifications(user?.$id || ""),
           services.rating.getAverageRating(user?.$id || ""),
+          services.profile.getTranslatorProfile(user?.$id || ""),
         ]);
         setJobs(openJobs.slice(0, 5));
         setApplications(myApps);
         setNotifs(notifications.filter((n) => !n.read).slice(0, 4));
         setRating(avgRating);
+        setProfile(userProfile);
+        if (userProfile?.paypalEmail || userProfile?.email) {
+          setPaypalEmail(userProfile.paypalEmail || userProfile.email);
+        }
       } catch {
         // ignore
       } finally {
@@ -45,6 +60,32 @@ export default function TranslatorDashboard() {
 
   const completed = applications.filter((a) => a.status === "accepted").length;
   const inProgress = applications.filter((a) => a.status === "submitted").length;
+
+  const handleWithdraw = async () => {
+    if (!paypalEmail) {
+      setWithdrawError("Please enter your PayPal email address.");
+      return;
+    }
+    setWithdrawing(true);
+    setWithdrawError(null);
+    setWithdrawSuccess(null);
+    try {
+      const res = await fetch("/api/withdraw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user?.$id, paypalEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Withdrawal failed");
+      
+      setWithdrawSuccess("Withdrawal successful! Check your PayPal account.");
+      setProfile((prev) => prev ? { ...prev, availableBalance: 0 } : null);
+    } catch (err: any) {
+      setWithdrawError(err.message);
+    } finally {
+      setWithdrawing(false);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in">
@@ -73,6 +114,60 @@ export default function TranslatorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Wallet / Earnings Card */}
+      <Card className="glass-card border-border/50 overflow-hidden shadow-md border-t-4 border-t-primary">
+        <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-6">
+            <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+              <DollarSign className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Available Balance</p>
+              <h2 className="text-4xl font-extrabold tracking-tight mt-1 text-foreground">
+                ${(profile?.availableBalance || 0).toFixed(2)}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-2">
+                Funds are instantly transferable to your PayPal account.
+              </p>
+            </div>
+          </div>
+          
+          <div className="w-full md:w-auto bg-muted/30 p-4 rounded-xl border border-border/50">
+            <div className="space-y-3 min-w-[280px]">
+              <div className="space-y-1.5">
+                <Label htmlFor="paypalEmail" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  PayPal Email
+                </Label>
+                <Input 
+                  id="paypalEmail"
+                  type="email" 
+                  value={paypalEmail}
+                  onChange={(e) => setPaypalEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="bg-background"
+                  disabled={withdrawing || (profile?.availableBalance || 0) <= 0}
+                />
+              </div>
+              
+              <Button 
+                onClick={handleWithdraw} 
+                disabled={withdrawing || (profile?.availableBalance || 0) <= 0}
+                className="w-full shadow-md font-medium"
+              >
+                {withdrawing ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
+                ) : (
+                  <><DollarSign className="mr-2 h-4 w-4" /> Withdraw Funds</>
+                )}
+              </Button>
+              
+              {withdrawError && <p className="text-xs text-destructive text-center mt-2">{withdrawError}</p>}
+              {withdrawSuccess && <p className="text-xs text-emerald-500 font-medium text-center mt-2">{withdrawSuccess}</p>}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Asymmetric Core Metrics Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

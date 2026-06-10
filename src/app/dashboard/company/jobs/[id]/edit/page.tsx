@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, FileText, Globe, Loader2, Plus, Send, TestTube, X, Upload, Search } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
@@ -281,8 +281,9 @@ interface ServiceRow {
   isFixed: boolean;
 }
 
-export default function PostJobPage() {
+export default function EditJobPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
   const { user } = useSession();
   const { toast } = useToast();
   const [saving, setSaving] = React.useState(false);
@@ -313,6 +314,40 @@ export default function PostJobPage() {
   const [externalTranslatorEmail, setExternalTranslatorEmail] = React.useState("");
   const [previousTranslatorId, setPreviousTranslatorId] = React.useState("");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    if (!params?.id) return;
+    const svc = getServices();
+    svc.job.getJob(params.id).then((job) => {
+      if (job) {
+        setTitle(job.title);
+        setDescription(job.description);
+        if (job.maxApplicants) setMaxApplicants(job.maxApplicants.toString());
+        setSourceLanguages(job.sourceLanguage.split(", "));
+        setTargetLanguages(job.targetLanguage.split(", "));
+        setWorkType(job.workType as any);
+        if (job.country) setCountry(job.country);
+        setDeadline(job.deadline);
+        if (job.specializations) setSpecializations(job.specializations);
+        try {
+          const parsedServices = typeof job.services === "string" ? JSON.parse(job.services) : job.services;
+          if (Array.isArray(parsedServices) && parsedServices.length > 0) {
+            setServices(parsedServices);
+          }
+        } catch(e) {}
+        if (job.requiredCatTools) setRequiredCatTools(job.requiredCatTools);
+        setRequiresTest(job.requiresTest ?? true);
+        if (job.testFileUrl) setTestFileUrl(job.testFileUrl);
+        if (job.testDuration) setTestDuration(job.testDuration.toString());
+        if (job.testWordCount) setTestWordCount(job.testWordCount.toString());
+        if (job.reviewerType) setReviewerType(job.reviewerType as any);
+        if (job.externalTranslatorEmail) setExternalTranslatorEmail(job.externalTranslatorEmail);
+        if (job.previousTranslatorId) setPreviousTranslatorId(job.previousTranslatorId);
+      }
+    }).catch((err) => {
+      toast({ title: "Failed to load job", description: err.message, variant: "destructive" });
+    });
+  }, [params?.id, toast]);
 
   const availableServiceTypes = SERVICE_TYPES.filter(
     (s) => !services.find((r) => r.serviceId === s.id)
@@ -487,21 +522,20 @@ export default function PostJobPage() {
     setSaving(true);
     try {
       const svc = getServices();
-      await svc.job.createJob({
+      await svc.job.updateJob(params.id, {
         ...parsed.data,
         services: JSON.stringify(parsed.data.services) as any,
         budget: finalBudgetMax,
         budgetMin: finalBudgetMin,
         budgetMax: finalBudgetMax,
-        companyId: user?.$id || "",
       });
-      toast({ title: "Job posted successfully!", variant: "success" });
+      toast({ title: "Job updated successfully!", variant: "success" });
       router.push("/dashboard/company");
     } catch (err: any) {
-      console.error("Failed to post job error:", err);
+      console.error("Failed to update job error:", err);
       toast({ 
-        title: "Failed to post job", 
-        description: err?.message || "An unknown error occurred while posting the job", 
+        title: "Failed to update job", 
+        description: err?.message || "An unknown error occurred while updating the job", 
         variant: "destructive" 
       });
     } finally {
@@ -518,8 +552,8 @@ export default function PostJobPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Post a Job</h1>
-              <p className="text-muted-foreground">Create a new translation project</p>
+              <h1 className="text-2xl font-bold">Edit Job</h1>
+              <p className="text-muted-foreground">Update your translation project</p>
             </div>
           </div>
 
@@ -1050,7 +1084,7 @@ export default function PostJobPage() {
               <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
               <Button type="submit" disabled={saving}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-4 h-4 w-4" />}
-                Post Job
+                Save Changes
               </Button>
             </div>
           </form>

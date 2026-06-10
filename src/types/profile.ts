@@ -18,6 +18,7 @@ export interface BaseProfile {
   trialStatus?: string;
   paypalSubscriptionId?: string;
   paypalEmail?: string;
+  availableBalance?: number;
   createdAt: string;
   updatedAt: string;
 }
