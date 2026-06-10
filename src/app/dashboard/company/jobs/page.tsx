@@ -152,6 +152,7 @@ function JobCard({
   const [profiles, setProfiles] = React.useState<Record<string, any>>({});
   const [selectedProfile, setSelectedProfile] = React.useState<any | null>(null);
   const { toast } = useToast();
+  const { user } = useSession();
 
   async function handleGradeTest(applicationId: string, testStatus: "passed" | "failed") {
     setGradingLoading(applicationId);
