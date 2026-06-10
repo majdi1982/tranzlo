@@ -96,9 +96,9 @@ export function PayPalButton({ amount, applicationId, onSuccess, onError }: PayP
   }, [amount, applicationId, onSuccess, onError]);
 
   return (
-    <div className="w-full min-h-[100px] flex flex-col items-center justify-center">
+    <div className="w-full min-h-[160px] flex flex-col items-center justify-center p-2 relative z-0">
       {loading && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground my-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground my-6">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
           <span>Loading PayPal checkout...</span>
         </div>

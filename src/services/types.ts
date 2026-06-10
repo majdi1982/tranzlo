@@ -76,6 +76,7 @@ export interface IApplicationService {
 }
 
 export interface IMessageService {
+  createConversation(participants: string[]): Promise<Conversation>;
   getConversations(userId: string): Promise<Conversation[]>;
   getMessages(conversationId: string): Promise<Message[]>;
   sendMessage(data: SendMessageInput): Promise<Message>;

@@ -443,20 +443,29 @@ export default function JobDetailPage() {
                         </div>
                       ) : list.map((p) => {
                         const isSelected = selectedPair === p.id;
+                        const isDisabled = !transLangs.includes(p.src) || !transLangs.includes(p.tgt);
+                        
                         return (
                           <div
                             key={p.id}
-                            onClick={() => setSelectedPair(p.id)}
-                            className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 relative overflow-hidden select-none flex items-center justify-between ${
-                              isSelected
-                                ? "border-teal-500 bg-teal-500/10 shadow-[0_0_15px_rgba(20,184,166,0.2)]"
-                                : "border-teal-500/30 bg-teal-500/5 hover:border-teal-500/60"
+                            onClick={() => !isDisabled && setSelectedPair(p.id)}
+                            className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden select-none flex items-center justify-between ${
+                              isDisabled 
+                                ? "opacity-50 cursor-not-allowed border-border/30 bg-muted/20"
+                                : isSelected
+                                  ? "border-teal-500 bg-teal-500/10 shadow-[0_0_15px_rgba(20,184,166,0.2)] cursor-pointer"
+                                  : "border-teal-500/30 bg-teal-500/5 hover:border-teal-500/60 cursor-pointer"
                             }`}
                           >
-                            <span className="text-sm font-bold text-foreground">
-                              {getLanguageName(p.src)} → {getLanguageName(p.tgt)}
-                            </span>
-                            <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-teal-500 bg-teal-500 text-white" : "border-teal-400/50"}`}>
+                            <div className="flex flex-col gap-0.5">
+                              <span className={`text-sm font-bold ${isDisabled ? "text-muted-foreground" : "text-foreground"}`}>
+                                {getLanguageName(p.src)} → {getLanguageName(p.tgt)}
+                              </span>
+                              {isDisabled && (
+                                <span className="text-[10px] text-destructive font-semibold">Not in your profile</span>
+                              )}
+                            </div>
+                            <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-teal-500 bg-teal-500 text-white" : isDisabled ? "border-border/50" : "border-teal-400/50"}`}>
                               {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
                             </div>
                           </div>

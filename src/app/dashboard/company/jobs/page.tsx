@@ -197,10 +197,34 @@ function JobCard({
     try {
       const services = getServices();
       await services.application.selectTranslator(job.$id, applicationId);
+      
       // Refresh apps
       const results = await services.application.getApplications(job.$id);
       setApps(results);
-      toast({ title: "Translator selected. Other applicants rejected.", variant: "success" });
+
+      const app = results.find(a => a.$id === applicationId);
+      if (app && user) {
+        // 1. Create Conversation
+        const conv = await services.message.createConversation([user.$id, app.translatorId]);
+        
+        // 2. Send Initial Welcome Message from Company
+        await services.message.sendMessage({
+          conversationId: conv.$id,
+          senderId: user.$id,
+          content: `Hello! You have been selected for the project "${job.title}". Language Pair: ${app.languagePair || 'N/A'}. Let's discuss the details.`,
+        });
+
+        // 3. Send Notification to Translator
+        await services.notification.createNotification({
+          userId: app.translatorId,
+          type: "job_hired",
+          title: "You're Hired!",
+          body: `You have been selected for the project "${job.title}". A new conversation has been started.`,
+          data: { jobId: job.$id },
+        });
+      }
+
+      toast({ title: "Translator selected. Chat opened and others rejected.", variant: "success" });
     } catch {
       toast({ title: "Failed to select translator", variant: "destructive" });
     }
@@ -237,7 +261,7 @@ function JobCard({
   }, [showApplicants, job.$id]);
 
   async function handleHiringSuccess(captureId: string) {
-    if (!hiringApp) return;
+    if (!hiringApp || !user) return;
     try {
       const services = getServices();
       // Update status to accepted and set transaction ID
@@ -248,6 +272,26 @@ function JobCard({
           a.$id === hiringApp.$id ? { ...a, status: "accepted", financialFileId: captureId } : a
         )
       );
+
+      // 1. Create Conversation
+      const conv = await services.message.createConversation([user.$id, hiringApp.translatorId]);
+      
+      // 2. Send Initial Welcome Message
+      await services.message.sendMessage({
+        conversationId: conv.$id,
+        senderId: user.$id,
+        content: `Hello! Escrow deposit of $${hiringApp.bidAmount || job.budget} has been secured for the project "${job.title}". Language Pair: ${hiringApp.languagePair || 'N/A'}. You can now start working.`,
+      });
+
+      // 3. Send Notification
+      await services.notification.createNotification({
+        userId: hiringApp.translatorId,
+        type: "job_escrow_funded",
+        title: "Escrow Secured & Hired!",
+        body: `Escrow for "${job.title}" is funded. Check your new messages to start working.`,
+        data: { jobId: job.$id },
+      });
+
       toast({ title: "Contract secured and translator hired successfully!", variant: "success" });
       setHiringApp(null);
     } catch {
@@ -681,43 +725,45 @@ function JobCard({
 
         {/* Secure PayPal Checkout Modal */}
         <Dialog open={!!hiringApp} onOpenChange={(open) => !open && setHiringApp(null)}>
-          <DialogContent className="max-w-md bg-card border border-border/50">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
+          <DialogContent className="max-w-xl bg-card border border-border/50 max-h-[90vh] overflow-y-auto w-11/12 p-6 rounded-2xl">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+                <CheckCircle2 className="h-6 w-6 text-primary" />
                 Secure Contract Escrow
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-base text-muted-foreground mt-2">
                 Deposit funds securely using PayPal. The funds will be held in platform escrow until translator delivery.
               </DialogDescription>
             </DialogHeader>
 
             {hiringApp && (
-              <div className="space-y-4 my-4">
-                <div className="p-4 rounded-xl bg-accent/10 border border-border/30 space-y-2">
-                  <div className="flex justify-between text-xs">
+              <div className="space-y-6">
+                <div className="p-5 rounded-xl bg-accent/10 border border-border/30 space-y-4">
+                  <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Contract Target:</span>
-                    <span className="font-semibold text-foreground">{job.title}</span>
+                    <span className="font-semibold text-foreground text-right w-2/3 truncate">{job.title}</span>
                   </div>
-                  <div className="flex justify-between text-xs">
+                  <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Linguist ID:</span>
                     <span className="font-semibold text-foreground">{hiringApp.translatorId.slice(-6).toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between text-xs border-t border-border/20 pt-2 font-bold text-sm">
-                    <span className="text-foreground">Total Escrow Hold:</span>
-                    <span className="text-primary">${hiringApp.bidAmount || job.budget} USD</span>
+                  <div className="flex justify-between items-center pt-4 mt-2 border-t border-border/20">
+                    <span className="text-foreground font-bold">Total Escrow Hold:</span>
+                    <span className="text-primary text-xl font-black">${hiringApp.bidAmount || job.budget} USD</span>
                   </div>
                 </div>
 
-                <PayPalButton
-                  amount={hiringApp.bidAmount || job.budget}
-                  applicationId={hiringApp.$id}
-                  onSuccess={handleHiringSuccess}
-                />
+                <div className="w-full relative z-10 flex flex-col justify-center min-h-[160px] bg-background/50 rounded-xl p-4 border border-border/20">
+                  <PayPalButton
+                    amount={hiringApp.bidAmount || job.budget}
+                    applicationId={hiringApp.$id}
+                    onSuccess={handleHiringSuccess}
+                  />
+                </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" size="sm" onClick={() => setHiringApp(null)} className="w-full">
+            <DialogFooter className="mt-4 sm:justify-start">
+              <Button variant="outline" onClick={() => setHiringApp(null)} className="w-full sm:w-auto mt-2 sm:mt-0">
                 Cancel Checkout
               </Button>
             </DialogFooter>

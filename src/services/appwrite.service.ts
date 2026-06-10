@@ -466,6 +466,15 @@ export const appwriteApplicationService = {
 };
 
 export const appwriteMessageService = {
+  async createConversation(participants: string[]): Promise<Conversation> {
+    const db = getDatabases();
+    const doc = await db.createDocument(DB_ID, COLLECTIONS.conversations, generateId("conversation"), {
+      participants,
+      updatedAt: new Date().toISOString(),
+    });
+    return mapDoc<Conversation>(doc as Record<string, unknown>);
+  },
+
   async getConversations(userId: string): Promise<Conversation[]> {
     const db = getDatabases();
     const result = await db.listDocuments(DB_ID, COLLECTIONS.conversations, [
