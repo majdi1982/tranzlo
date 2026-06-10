@@ -830,29 +830,30 @@ function JobCard({
           </div>
         )}
         {/* Translator Profile Detail Modal */}
-        <Sheet open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
-          <SheetContent side="right" className="bg-card border-l border-border/50 p-0 overflow-y-auto sm:max-w-lg w-full shadow-2xl">
-            <div className="relative h-32 bg-gradient-to-r from-primary/20 to-cyan-500/20 border-b border-border/20">
-              <div className="absolute -bottom-10 left-6">
-                <div className="h-20 w-20 rounded-2xl bg-card flex items-center justify-center text-3xl font-black text-primary border-4 border-card shadow-lg ring-1 ring-border/20 uppercase">
-                  {selectedProfile.fullName?.slice(0, 2) || "TR"}
+        {selectedProfile && (
+          <Sheet open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
+            <SheetContent side="right" className="bg-card border-l border-border/50 p-0 overflow-y-auto sm:max-w-lg w-full shadow-2xl">
+              <div className="relative h-32 bg-gradient-to-r from-primary/20 to-cyan-500/20 border-b border-border/20">
+                <div className="absolute -bottom-10 left-6">
+                  <div className="h-20 w-20 rounded-2xl bg-card flex items-center justify-center text-3xl font-black text-primary border-4 border-card shadow-lg ring-1 ring-border/20 uppercase">
+                    {selectedProfile.fullName?.slice(0, 2) || "TR"}
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="pt-12 px-6 pb-8 space-y-8">
-              <SheetHeader className="text-left space-y-1">
-                <SheetTitle className="text-2xl font-black text-foreground">{selectedProfile.fullName}</SheetTitle>
-                <SheetDescription className="flex flex-wrap items-center gap-3">
-                  <span className="flex items-center gap-1 text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
-                    <Star className="h-3.5 w-3.5 fill-current" />
-                    {selectedProfile.rating || "4.8"}
-                  </span>
-                  <span className="text-sm font-semibold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
-                    {selectedProfile.completedJobs || 12} Projects
-                  </span>
-                </SheetDescription>
-              </SheetHeader>
+              
+              <div className="pt-12 px-6 pb-8 space-y-8">
+                <SheetHeader className="text-left space-y-1">
+                  <SheetTitle className="text-2xl font-black text-foreground">{selectedProfile.fullName}</SheetTitle>
+                  <SheetDescription className="flex flex-wrap items-center gap-3">
+                    <span className="flex items-center gap-1 text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
+                      <Star className="h-3.5 w-3.5 fill-current" />
+                      {selectedProfile.rating || "4.8"}
+                    </span>
+                    <span className="text-sm font-semibold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
+                      {selectedProfile.completedJobs || 12} Projects
+                    </span>
+                  </SheetDescription>
+                </SheetHeader>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-6">
@@ -911,8 +912,9 @@ function JobCard({
                   Close Profile
                 </Button>
               </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
+        )}
       </CardContent>
     </Card>
   );
