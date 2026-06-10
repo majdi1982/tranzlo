@@ -195,13 +195,14 @@ function JobCard({
     }
   }
 
-  async function handleShortlistTranslator(applicationId: string) {
+  async function handleShortlistTranslator(applicationId: string, jobId: string) {
     try {
       const services = getServices();
       await services.application.updateApplicationStatus(applicationId, "shortlisted");
       
       const app = apps.find((a) => a.$id === applicationId);
-      if (app && user && job.testFileUrl) {
+      const job = jobs.find((j) => j.$id === jobId);
+      if (app && user && job && job.testFileUrl) {
         // Create Conversation
         const conv = await services.message.createConversation([user.$id, app.translatorId]);
         
@@ -231,17 +232,18 @@ function JobCard({
     }
   }
 
-  async function handleSelectTranslator(applicationId: string) {
+  async function handleSelectTranslator(applicationId: string, jobId: string) {
     try {
       const services = getServices();
-      await services.application.selectTranslator(job.$id, applicationId);
+      await services.application.selectTranslator(jobId, applicationId);
       
       // Refresh apps
-      const results = await services.application.getApplications(job.$id);
+      const results = await services.application.getApplications(jobId);
       setApps(results);
 
       const app = results.find(a => a.$id === applicationId);
-      if (app && user) {
+      const job = jobs.find(j => j.$id === jobId);
+      if (app && user && job) {
         // 1. Create Conversation
         const conv = await services.message.createConversation([user.$id, app.translatorId]);
         
@@ -711,7 +713,7 @@ function JobCard({
                                         {job.requiresTest && app.status === "submitted" && (
                                           <Button
                                             size="sm"
-                                            onClick={() => handleShortlistTranslator(app.$id)}
+                                            onClick={() => handleShortlistTranslator(app.$id, job.$id)}
                                             className="h-8 rounded-md font-semibold text-xs bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-500/20"
                                           >
                                             Invite to Test
@@ -720,7 +722,7 @@ function JobCard({
                                         {app.testStatus === "passed" || !job.requiresTest ? (
                                           <Button
                                             size="sm"
-                                            onClick={() => handleSelectTranslator(app.$id)}
+                                            onClick={() => handleSelectTranslator(app.$id, job.$id)}
                                             className="h-8 rounded-md font-semibold text-xs shadow-md shadow-primary/10"
                                           >
                                             Select & Hire
