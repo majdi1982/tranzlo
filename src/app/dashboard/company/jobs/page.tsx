@@ -199,8 +199,33 @@ function JobCard({
     try {
       const services = getServices();
       await services.application.updateApplicationStatus(applicationId, "shortlisted");
+      
+      const app = apps.find((a) => a.$id === applicationId);
+      if (app && user && job.testFileUrl) {
+        // Create Conversation
+        const conv = await services.message.createConversation([user.$id, app.translatorId]);
+        
+        // Send message with Test Link and Duration
+        const durationText = job.testDuration ? `${job.testDuration} hours` : "24 hours";
+        const wordCountText = job.testWordCount ? `${job.testWordCount} words` : "250 words";
+        await services.message.sendMessage({
+          conversationId: conv.$id,
+          senderId: user.$id,
+          content: `Hello! You have been invited to take the translation test for "${job.title}".\n\nMax Word Count: ${wordCountText}\nAllowed Time: ${durationText}\n\nYou can download the test file here: ${job.testFileUrl}\n\nPlease upload your translation in your dashboard once completed.`,
+        });
+
+        // Send Notification
+        await services.notification.createNotification({
+          userId: app.translatorId,
+          type: "application_update",
+          title: "Invited to Test",
+          body: `You have been invited to take the test for "${job.title}". Check your messages for details.`,
+          data: { jobId: job.$id },
+        });
+      }
+
       setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, status: "shortlisted" } : a));
-      toast({ title: "Translator invited to take the test.", variant: "success" });
+      toast({ title: "Translator invited to take the test and message sent.", variant: "success" });
     } catch {
       toast({ title: "Failed to invite translator to test", variant: "destructive" });
     }
