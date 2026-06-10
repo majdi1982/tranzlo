@@ -555,13 +555,70 @@ export const appwriteApplicationService = {
       return [];
     }
   },
+
+  async inviteToTest(applicationId: string, jobId: string, companyId: string): Promise<Application> {
+    const db = getDatabases();
+    const app = await db.getDocument(DB_ID, COLLECTIONS.applications, applicationId);
+    const job = await db.getDocument(DB_ID, COLLECTIONS.jobs, jobId);
+
+    const translatorId = app.translatorId as string;
+    const languagePair = (app.languagePair as string) || "";
+    const jobTitle = (job.title as string) || "";
+    const testFileUrl = (job.testFileUrl as string) || "";
+
+    // 1. Create conversation with jobId
+    const conv = await db.createDocument(DB_ID, COLLECTIONS.conversations, generateId("conversation"), {
+      participants: [companyId, translatorId],
+      jobId,
+      createdAt: new Date().toISOString(),
+    });
+    const conversationId = conv.$id;
+
+    // 2. Send welcome message with test download link
+    let msg = `Welcome! You've been invited to complete the translation test for "${jobTitle}".`;
+    msg += `\nLanguage Pair: ${languagePair || "N/A"}`;
+    if (testFileUrl) {
+      msg += `\n\nDownload the test file here: ${testFileUrl}`;
+    }
+    msg += `\n\nPlease upload your completed solution in this conversation. Good luck!`;
+
+    await db.createDocument(DB_ID, COLLECTIONS.messages, generateId("message"), {
+      conversationId,
+      senderId: companyId,
+      content: msg,
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
+
+    // 3. Create notification for translator
+    await db.createDocument(DB_ID, COLLECTIONS.notifications, generateId("notif"), {
+      userId: translatorId,
+      type: "test_distributed",
+      title: "Translation Test Invitation",
+      body: `You've been invited to complete the test for "${jobTitle}". Check your messages to download the test file.`,
+      data: JSON.stringify({ jobId, conversationId }),
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
+
+    // 4. Update application
+    const updated = await db.updateDocument(DB_ID, COLLECTIONS.applications, applicationId, {
+      status: "test_invited",
+      conversationId,
+      testInvitedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    return mapDoc<Application>(updated as Record<string, unknown>);
+  },
 };
 
 export const appwriteMessageService = {
-  async createConversation(participants: string[]): Promise<Conversation> {
+  async createConversation(participants: string[], jobId?: string, languagePair?: string): Promise<Conversation> {
     const db = getDatabases();
     const doc = await db.createDocument(DB_ID, COLLECTIONS.conversations, generateId("conversation"), {
       participants,
+      ...(jobId && { jobId }),
       createdAt: new Date().toISOString(),
     });
     return mapDoc<Conversation>(doc as Record<string, unknown>);

@@ -73,10 +73,11 @@ export interface IApplicationService {
   ): Promise<Application>;
   selectTranslator(jobId: string, selectedAppId: string): Promise<void>;
   getInvitedJobs(translatorId: string): Promise<Job[]>;
+  inviteToTest(applicationId: string, jobId: string, companyId: string): Promise<Application>;
 }
 
 export interface IMessageService {
-  createConversation(participants: string[]): Promise<Conversation>;
+  createConversation(participants: string[], jobId?: string, languagePair?: string): Promise<Conversation>;
   getConversations(userId: string): Promise<Conversation[]>;
   getMessages(conversationId: string): Promise<Message[]>;
   sendMessage(data: SendMessageInput): Promise<Message>;

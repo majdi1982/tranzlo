@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Briefcase, Calendar, CheckCircle2, Clock, DollarSign, Globe, Loader2, MapPin, Send, Star, TestTube, Upload, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, Briefcase, Calendar, CheckCircle2, Clock, DollarSign, Globe, Loader2, MapPin, MessageCircle, Send, Star, TestTube, Upload, ExternalLink, FileText } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -557,8 +557,8 @@ export default function JobDetailPage() {
                 </div>
               )}
 
-              {/* Test section — visible when shortlisted and job requires test */}
-              {job.requiresTest && application.status === "shortlisted" && (
+              {/* Test section — visible when shortlisted or test_invited (test is mandatory) */}
+              {(application.status === "shortlisted" || application.status === "test_invited") && (
                 <div className="relative overflow-hidden flex flex-col gap-3 p-5 rounded-xl bg-gradient-to-br from-teal-600/10 via-teal-500/5 to-emerald-600/10 border border-teal-500/20 text-sm shadow-[0_0_30px_rgba(20,184,166,0.08)] mt-4">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
                   <div className="flex items-start gap-3 relative z-10">
@@ -570,6 +570,16 @@ export default function JobDetailPage() {
                       <span className="text-xs text-muted-foreground">The company has invited you to complete a test. Submit your translation below.</span>
                     </div>
                   </div>
+
+                  {application.status === "test_invited" && application.conversationId && (
+                    <a
+                      href={`/messages?conversation=${application.conversationId}`}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-500 underline underline-offset-2 relative z-10"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Open conversation with the company
+                    </a>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3 text-xs p-3 rounded-lg bg-white/40 dark:bg-white/5 border border-teal-500/10 relative z-10">
                     <div>

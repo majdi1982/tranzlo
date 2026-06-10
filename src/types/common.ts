@@ -8,6 +8,7 @@ export type ApplicationStatus =
   | "submitted"
   | "viewed"
   | "shortlisted"
+  | "test_invited"
   | "accepted"
   | "rejected"
   | "withdrawn";

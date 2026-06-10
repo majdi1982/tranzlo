@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { FileText, Eye, Globe, DollarSign, Calendar, Clock, CheckCircle, AlertCircle, Inbox, TestTube, XCircle } from "lucide-react";
+import { FileText, Eye, Globe, DollarSign, Calendar, Clock, CheckCircle, AlertCircle, Inbox, TestTube, XCircle, MessageCircle } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -18,6 +18,7 @@ const statusVariant: Record<string, "default" | "secondary" | "success" | "warni
   submitted: "warning",
   viewed: "secondary",
   shortlisted: "default",
+  test_invited: "default",
   accepted: "success",
   rejected: "destructive",
   withdrawn: "outline",
@@ -210,6 +211,16 @@ export default function MyApplicationsPage() {
                               <span className="text-xs font-semibold text-rose-600">Rejection reason: </span>
                               <span className="text-xs text-rose-600">{app.rejectionReason}</span>
                             </div>
+                          </div>
+                        )}
+                        {app.status === "test_invited" && app.conversationId && (
+                          <div className="mt-3">
+                            <Link href={`/messages?conversation=${app.conversationId}`}>
+                              <Button size="sm" variant="outline" className="gap-1.5 text-xs border-blue-500/20 text-blue-600 hover:bg-blue-500/10">
+                                <MessageCircle className="h-3.5 w-3.5" />
+                                View Conversation
+                              </Button>
+                            </Link>
                           </div>
                         )}
                       </div>

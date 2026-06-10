@@ -199,34 +199,10 @@ function JobCard({
   async function handleShortlistTranslator(applicationId: string) {
     try {
       const services = getServices();
-      await services.application.updateApplicationStatus(applicationId, "shortlisted");
-      
-      const app = apps.find((a) => a.$id === applicationId);
-      if (app && user && job.testFileUrl) {
-        // Create Conversation
-        const conv = await services.message.createConversation([user.$id, app.translatorId]);
-        
-        // Send message with Test Link and Duration
-        const durationText = job.testDuration ? `${job.testDuration} hours` : "24 hours";
-        const wordCountText = job.testWordCount ? `${job.testWordCount} words` : "250 words";
-        await services.message.sendMessage({
-          conversationId: conv.$id,
-          senderId: user.$id,
-          content: `Hello! You have been invited to take the translation test for "${job.title}".\n\nMax Word Count: ${wordCountText}\nAllowed Time: ${durationText}\n\nYou can download the test file here: ${job.testFileUrl}\n\nPlease upload your translation in your dashboard once completed.`,
-        });
-
-        // Send Notification
-        await services.notification.createNotification({
-          userId: app.translatorId,
-          type: "application_update",
-          title: "Invited to Test",
-          body: `You have been invited to take the test for "${job.title}". Check your messages for details.`,
-          data: { jobId: job.$id },
-        });
-      }
-
-      setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, status: "shortlisted" } : a));
-      toast({ title: "Translator invited to take the test and message sent.", variant: "success" });
+      if (!user) return;
+      const updated = await services.application.inviteToTest(applicationId, job.$id, user.$id);
+      setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, ...updated } : a));
+      toast({ title: "Translator invited to test. Conversation and notification sent.", variant: "success" });
     } catch (error: any) {
       console.error("handleShortlistTranslator error:", error);
       toast({ title: "Failed to invite translator to test", description: error?.message || String(error), variant: "destructive" });
@@ -710,7 +686,7 @@ function JobCard({
                                       <span className="text-3xs text-muted-foreground uppercase font-semibold">Proposed Bid</span>
                                     </div>
 
-                                    {!activeApp && (app.status === "submitted" || app.status === "shortlisted") && (
+                                    {!activeApp && (app.status === "submitted" || app.status === "shortlisted" || app.status === "test_invited") && (
                                       <div className="flex items-center gap-2">
                                         <Button
                                           size="sm"
@@ -720,7 +696,7 @@ function JobCard({
                                         >
                                           Reject
                                         </Button>
-                                        {job.requiresTest && app.status === "submitted" && (
+                                        {app.status === "submitted" && (
                                           <Button
                                             size="sm"
                                             onClick={() => handleShortlistTranslator(app.$id)}
@@ -729,7 +705,17 @@ function JobCard({
                                             Invite to Test
                                           </Button>
                                         )}
-                                        {app.testStatus === "passed" || !job.requiresTest ? (
+                                        {app.status === "test_invited" && (
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => window.open(`/messages?conversation=${app.conversationId}`, '_blank')}
+                                            className="h-8 rounded-md font-semibold text-xs border-blue-500/20 text-blue-600 hover:bg-blue-500/10"
+                                          >
+                                            View Conversation
+                                          </Button>
+                                        )}
+                                        {app.testStatus === "passed" && (
                                           <Button
                                             size="sm"
                                             onClick={() => handleSelectTranslator(app.$id)}
@@ -737,7 +723,7 @@ function JobCard({
                                           >
                                             Select & Hire
                                           </Button>
-                                        ) : null}
+                                        )}
                                       </div>
                                     )}
                                   </div>
