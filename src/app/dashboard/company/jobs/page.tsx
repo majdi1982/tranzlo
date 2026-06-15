@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, Briefcase, MoreHorizontal, Globe, MapPin, DollarSign, Calendar, Eye, XCircle, Users, Loader2, CheckCircle2, ExternalLink, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award, Clock } from "lucide-react";
+import { Plus, Briefcase, MoreHorizontal, Globe, MapPin, DollarSign, Calendar, Eye, XCircle, Users, Loader2, CheckCircle2, ExternalLink, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award, Clock, MessageCircle } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -716,70 +716,87 @@ function JobCard({
                                       </div>
                                     )}
 
-                                    {/* Hired active translator detailed progress workflow (Diagram mapping) */}
+                                    {/* Hired active translator detailed progress workflow */}
                                     {isActive && (
-                                      <div className="p-3 rounded-lg border border-teal-500/20 bg-teal-500/[0.03] space-y-2 mt-2">
-                                        <span className="text-[10px] text-teal-600 font-bold uppercase tracking-wider block">Active Translator Workflow Controls</span>
-                                        <div className="flex flex-wrap gap-2 pt-1">
-                                          {/* Action 1: Message */}
+                                      <div className="mt-4 flex flex-col md:flex-row gap-4 p-4 rounded-xl border border-teal-500/30 bg-teal-50/40">
+                                        {/* Left Side: Dates & Extensions */}
+                                        <div className="flex-1 flex flex-col gap-4">
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/60 p-4 rounded-xl border border-teal-100/50">
+                                            <div>
+                                              <p className="text-xs text-muted-foreground mb-1">Started Working</p>
+                                              <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                                <Calendar className="h-4 w-4 text-teal-600" />
+                                                {new Date(app.updatedAt).toLocaleDateString()}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-xs text-muted-foreground mb-1">Delivery Deadline</p>
+                                              <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                                <Clock className="h-4 w-4 text-rose-500" />
+                                                {job.deadline ? new Date(job.deadline).toLocaleString() : "Not set"}
+                                              </p>
+                                            </div>
+                                          </div>
+
+                                          {/* Extension Workflow */}
+                                          {app.extensionStatus && app.extensionStatus !== "none" && (
+                                            <div className="bg-orange-50/80 border border-orange-200/50 p-4 rounded-xl">
+                                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                                                <p className="text-xs font-semibold text-orange-800 flex items-center gap-1.5">
+                                                  <Clock className="h-4 w-4 shrink-0" />
+                                                  Extension Requested
+                                                </p>
+                                                {app.extensionStatus === "requested" ? (
+                                                  <div className="flex items-center gap-2 shrink-0">
+                                                    <Button size="sm" onClick={() => handleExtensionAction(app.$id, "approved")} className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-md">
+                                                      Approve
+                                                    </Button>
+                                                    <Button size="sm" variant="destructive" onClick={() => handleExtensionAction(app.$id, "rejected")} className="h-7 text-xs rounded-md">
+                                                      Reject (Violation)
+                                                    </Button>
+                                                  </div>
+                                                ) : (
+                                                  <Badge variant={app.extensionStatus === "approved" ? "success" : "destructive"} className="text-3xs uppercase tracking-wider bg-white">
+                                                    {app.extensionStatus}
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                              <p className="text-xs text-orange-700/80">Reason: {app.extensionReason}</p>
+                                              {app.extensionDate && (
+                                                <p className="text-xs text-orange-700/80 mt-1 font-medium">Requested Date: {new Date(app.extensionDate).toLocaleDateString()}</p>
+                                              )}
+                                              {app.extensionStatus === "rejected" && (
+                                                <p className="text-xs text-rose-600 font-bold mt-2">Violation Recorded on Translator Profile</p>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Right Side: Action Buttons */}
+                                        <div className="flex flex-col gap-3 min-w-[200px] shrink-0">
                                           <Link href="/messages">
-                                            <Button size="sm" variant="outline" className="h-8 text-3xs font-bold border-teal-500/20 hover:bg-teal-500/10 text-teal-600 bg-background rounded-md">
-                                              💬 Message Translator
+                                            <Button className="w-full justify-start gap-2 bg-white hover:bg-teal-50 text-teal-700 border-teal-200/60 shadow-sm" variant="outline">
+                                              <MessageCircle className="h-4 w-4" />
+                                              Open Chat Workspace
                                             </Button>
                                           </Link>
 
-                                          {/* Action 2: Deposit */}
                                           {app.financialFileId ? (
-                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/10 select-none">
-                                              💵 Paid / Deposited (${app.bidAmount || job.budget})
-                                            </span>
+                                            <div className="flex flex-col gap-2">
+                                              <span className="inline-flex items-center justify-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-2.5 rounded-md border border-emerald-500/20 select-none">
+                                                💵 Paid / Deposited (${app.bidAmount || job.budget})
+                                              </span>
+                                              <span className="inline-flex items-center justify-center gap-1 text-2xs font-bold text-cyan-600 bg-cyan-500/10 px-3 py-2 rounded-md border border-cyan-500/20 select-none">
+                                                🔒 Escrow Hold ({app.financialFileId.slice(0, 8)})
+                                              </span>
+                                            </div>
                                           ) : (
                                             <Button
-                                              size="sm"
                                               onClick={() => setHiringApp(app)}
-                                              className="h-8 text-3xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-md"
+                                              className="w-full justify-start gap-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
                                             >
                                               💳 Escrow Deposit Payout
                                             </Button>
-                                          )}
-
-                                          {/* Action 3: Escrow */}
-                                          {app.financialFileId ? (
-                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-cyan-600 bg-cyan-500/10 px-2.5 py-1.5 rounded-md border border-cyan-500/10 select-none">
-                                              🔒 Platform Escrow Hold ({app.financialFileId.slice(0, 8)})
-                                            </span>
-                                          ) : (
-                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-muted-foreground bg-accent/40 px-2.5 py-1.5 rounded-md border select-none">
-                                              🔒 Escrow Pending
-                                            </span>
-                                          )}
-                                          {/* Extension Workflow */}
-                                          {app.extensionStatus === "requested" && (
-                                            <div className="flex items-center gap-2 bg-orange-500/10 p-2 rounded-md border border-orange-500/20 w-full mt-2">
-                                              <Clock className="h-4 w-4 text-orange-600 shrink-0" />
-                                              <div className="flex-1">
-                                                <span className="text-xs font-bold text-orange-600 block">Extension Requested</span>
-                                                <span className="text-2xs text-orange-600/80">{app.extensionReason}</span>
-                                              </div>
-                                              <div className="flex items-center gap-1 shrink-0">
-                                                <Button size="sm" onClick={() => handleExtensionAction(app.$id, "approved")} className="h-7 text-2xs bg-emerald-600 hover:bg-emerald-700 text-white">
-                                                  Approve
-                                                </Button>
-                                                <Button size="sm" variant="destructive" onClick={() => handleExtensionAction(app.$id, "rejected")} className="h-7 text-2xs">
-                                                  Reject (Violation)
-                                                </Button>
-                                              </div>
-                                            </div>
-                                          )}
-                                          {app.extensionStatus === "rejected" && (
-                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-rose-600 bg-rose-500/10 px-2.5 py-1.5 rounded-md border border-rose-500/20 select-none w-full mt-2">
-                                              Extension Rejected (Violation Recorded)
-                                            </span>
-                                          )}
-                                          {app.extensionStatus === "approved" && (
-                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/20 select-none w-full mt-2">
-                                              Extension Approved
-                                            </span>
                                           )}
                                         </div>
                                       </div>
