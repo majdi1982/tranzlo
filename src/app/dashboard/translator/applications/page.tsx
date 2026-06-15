@@ -318,33 +318,6 @@ export default function MyApplicationsPage() {
                                 </Button>
                               </Link>
                             )}
-                            {app.status === "accepted" && app.job?.status !== "closed" && app.job?.status !== "filled" && (
-                              <>
-                                {!checkJobDeadlinePassed(app.job) && (!app.extensionStatus || app.extensionStatus === "none") && (
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    className="gap-1.5 text-xs text-orange-600 border-orange-500/20 hover:bg-orange-500/10"
-                                    onClick={() => {
-                                      setSelectedApp(app);
-                                      setExtensionModalOpen(true);
-                                    }}
-                                  >
-                                    <Clock className="h-3.5 w-3.5" />
-                                    Request Extension
-                                  </Button>
-                                )}
-                                {app.extensionStatus === "requested" && (
-                                  <Badge variant="outline" className="text-orange-500 border-orange-500/30">Extension Requested</Badge>
-                                )}
-                                {app.extensionStatus === "rejected" && (
-                                  <Badge variant="destructive" className="text-3xs">Extension Rejected (Violation Recorded)</Badge>
-                                )}
-                                {app.extensionStatus === "approved" && (
-                                  <Badge variant="success" className="text-3xs">Extension Approved</Badge>
-                                )}
-                              </>
-                            )}
                             {app.status === "test_invited" && app.testStatus === "none" && (
                               <Button 
                                 size="sm" 
@@ -357,6 +330,43 @@ export default function MyApplicationsPage() {
                                 <Upload className="h-3.5 w-3.5" />
                                 Submit Test Solution
                               </Button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* ACCEPTED JOBS ACTIONS */}
+                        {app.status === "accepted" && app.job?.status !== "closed" && app.job?.status !== "filled" && (
+                          <div className="mt-3 flex items-center gap-2">
+                            {app.conversationId && (
+                              <Link href={`/messages?conversation=${app.conversationId}`}>
+                                <Button size="sm" variant="outline" className="gap-1.5 text-xs border-blue-500/20 text-blue-600 hover:bg-blue-500/10">
+                                  <MessageCircle className="h-3.5 w-3.5" />
+                                  View Conversation
+                                </Button>
+                              </Link>
+                            )}
+                            {!checkJobDeadlinePassed(app.job) && (!app.extensionStatus || app.extensionStatus === "none") && (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="gap-1.5 text-xs text-orange-600 border-orange-500/20 hover:bg-orange-500/10"
+                                onClick={() => {
+                                  setSelectedApp(app);
+                                  setExtensionModalOpen(true);
+                                }}
+                              >
+                                <Clock className="h-3.5 w-3.5" />
+                                Request Extension
+                              </Button>
+                            )}
+                            {app.extensionStatus === "requested" && (
+                              <Badge variant="outline" className="text-orange-500 border-orange-500/30">Extension Requested</Badge>
+                            )}
+                            {app.extensionStatus === "rejected" && (
+                              <Badge variant="destructive" className="text-3xs">Extension Rejected (Violation Recorded)</Badge>
+                            )}
+                            {app.extensionStatus === "approved" && (
+                              <Badge variant="success" className="text-3xs">Extension Approved</Badge>
                             )}
                           </div>
                         )}
