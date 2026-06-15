@@ -1,4 +1,6 @@
-"use client";
+const fs = require('fs');
+
+const fileContent = `"use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -39,7 +41,7 @@ export default function MyApplicationsPage() {
   const [activeTab, setActiveTab] = React.useState<TabType>("all");
 
   const [testModalOpen, setTestModalOpen] = React.useState(false);
-  const [selectedApp, setSelectedApp] = React.useState<(Application & { job?: Job }) | null>(null);
+  const [selectedApp, setSelectedApp] = React.useState<Application | null>(null);
   const [testFile, setTestFile] = React.useState<File | null>(null);
   const [uploadingTest, setUploadingTest] = React.useState(false);
 
@@ -104,7 +106,7 @@ export default function MyApplicationsPage() {
     try {
       const storage = getStorage();
       const uploaded = await storage.createFile(BUCKETS.TRANSLATOR_DOCUMENTS, ID.unique(), testFile);
-      const fileUrl = `${storage.client.config.endpoint}/storage/buckets/${BUCKETS.TRANSLATOR_DOCUMENTS}/files/${uploaded.$id}/view?project=${storage.client.config.project}`;
+      const fileUrl = \`\${storage.client.config.endpoint}/storage/buckets/\${BUCKETS.TRANSLATOR_DOCUMENTS}/files/\${uploaded.$id}/view?project=\${storage.client.config.project}\`;
 
       const services = getServices();
       // Keep status as test_invited but set testStatus to pending
@@ -186,7 +188,7 @@ export default function MyApplicationsPage() {
               <p className="text-xs text-muted-foreground px-4 mt-1">
                 {activeTab === "all" 
                   ? "Browse available translator jobs and submit your first proposal."
-                  : `You currently do not have any job applications in the '${activeTab}' category.`}
+                  : \`You currently do not have any job applications in the '\${activeTab}' category.\`}
               </p>
               {activeTab === "all" && (
                 <Link href="/dashboard/translator/jobs">
@@ -218,11 +220,11 @@ export default function MyApplicationsPage() {
                               {(() => {
                                 const srcs = (app.job.sourceLanguage || "").split(",").map(s => s.trim()).filter(Boolean);
                                 const tgts = (app.job.targetLanguage || "").split(",").map(t => t.trim()).filter(Boolean);
-                                return srcs.flatMap(src => tgts.map(tgt => `${getLanguageName(src)} → ${getLanguageName(tgt)}`)).join(" · ");
+                                return srcs.flatMap(src => tgts.map(tgt => \`\${getLanguageName(src)} → \${getLanguageName(tgt)}\`)).join(" · ");
                               })()}
                             </span>
                             <span className="flex items-center gap-1 font-semibold text-teal-600">
-                              <DollarSign className="h-3.5 w-3.5" />${app.job.budget}
+                              <DollarSign className="h-3.5 w-3.5" />\${app.job.budget}
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5 text-muted-foreground/60" />
@@ -261,7 +263,7 @@ export default function MyApplicationsPage() {
                         {app.status === "test_invited" && (
                           <div className="mt-3 flex items-center gap-2">
                             {app.conversationId && (
-                              <Link href={`/messages?conversation=${app.conversationId}`}>
+                              <Link href={\`/messages?conversation=\${app.conversationId}\`}>
                                 <Button size="sm" variant="outline" className="gap-1.5 text-xs border-blue-500/20 text-blue-600 hover:bg-blue-500/10">
                                   <MessageCircle className="h-3.5 w-3.5" />
                                   View Conversation
@@ -285,7 +287,7 @@ export default function MyApplicationsPage() {
                         )}
                       </div>
                       {app.job && (
-                        <Link href={`/jobs/${app.jobId}`}>
+                        <Link href={\`/jobs/\${app.jobId}\`}>
                           <Button variant="outline" size="icon" className="rounded-xl h-9 w-9 shrink-0 border-border/50 hover:bg-accent">
                             <Eye className="h-4.5 w-4.5 text-muted-foreground" />
                           </Button>
@@ -345,3 +347,6 @@ export default function MyApplicationsPage() {
     </AuthGuard>
   );
 }
+`;
+
+fs.writeFileSync('d:/Tranzlo/src/app/dashboard/translator/applications/page.tsx', fileContent);

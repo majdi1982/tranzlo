@@ -15,6 +15,48 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import type { Conversation, Message } from "@/types";
 
+function parseMessageContent(text: string, isMe: boolean) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  
+  return parts.map((part, i) => {
+    if (part.match(urlRegex)) {
+      const isStorage = part.includes('/v1/storage/buckets/');
+      if (isStorage) {
+        return (
+          <div key={i} className="my-2 block">
+            <a 
+              href={part} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-colors ${
+                isMe 
+                  ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90" 
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Download File
+            </a>
+          </div>
+        );
+      }
+      return (
+        <a 
+          key={i} 
+          href={part} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="underline hover:opacity-80 break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={i} className="whitespace-pre-wrap">{part}</span>;
+  });
+}
+
 export default function MessagesPage() {
   const { user } = useSession();
   const { toast } = useToast();
@@ -235,7 +277,7 @@ export default function MessagesPage() {
                                       : "bg-muted"
                                   }`}
                                 >
-                                  <p>{msg.content}</p>
+                                  <div>{parseMessageContent(msg.content, isMe)}</div>
                                   <p className={`text-[10px] mt-1 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                   </p>

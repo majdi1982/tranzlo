@@ -163,11 +163,28 @@ function JobCard({
       const app = apps.find(a => a.$id === applicationId);
       if (!app) return;
       const feedback = feedbackText[applicationId] || "";
-      await services.application.updateApplicationWithFeedback(applicationId, {
+      const updatePayload: any = {
         testStatus,
         testFeedback: feedback || undefined,
-      });
-      setApps((prev) => prev.map((a) => a.$id === applicationId ? { ...a, testStatus, testFeedback: feedback, testGradedAt: new Date().toISOString() } : a));
+      };
+      if (testStatus === "failed") {
+        updatePayload.status = "rejected";
+        updatePayload.rejectionReason = feedback || "Failed translation test.";
+      }
+
+      await services.application.updateApplicationWithFeedback(applicationId, updatePayload);
+      
+      setApps((prev) => prev.map((a) => {
+        if (a.$id === applicationId) {
+          const updatedA = { ...a, testStatus, testFeedback: feedback, testGradedAt: new Date().toISOString() };
+          if (testStatus === "failed") {
+            updatedA.status = "rejected";
+            updatedA.rejectionReason = updatePayload.rejectionReason;
+          }
+          return updatedA;
+        }
+        return a;
+      }));
       toast({ title: `Test marked as ${testStatus === "passed" ? "Passed" : "Failed"}.`, variant: "success" });
     } catch {
       toast({ title: "Failed to update test status", variant: "destructive" });

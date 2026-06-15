@@ -611,7 +611,7 @@ export const appwriteApplicationService = {
     if (testFileUrl) {
       msg += `\n\nDownload the test file here: ${testFileUrl}`;
     }
-    msg += `\n\nPlease upload your completed solution in this conversation. Good luck!`;
+    msg += `\n\nPlease submit your completed solution from your Applications dashboard before the deadline. Good luck!`;
 
     await db.createDocument(DB_ID, COLLECTIONS.messages, generateId("message"), {
       conversationId,
