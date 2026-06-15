@@ -323,7 +323,6 @@ export default function MyApplicationsPage() {
                       id="file" 
                       type="file" 
                       onChange={(e) => setTestFile(e.target.files?.[0] || null)}
-                      accept=".pdf,.doc,.docx,.txt"
                     />
                   </div>
                 )}

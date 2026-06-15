@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -19,6 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 import { getLanguageName } from "@/data/languages";
 import { PayPalButton } from "@/components/paypal-button";
 import type { Job } from "@/types";
+
+import { getStorage, BUCKETS, ID } from "@/lib/appwrite";
 
 const statusBadge: Record<string, "default" | "secondary" | "success" | "warning" | "outline"> = {
   open: "success",
@@ -149,6 +152,7 @@ function JobCard({
   const [previewTitle, setPreviewTitle] = React.useState<string>("");
   const [gradingLoading, setGradingLoading] = React.useState<string | null>(null);
   const [feedbackText, setFeedbackText] = React.useState<Record<string, string>>({});
+  const [reviewedFiles, setReviewedFiles] = React.useState<Record<string, File | null>>({});
   const [rejectReason, setRejectReason] = React.useState("");
   const [rejectDialogApp, setRejectDialogApp] = React.useState<any | null>(null);
   const [profiles, setProfiles] = React.useState<Record<string, any>>({});
@@ -157,8 +161,18 @@ function JobCard({
   const { user } = useSession();
 
   async function handleGradeTest(applicationId: string, testStatus: "passed" | "failed") {
+    const reviewedFile = reviewedFiles[applicationId];
+    if (!reviewedFile) {
+      toast({ title: "Reviewed file is required", description: "Please upload the reviewed test file before grading.", variant: "destructive" });
+      return;
+    }
+
     setGradingLoading(applicationId);
     try {
+      const storage = getStorage();
+      const uploaded = await storage.createFile(BUCKETS.TRANSLATOR_DOCUMENTS, ID.unique(), reviewedFile);
+      const testReviewedFileUrl = `${storage.client.config.endpoint}/storage/buckets/${BUCKETS.TRANSLATOR_DOCUMENTS}/files/${uploaded.$id}/view?project=${storage.client.config.project}`;
+
       const services = getServices();
       const app = apps.find(a => a.$id === applicationId);
       if (!app) return;
@@ -166,6 +180,7 @@ function JobCard({
       const updatePayload: any = {
         testStatus,
         testFeedback: feedback || undefined,
+        testReviewedFileUrl,
       };
       if (testStatus === "failed") {
         updatePayload.status = "rejected";
@@ -603,6 +618,14 @@ function JobCard({
                                         {/* Test Feedback Textarea */}
                                         {app.testStatus === "pending" && (
                                           <div className="space-y-2 mt-2">
+                                            <div className="space-y-1">
+                                              <span className="text-2xs font-semibold text-muted-foreground uppercase">Upload Reviewed Test File (Required)</span>
+                                              <Input 
+                                                type="file" 
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReviewedFiles((prev) => ({ ...prev, [app.$id]: e.target.files?.[0] || null }))}
+                                                className="h-8 text-xs"
+                                              />
+                                            </div>
                                             <textarea
                                               placeholder="Optional feedback on the test solution..."
                                               value={feedbackText[app.$id] || ""}
@@ -639,6 +662,14 @@ function JobCard({
                                           <div className="mt-2 p-2 rounded-md bg-muted/20 border border-border/20">
                                             <span className="text-2xs font-semibold text-muted-foreground uppercase">Feedback: </span>
                                             <span className="text-xs text-muted-foreground">{app.testFeedback}</span>
+                                          </div>
+                                        )}
+                                        {app.testReviewedFileUrl && (
+                                          <div className="mt-2 flex items-center gap-2">
+                                            <span className="text-2xs font-semibold text-muted-foreground uppercase">Reviewed File: </span>
+                                            <a href={app.testReviewedFileUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-blue-500 hover:underline flex items-center gap-1">
+                                              <FileText className="h-3 w-3" /> Download
+                                            </a>
                                           </div>
                                         )}
 
