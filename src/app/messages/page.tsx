@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Send, Loader2, MessageSquare, ArrowLeft, User } from "lucide-react";
+import { Send, Loader2, MessageSquare, ArrowLeft, User, Paperclip } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -66,6 +66,7 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = React.useState("");
   const [loading, setLoading] = React.useState(true);
   const [sending, setSending] = React.useState(false);
+  const [uploadingFile, setUploadingFile] = React.useState(false);
   const [showList, setShowList] = React.useState(true);
   const [jobs, setJobs] = React.useState<any[]>([]);
   const [applications, setApplications] = React.useState<any[]>([]);
@@ -153,6 +154,38 @@ export default function MessagesPage() {
       toast({ title: "Failed to send message", variant: "destructive" });
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !selectedConv) return;
+    setUploadingFile(true);
+    try {
+      const { getStorage, BUCKETS, ID } = await import("@/lib/appwrite");
+      const storage = getStorage();
+      const uploaded = await storage.createFile(BUCKETS.TRANSLATOR_DOCUMENTS, ID.unique(), file);
+      const fileUrl = `${storage.client.config.endpoint}/storage/buckets/${BUCKETS.TRANSLATOR_DOCUMENTS}/files/${uploaded.$id}/view?project=${storage.client.config.project}`;
+      
+      const services = getServices();
+      const msg = await services.message.sendMessage({
+        conversationId: selectedConv,
+        content: fileUrl,
+        senderId: user?.$id || "",
+      });
+      setMessages((prev) => [...prev, msg]);
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.$id === selectedConv
+            ? { ...c, lastMessagePreview: "Sent a file", lastMessageAt: new Date().toISOString() }
+            : c
+        )
+      );
+    } catch {
+      toast({ title: "Upload failed", variant: "destructive" });
+    } finally {
+      setUploadingFile(false);
+      e.target.value = "";
     }
   }
 
@@ -292,6 +325,12 @@ export default function MessagesPage() {
                     <Separator />
 
                     <form onSubmit={handleSend} className="flex items-center gap-2 p-3">
+                      <div className="relative">
+                        <input type="file" id="chat-file-upload" className="hidden" onChange={handleFileUpload} disabled={uploadingFile} />
+                        <label htmlFor="chat-file-upload" className={`cursor-pointer h-10 w-10 shrink-0 flex items-center justify-center rounded-md border bg-muted/30 transition-colors ${uploadingFile ? "opacity-50" : "hover:bg-muted/50"}`}>
+                          {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <Paperclip className="h-4 w-4 text-muted-foreground" />}
+                        </label>
+                      </div>
                       <Input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}

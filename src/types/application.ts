@@ -18,6 +18,10 @@ export interface Application {
   testInvitedAt?: string;
   testDeadline?: string;
   rejectionReason?: string;
+  testReviewedFileUrl?: string;
+  extensionStatus?: "none" | "requested" | "approved" | "rejected";
+  extensionReason?: string;
+  extensionRequestedAt?: string;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;

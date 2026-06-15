@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getStorage, BUCKETS, ID } from "@/lib/appwrite";
 
@@ -39,9 +40,12 @@ export default function MyApplicationsPage() {
   const [activeTab, setActiveTab] = React.useState<TabType>("all");
 
   const [testModalOpen, setTestModalOpen] = React.useState(false);
+  const [extensionModalOpen, setExtensionModalOpen] = React.useState(false);
   const [selectedApp, setSelectedApp] = React.useState<(Application & { job?: Job }) | null>(null);
   const [testFile, setTestFile] = React.useState<File | null>(null);
   const [uploadingTest, setUploadingTest] = React.useState(false);
+  const [extensionReason, setExtensionReason] = React.useState("");
+  const [requestingExtension, setRequestingExtension] = React.useState(false);
 
   React.useEffect(() => {
     load();
@@ -133,6 +137,43 @@ export default function MyApplicationsPage() {
   function checkDeadlinePassed(job?: Job): boolean {
     if (!job?.testDeadline) return false;
     return new Date() > new Date(job.testDeadline);
+  }
+
+  function checkJobDeadlinePassed(job: any) {
+    if (!job?.deadline) return false;
+    return new Date() > new Date(job.deadline);
+  }
+
+  async function handleExtensionRequest() {
+    if (!selectedApp || !extensionReason.trim()) return;
+    setRequestingExtension(true);
+    try {
+      const services = getServices();
+      await services.application.updateApplicationWithFeedback(selectedApp.$id, {
+        extensionStatus: "requested",
+        extensionReason: extensionReason.trim(),
+        extensionRequestedAt: new Date().toISOString(),
+      });
+
+      if (selectedApp.job?.companyId) {
+        await services.notification.createNotification({
+          userId: selectedApp.job.companyId,
+          type: "job_updated",
+          title: "Extension Requested",
+          body: `A translator has requested a deadline extension for "${selectedApp.job.title}".`,
+          data: { jobId: selectedApp.job.$id },
+        });
+      }
+
+      setApps(prev => prev.map(a => a.$id === selectedApp.$id ? { ...a, extensionStatus: "requested", extensionReason: extensionReason.trim() } : a));
+      toast({ title: "Success", description: "Extension request submitted." });
+      setExtensionModalOpen(false);
+      setExtensionReason("");
+    } catch {
+      toast({ title: "Error", description: "Failed to submit extension request.", variant: "destructive" });
+    } finally {
+      setRequestingExtension(false);
+    }
   }
 
   return (
@@ -277,7 +318,34 @@ export default function MyApplicationsPage() {
                                 </Button>
                               </Link>
                             )}
-                            {app.testStatus === "none" && (
+                            {app.status === "accepted" && app.job?.status !== "closed" && app.job?.status !== "filled" && (
+                              <>
+                                {!checkJobDeadlinePassed(app.job) && (!app.extensionStatus || app.extensionStatus === "none") && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="gap-1.5 text-xs text-orange-600 border-orange-500/20 hover:bg-orange-500/10"
+                                    onClick={() => {
+                                      setSelectedApp(app);
+                                      setExtensionModalOpen(true);
+                                    }}
+                                  >
+                                    <Clock className="h-3.5 w-3.5" />
+                                    Request Extension
+                                  </Button>
+                                )}
+                                {app.extensionStatus === "requested" && (
+                                  <Badge variant="outline" className="text-orange-500 border-orange-500/30">Extension Requested</Badge>
+                                )}
+                                {app.extensionStatus === "rejected" && (
+                                  <Badge variant="destructive" className="text-3xs">Extension Rejected (Violation Recorded)</Badge>
+                                )}
+                                {app.extensionStatus === "approved" && (
+                                  <Badge variant="success" className="text-3xs">Extension Approved</Badge>
+                                )}
+                              </>
+                            )}
+                            {app.status === "test_invited" && app.testStatus === "none" && (
                               <Button 
                                 size="sm" 
                                 className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white"
@@ -344,6 +412,37 @@ export default function MyApplicationsPage() {
                     Submit Solution
                   </Button>
                 )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Extension Modal */}
+          <Dialog open={extensionModalOpen} onOpenChange={setExtensionModalOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Request Deadline Extension</DialogTitle>
+                <DialogDescription>
+                  Please provide a reason for requesting a deadline extension. Note that if the company rejects this request, it will be recorded as a violation.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reason">Reason for Extension</Label>
+                  <Textarea 
+                    id="reason" 
+                    placeholder="Explain why you need more time..."
+                    value={extensionReason}
+                    onChange={(e) => setExtensionReason(e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setExtensionModalOpen(false)}>Cancel</Button>
+                <Button onClick={handleExtensionRequest} disabled={!extensionReason.trim() || requestingExtension} className="bg-orange-600 hover:bg-orange-700 text-white">
+                  {requestingExtension ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Submit Request
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

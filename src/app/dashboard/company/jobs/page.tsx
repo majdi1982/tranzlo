@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, Briefcase, MoreHorizontal, Globe, MapPin, DollarSign, Calendar, Eye, XCircle, Users, Loader2, CheckCircle2, ExternalLink, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award } from "lucide-react";
+import { Plus, Briefcase, MoreHorizontal, Globe, MapPin, DollarSign, Calendar, Eye, XCircle, Users, Loader2, CheckCircle2, ExternalLink, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award, Clock } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -246,6 +246,31 @@ function JobCard({
     } catch (error: any) {
       console.error("handleShortlistTranslator error:", error);
       toast({ title: "Failed to invite translator to test", description: error?.message || String(error), variant: "destructive" });
+    }
+  }
+
+  async function handleExtensionAction(applicationId: string, action: "approved" | "rejected") {
+    try {
+      const services = getServices();
+      await services.application.updateApplicationWithFeedback(applicationId, {
+        extensionStatus: action,
+      });
+
+      const app = apps.find(a => a.$id === applicationId);
+      if (app) {
+        await services.notification.createNotification({
+          userId: app.translatorId,
+          type: "job_updated",
+          title: `Extension ${action === "approved" ? "Approved" : "Rejected"}`,
+          body: `Your request for a deadline extension for "${job.title}" has been ${action}.`,
+          data: { jobId: job.$id },
+        });
+      }
+
+      setApps(prev => prev.map(a => a.$id === applicationId ? { ...a, extensionStatus: action } : a));
+      toast({ title: "Success", description: `Extension ${action} successfully.` });
+    } catch {
+      toast({ title: "Error", description: "Failed to process extension request.", variant: "destructive" });
     }
   }
 
@@ -726,6 +751,34 @@ function JobCard({
                                           ) : (
                                             <span className="inline-flex items-center gap-1 text-3xs font-bold text-muted-foreground bg-accent/40 px-2.5 py-1.5 rounded-md border select-none">
                                               🔒 Escrow Pending
+                                            </span>
+                                          )}
+                                          {/* Extension Workflow */}
+                                          {app.extensionStatus === "requested" && (
+                                            <div className="flex items-center gap-2 bg-orange-500/10 p-2 rounded-md border border-orange-500/20 w-full mt-2">
+                                              <Clock className="h-4 w-4 text-orange-600 shrink-0" />
+                                              <div className="flex-1">
+                                                <span className="text-xs font-bold text-orange-600 block">Extension Requested</span>
+                                                <span className="text-2xs text-orange-600/80">{app.extensionReason}</span>
+                                              </div>
+                                              <div className="flex items-center gap-1 shrink-0">
+                                                <Button size="sm" onClick={() => handleExtensionAction(app.$id, "approved")} className="h-7 text-2xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                                  Approve
+                                                </Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleExtensionAction(app.$id, "rejected")} className="h-7 text-2xs">
+                                                  Reject (Violation)
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          )}
+                                          {app.extensionStatus === "rejected" && (
+                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-rose-600 bg-rose-500/10 px-2.5 py-1.5 rounded-md border border-rose-500/20 select-none w-full mt-2">
+                                              Extension Rejected (Violation Recorded)
+                                            </span>
+                                          )}
+                                          {app.extensionStatus === "approved" && (
+                                            <span className="inline-flex items-center gap-1 text-3xs font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/20 select-none w-full mt-2">
+                                              Extension Approved
                                             </span>
                                           )}
                                         </div>
