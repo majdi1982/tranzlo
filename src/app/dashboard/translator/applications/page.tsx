@@ -209,8 +209,9 @@ export default function MyApplicationsPage() {
       setExtensionModalOpen(false);
       setExtensionReason("");
       setExtensionDate("");
-    } catch {
-      toast({ title: "Error", description: "Failed to submit extension request.", variant: "destructive" });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Error", description: err.message || "Failed to submit extension request.", variant: "destructive" });
     } finally {
       setRequestingExtension(false);
     }
