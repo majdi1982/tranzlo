@@ -530,7 +530,7 @@ export const appwriteApplicationService = {
 
   async updateApplicationWithFeedback(
     applicationId: string,
-    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string; testReviewedFileUrl?: string; extensionStatus?: string; extensionReason?: string; extensionRequestedAt?: string }
+    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string; testReviewedFileUrl?: string; extensionStatus?: string; extensionReason?: string; extensionRequestedAt?: string; extensionDate?: string }
   ): Promise<Application> {
     const db = getDatabases();
     const updateData: Record<string, any> = {

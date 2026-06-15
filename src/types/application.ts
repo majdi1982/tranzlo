@@ -22,6 +22,7 @@ export interface Application {
   extensionStatus?: "none" | "requested" | "approved" | "rejected";
   extensionReason?: string;
   extensionRequestedAt?: string;
+  extensionDate?: string;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;

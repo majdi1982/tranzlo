@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { getLanguageName } from "@/data/languages";
 import type { Application, Job } from "@/types";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,11 +40,15 @@ export default function MyApplicationsPage() {
   const [activeTab, setActiveTab] = React.useState<TabType>("all");
 
   const [testModalOpen, setTestModalOpen] = React.useState(false);
+  const [deliveryModalOpen, setDeliveryModalOpen] = React.useState(false);
   const [extensionModalOpen, setExtensionModalOpen] = React.useState(false);
+  const [chatSheetOpen, setChatSheetOpen] = React.useState(false);
+  const [activeChatUrl, setActiveChatUrl] = React.useState("");
   const [selectedApp, setSelectedApp] = React.useState<(Application & { job?: Job }) | null>(null);
   const [testFile, setTestFile] = React.useState<File | null>(null);
   const [uploadingTest, setUploadingTest] = React.useState(false);
   const [extensionReason, setExtensionReason] = React.useState("");
+  const [extensionDate, setExtensionDate] = React.useState("");
   const [requestingExtension, setRequestingExtension] = React.useState(false);
 
   React.useEffect(() => {
@@ -128,6 +132,46 @@ export default function MyApplicationsPage() {
     }
   }
 
+  async function handleDeliverySubmit() {
+    if (!selectedApp || !testFile) return;
+
+    setUploadingTest(true);
+    try {
+      const storage = getStorage();
+      const uploaded = await storage.createFile(BUCKETS.TRANSLATOR_DOCUMENTS, ID.unique(), testFile);
+      const fileUrl = `${storage.client.config.endpoint}/storage/buckets/${BUCKETS.TRANSLATOR_DOCUMENTS}/files/${uploaded.$id}/view?project=${storage.client.config.project}`;
+
+      const services = getServices();
+      // For accepted jobs, maybe we just send a notification and message with the file
+      // Since there's no delivery status field, we send it as a message to the company
+      if (selectedApp.conversationId) {
+        await services.message.sendMessage({
+          conversationId: selectedApp.conversationId,
+          senderId: user?.$id!,
+          content: `Final Delivery: ${fileUrl}`
+        });
+      }
+
+      if (selectedApp.job?.companyId) {
+        await services.notification.createNotification({
+          userId: selectedApp.job.companyId,
+          type: "job_updated",
+          title: "Final Work Delivered",
+          body: `A translator has delivered the final work for "${selectedApp.job.title}".`,
+          data: { jobId: selectedApp.job.$id },
+        });
+      }
+
+      toast({ title: "Success", description: "Final work delivered successfully!" });
+      setDeliveryModalOpen(false);
+      setTestFile(null);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to deliver work", variant: "destructive" });
+    } finally {
+      setUploadingTest(false);
+    }
+  }
+
   function checkDeadlinePassed(job?: Job): boolean {
     if (!job?.testDeadline) return false;
     return new Date() > new Date(job.testDeadline);
@@ -139,13 +183,14 @@ export default function MyApplicationsPage() {
   }
 
   async function handleExtensionRequest() {
-    if (!selectedApp || !extensionReason.trim()) return;
+    if (!selectedApp || !extensionReason.trim() || !extensionDate) return;
     setRequestingExtension(true);
     try {
       const services = getServices();
       await services.application.updateApplicationWithFeedback(selectedApp.$id, {
         extensionStatus: "requested",
         extensionReason: extensionReason.trim(),
+        extensionDate: extensionDate,
         extensionRequestedAt: new Date().toISOString(),
       });
 
@@ -154,15 +199,16 @@ export default function MyApplicationsPage() {
           userId: selectedApp.job.companyId,
           type: "job_updated",
           title: "Extension Requested",
-          body: `A translator has requested a deadline extension for "${selectedApp.job.title}".`,
+          body: `A translator has requested a deadline extension for "${selectedApp.job.title}" until ${extensionDate}.`,
           data: { jobId: selectedApp.job.$id },
         });
       }
 
-      setApps(prev => prev.map(a => a.$id === selectedApp.$id ? { ...a, extensionStatus: "requested", extensionReason: extensionReason.trim() } : a));
+      setApps(prev => prev.map(a => a.$id === selectedApp.$id ? { ...a, extensionStatus: "requested", extensionReason: extensionReason.trim(), extensionDate } : a));
       toast({ title: "Success", description: "Extension request submitted." });
       setExtensionModalOpen(false);
       setExtensionReason("");
+      setExtensionDate("");
     } catch {
       toast({ title: "Error", description: "Failed to submit extension request.", variant: "destructive" });
     } finally {
@@ -242,7 +288,101 @@ export default function MyApplicationsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredApps.map((app) => (
+              {filteredApps.map((app) => {
+                if (app.status === "accepted") {
+                  return (
+                    <Card key={app.$id} className="border-teal-500/30 bg-gradient-to-r from-teal-50/50 to-transparent shadow-sm rounded-2xl overflow-hidden relative">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-teal-500" />
+                      <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                          <div className="flex-1 space-y-4">
+                            <div>
+                              <h3 className="text-lg font-bold tracking-tight text-teal-950">
+                                {app.job?.title || "Active Project"}
+                              </h3>
+                              <p className="text-sm text-teal-700 font-medium">In Progress</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/60 p-4 rounded-xl border border-teal-100/50">
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Started Working</p>
+                                <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                  <Calendar className="h-4 w-4 text-teal-600" />
+                                  {new Date(app.updatedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Delivery Deadline</p>
+                                <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                  <Clock className="h-4 w-4 text-rose-500" />
+                                  {app.job?.deadline ? new Date(app.job.deadline).toLocaleString() : "Not set"}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {app.extensionStatus && app.extensionStatus !== "none" && (
+                              <div className="bg-orange-50/80 border border-orange-200/50 p-3 rounded-xl">
+                                <p className="text-xs font-semibold text-orange-800 flex items-center justify-between mb-1">
+                                  <span>Extension Request</span>
+                                  <Badge variant={app.extensionStatus === "approved" ? "success" : app.extensionStatus === "rejected" ? "destructive" : "outline"} className="text-3xs uppercase tracking-wider bg-white">
+                                    {app.extensionStatus}
+                                  </Badge>
+                                </p>
+                                <p className="text-xs text-orange-700/80 line-clamp-2">Reason: {app.extensionReason}</p>
+                                {app.extensionDate && (
+                                  <p className="text-xs text-orange-700/80 mt-1 font-medium">Requested Date: {new Date(app.extensionDate).toLocaleDateString()}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col gap-3 min-w-[200px] shrink-0">
+                            {app.conversationId && (
+                              <Button 
+                                className="w-full justify-start gap-2 bg-white hover:bg-teal-50 text-teal-700 border-teal-200/60 shadow-sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  setActiveChatUrl(`/messages?conversation=${app.conversationId}&embed=true`);
+                                  setChatSheetOpen(true);
+                                }}
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                                Open Chat Workspace
+                              </Button>
+                            )}
+                            
+                            {!checkJobDeadlinePassed(app.job) && (!app.extensionStatus || app.extensionStatus === "none") && (
+                              <Button 
+                                variant="outline"
+                                className="w-full justify-start gap-2 bg-white hover:bg-orange-50 text-orange-600 border-orange-200/60 shadow-sm"
+                                onClick={() => {
+                                  setSelectedApp(app);
+                                  setExtensionModalOpen(true);
+                                }}
+                              >
+                                <Clock className="h-4 w-4" />
+                                Request Extension
+                              </Button>
+                            )}
+                            
+                            <Button 
+                              className="w-full justify-start gap-2 bg-teal-600 hover:bg-teal-700 text-white shadow-sm"
+                              onClick={() => {
+                                setSelectedApp(app);
+                                setDeliveryModalOpen(true);
+                              }}
+                            >
+                              <Upload className="h-4 w-4" />
+                              Deliver Work
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+
+                return (
                 <Card key={app.$id} className="glass-card border-border/40 rounded-2xl overflow-hidden hover:shadow-lg hover:border-border/60 transition-all duration-300">
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-4">
@@ -327,43 +467,6 @@ export default function MyApplicationsPage() {
                             )}
                           </div>
                         )}
-                        
-                        {/* ACCEPTED JOBS ACTIONS */}
-                        {app.status === "accepted" && (
-                          <div className="mt-3 flex items-center gap-2">
-                            {app.conversationId && (
-                              <Link href={`/messages?conversation=${app.conversationId}`}>
-                                <Button size="sm" variant="outline" className="gap-1.5 text-xs border-blue-500/20 text-blue-600 hover:bg-blue-500/10">
-                                  <MessageCircle className="h-3.5 w-3.5" />
-                                  View Conversation
-                                </Button>
-                              </Link>
-                            )}
-                            {!checkJobDeadlinePassed(app.job) && (!app.extensionStatus || app.extensionStatus === "none") && (
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                className="gap-1.5 text-xs text-orange-600 border-orange-500/20 hover:bg-orange-500/10"
-                                onClick={() => {
-                                  setSelectedApp(app);
-                                  setExtensionModalOpen(true);
-                                }}
-                              >
-                                <Clock className="h-3.5 w-3.5" />
-                                Request Extension
-                              </Button>
-                            )}
-                            {app.extensionStatus === "requested" && (
-                              <Badge variant="outline" className="text-orange-500 border-orange-500/30">Extension Requested</Badge>
-                            )}
-                            {app.extensionStatus === "rejected" && (
-                              <Badge variant="destructive" className="text-3xs">Extension Rejected (Violation Recorded)</Badge>
-                            )}
-                            {app.extensionStatus === "approved" && (
-                              <Badge variant="success" className="text-3xs">Extension Approved</Badge>
-                            )}
-                          </div>
-                        )}
                       </div>
                       {app.job && (
                         <Link href={`/jobs/${app.jobId}`}>
@@ -375,24 +478,26 @@ export default function MyApplicationsPage() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           )}
 
-          <Dialog open={testModalOpen} onOpenChange={setTestModalOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Submit Test Solution</DialogTitle>
-                <DialogDescription>
+          {/* Test Solution Sheet */}
+          <Sheet open={testModalOpen} onOpenChange={setTestModalOpen}>
+            <SheetContent className="sm:max-w-md w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Submit Test Solution</SheetTitle>
+                <SheetDescription>
                   Upload your completed translation test document.
                   {selectedApp?.job?.testDeadline && (
                     <span className="block mt-2 font-semibold text-rose-600">
                       Deadline: {new Date(selectedApp.job.testDeadline).toLocaleString()}
                     </span>
                   )}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
+                </SheetDescription>
+              </SheetHeader>
+              <div className="space-y-4 py-6">
                 {checkDeadlinePassed(selectedApp?.job) ? (
                   <div className="p-4 rounded-md bg-rose-50 text-rose-600 text-sm font-medium border border-rose-200">
                     The deadline for submitting this test has passed. You can no longer upload a solution.
@@ -408,7 +513,7 @@ export default function MyApplicationsPage() {
                   </div>
                 )}
               </div>
-              <DialogFooter>
+              <div className="flex justify-end gap-2 mt-4">
                 <Button variant="outline" onClick={() => setTestModalOpen(false)}>Cancel</Button>
                 {!checkDeadlinePassed(selectedApp?.job) && (
                   <Button onClick={handleTestSubmit} disabled={!testFile || uploadingTest} className="bg-teal-600 hover:bg-teal-700 text-white">
@@ -416,20 +521,60 @@ export default function MyApplicationsPage() {
                     Submit Solution
                   </Button>
                 )}
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </div>
+            </SheetContent>
+          </Sheet>
 
-          {/* Extension Modal */}
-          <Dialog open={extensionModalOpen} onOpenChange={setExtensionModalOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Request Deadline Extension</DialogTitle>
-                <DialogDescription>
-                  Please provide a reason for requesting a deadline extension. Note that if the company rejects this request, it will be recorded as a violation.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
+          {/* Delivery Sheet */}
+          <Sheet open={deliveryModalOpen} onOpenChange={setDeliveryModalOpen}>
+            <SheetContent className="sm:max-w-md w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Deliver Final Work</SheetTitle>
+                <SheetDescription>
+                  Upload your completed translation document. This will be sent directly to the client.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="space-y-4 py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="deliveryFile">Upload Document</Label>
+                  <Input 
+                    id="deliveryFile" 
+                    type="file" 
+                    onChange={(e) => setTestFile(e.target.files?.[0] || null)}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button variant="outline" onClick={() => setDeliveryModalOpen(false)}>Cancel</Button>
+                <Button onClick={handleDeliverySubmit} disabled={!testFile || uploadingTest} className="bg-teal-600 hover:bg-teal-700 text-white">
+                  {uploadingTest ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Submit Delivery
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Extension Sheet */}
+          <Sheet open={extensionModalOpen} onOpenChange={setExtensionModalOpen}>
+            <SheetContent className="sm:max-w-md w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Request Deadline Extension</SheetTitle>
+                <SheetDescription>
+                  Select a new date (up to 2 days) and provide a reason. Rejection may result in a violation.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="space-y-4 py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Requested Extension Date</Label>
+                  <Input 
+                    id="date" 
+                    type="date"
+                    value={extensionDate}
+                    onChange={(e) => setExtensionDate(e.target.value)}
+                    min={selectedApp?.job?.deadline ? new Date(selectedApp.job.deadline).toISOString().split('T')[0] : undefined}
+                    max={selectedApp?.job?.deadline ? new Date(new Date(selectedApp.job.deadline).getTime() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="reason">Reason for Extension</Label>
                   <Textarea 
@@ -441,15 +586,36 @@ export default function MyApplicationsPage() {
                   />
                 </div>
               </div>
-              <DialogFooter>
+              <div className="flex justify-end gap-2 mt-4">
                 <Button variant="outline" onClick={() => setExtensionModalOpen(false)}>Cancel</Button>
-                <Button onClick={handleExtensionRequest} disabled={!extensionReason.trim() || requestingExtension} className="bg-orange-600 hover:bg-orange-700 text-white">
+                <Button onClick={handleExtensionRequest} disabled={!extensionReason.trim() || !extensionDate || requestingExtension} className="bg-orange-600 hover:bg-orange-700 text-white">
                   {requestingExtension ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Submit Request
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Chat Sheet */}
+          <Sheet open={chatSheetOpen} onOpenChange={setChatSheetOpen}>
+            <SheetContent side="right" className="w-full sm:w-[500px] sm:max-w-[500px] p-0 flex flex-col">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle>Workspace Chat</SheetTitle>
+                <SheetDescription>
+                  Communicate directly with the client.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex-1 overflow-hidden relative">
+                {activeChatUrl && (
+                  <iframe 
+                    src={activeChatUrl} 
+                    className="absolute inset-0 w-full h-full border-none"
+                    title="Chat Workspace"
+                  />
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
 
         </div>
       </RoleGuard>

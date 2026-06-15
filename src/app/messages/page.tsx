@@ -57,7 +57,11 @@ function parseMessageContent(text: string, isMe: boolean) {
   });
 }
 
+import { useSearchParams } from "next/navigation";
+
 export default function MessagesPage() {
+  const searchParams = useSearchParams();
+  const isEmbed = searchParams.get("embed") === "true";
   const { user } = useSession();
   const { toast } = useToast();
   const [conversations, setConversations] = React.useState<Conversation[]>([]);
@@ -199,18 +203,20 @@ export default function MessagesPage() {
 
   return (
     <AuthGuard>
-      <div className="flex min-h-screen flex-col">
-        <Navbar />
-        <main className="flex-1 container mx-auto max-w-5xl px-4 py-6">
-          <div className="flex items-center gap-3 mb-6">
-            <MessageSquare className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">Messages</h1>
-          </div>
+      <div className={`flex flex-col ${isEmbed ? "h-screen bg-transparent" : "min-h-screen"}`}>
+        {!isEmbed && <Navbar />}
+        <main className={`flex-1 ${isEmbed ? "w-full h-full" : "container mx-auto max-w-5xl px-4 py-6"}`}>
+          {!isEmbed && (
+            <div className="flex items-center gap-3 mb-6">
+              <MessageSquare className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl font-bold">Messages</h1>
+            </div>
+          )}
 
-          <Card className="overflow-hidden">
-            <div className="flex h-[calc(100vh-16rem)]">
+          <Card className={`overflow-hidden ${isEmbed ? "border-0 shadow-none h-full rounded-none" : ""}`}>
+            <div className={`flex ${isEmbed ? "h-full" : "h-[calc(100vh-16rem)]"}`}>
               {/* Conversation List */}
-              <div className={`w-full sm:w-80 border-r shrink-0 ${showList ? "block" : "hidden sm:block"}`}>
+              <div className={`w-full sm:w-80 border-r shrink-0 ${isEmbed ? "hidden" : showList ? "block" : "hidden sm:block"}`}>
                 <div className="p-3 border-b">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Conversations
@@ -269,14 +275,16 @@ export default function MessagesPage() {
               </div>
 
               {/* Chat Area */}
-              <div className={`flex-1 flex flex-col ${!showList ? "block" : "hidden sm:flex"}`}>
+              <div className={`flex-1 flex flex-col ${isEmbed ? "block w-full h-full" : !showList ? "block" : "hidden sm:flex"}`}>
                 {selectedConv ? (
                   <>
                     {/* Responsive Chat Header */}
                     <div className="flex items-center gap-3 p-3 border-b bg-muted/10">
-                      <Button variant="ghost" size="icon" onClick={() => setShowList(true)} className="sm:hidden">
-                        <ArrowLeft className="h-4 w-4" />
-                      </Button>
+                      {!isEmbed && (
+                        <Button variant="ghost" size="icon" onClick={() => setShowList(true)} className="sm:hidden">
+                          <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                      )}
                       <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <User className="h-4 w-4 text-primary" />
                       </div>
@@ -355,7 +363,7 @@ export default function MessagesPage() {
             </div>
           </Card>
         </main>
-        <Footer />
+        {!isEmbed && <Footer />}
       </div>
     </AuthGuard>
   );
