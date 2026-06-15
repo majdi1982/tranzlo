@@ -301,8 +301,9 @@ export default function PostJobPage() {
   ]);
   const [requiredCatTools, setRequiredCatTools] = React.useState<string[]>([]);
   const [testFileUrl, setTestFileUrl] = React.useState("");
-  const [testDuration, setTestDuration] = React.useState("24");
-  const [testWordCount, setTestWordCount] = React.useState("150");
+  const [testDuration, setTestDuration] = React.useState("48");
+  const [testWordCount, setTestWordCount] = React.useState("250");
+  const [maxTestApplicants, setMaxTestApplicants] = React.useState("10");
   const [maxApplicants, setMaxApplicants] = React.useState("");
   const [testUploading, setTestUploading] = React.useState(false);
   const testFileInputRef = React.useRef<HTMLInputElement>(null);
@@ -472,6 +473,10 @@ export default function PostJobPage() {
         setErrors((prev) => ({ ...prev, testWordCount: "Word count must be between 1 and 250 words." }));
         return;
       }
+      if (!maxTestApplicants || Number(maxTestApplicants) <= 0 || Number(maxTestApplicants) > 10) {
+        setErrors((prev) => ({ ...prev, maxTestApplicants: "Maximum test applicants cannot exceed 10." }));
+        return;
+      }
     }
  
     const finalBudgetMin = Math.round(totalBudgetMin);
@@ -515,6 +520,7 @@ export default function PostJobPage() {
       testFileUrl: requiresTest ? testFileUrl : undefined,
       testDuration: requiresTest ? Number(testDuration) : undefined,
       testWordCount: requiresTest ? Number(testWordCount) : undefined,
+      maxTestApplicants: requiresTest ? Number(maxTestApplicants) : undefined,
       reviewerType,
       externalTranslatorEmail: externalTranslatorEmail || undefined,
       previousTranslatorId: previousTranslatorId || undefined,
@@ -1108,9 +1114,23 @@ export default function PostJobPage() {
                         {errors.testFile && <p className="text-xs text-destructive">{errors.testFile}</p>}
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                         <div className="space-y-2">
-                          <Label htmlFor="testWordCount">Maximum Word Count (Max 250 words)</Label>
+                          <Label htmlFor="maxTestApplicants">Max Translators (Max 10)</Label>
+                          <Input
+                            id="maxTestApplicants"
+                            type="number"
+                            max="10"
+                            min="1"
+                            value={maxTestApplicants}
+                            onChange={(e) => setMaxTestApplicants(e.target.value)}
+                            placeholder="e.g. 5"
+                          />
+                          {errors.maxTestApplicants && <p className="text-xs text-destructive">{errors.maxTestApplicants}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="testWordCount">Max Word Count (Max 250)</Label>
                           <Input
                             id="testWordCount"
                             type="number"
@@ -1128,10 +1148,11 @@ export default function PostJobPage() {
                           <Input
                             id="testDuration"
                             type="number"
+                            max="48"
                             min="1"
                             value={testDuration}
                             onChange={(e) => setTestDuration(e.target.value)}
-                            placeholder="e.g. 24"
+                            placeholder="e.g. 48"
                           />
                           {errors.testDuration && <p className="text-xs text-destructive">{errors.testDuration}</p>}
                         </div>
@@ -1142,40 +1163,7 @@ export default function PostJobPage() {
               </Card>
               )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Targeted Translator (Optional)</CardTitle>
-                  <CardDescription>Route this job directly to a specific translator</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="externalTranslatorEmail">External Translator Email</Label>
-                      <Input
-                        id="externalTranslatorEmail"
-                        type="email"
-                        value={externalTranslatorEmail}
-                        onChange={(e) => setExternalTranslatorEmail(e.target.value)}
-                        placeholder="e.g. translator@example.com"
-                      />
-                      <p className="text-xs text-muted-foreground">We will email them an invite to this job.</p>
-                      {errors.externalTranslatorEmail && <p className="text-xs text-destructive">{errors.externalTranslatorEmail}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="previousTranslatorId">Previous Translator ID</Label>
-                      <Input
-                        id="previousTranslatorId"
-                        type="text"
-                        value={previousTranslatorId}
-                        onChange={(e) => setPreviousTranslatorId(e.target.value)}
-                        placeholder="e.g. TRAN_123456789"
-                      />
-                      <p className="text-xs text-muted-foreground">Enter the ID of a translator on the platform.</p>
-                      {errors.previousTranslatorId && <p className="text-xs text-destructive">{errors.previousTranslatorId}</p>}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+
 
               <Card>
                 <CardHeader>

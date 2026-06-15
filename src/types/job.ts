@@ -30,6 +30,7 @@ export interface Job {
   invitedTranslators?: string[];
   testDistributedAt?: string;
   testDeadline?: string;
+  testLaunched?: boolean;
   reviewerType: "company" | "translator";
   activeTranslatorId?: string;
   externalTranslatorEmail?: string;

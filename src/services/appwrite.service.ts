@@ -417,10 +417,8 @@ export const appwriteApplicationService = {
   async apply(data: ApplyInput & { translatorId: string }): Promise<Application> {
     const db = getDatabases();
 
-    // Fetch job for bid range validation and maxApplicants check
     const job = await appwriteJobService.getJob(data.jobId);
     if (!job) throw new Error("Job not found");
-
     if (job.status !== "open") throw new Error("Job is not open for applications");
 
     // Validate bid against budget range
@@ -432,12 +430,39 @@ export const appwriteApplicationService = {
       }
     }
 
-    // Check max applicants limit
     const existingApps = await db.listDocuments(DB_ID, COLLECTIONS.applications, [
       Query.equal("jobId", data.jobId),
     ]);
-    if (job.maxApplicants && existingApps.total >= job.maxApplicants) {
-      throw new Error("This job has reached the maximum number of applicants");
+
+    if (job.requiresTest) {
+      // For test jobs: enforce maxTestApplicants per language pair
+      const maxTestApplicants = job.maxTestApplicants || 10;
+      const languagePair = (data as any).languagePair || "";
+
+      const pairCount = existingApps.documents.filter((a) => {
+        if (!languagePair) return true;
+        const normalize = (s: string) => s.replace(/\s+/g, "").toUpperCase();
+        return normalize((a as any).languagePair || "") === normalize(languagePair);
+      }).length;
+
+      if (pairCount >= maxTestApplicants) {
+        throw new Error(
+          `The maximum number of test applicants (${maxTestApplicants}) has been reached for this language pair.`
+        );
+      }
+
+      // Prevent duplicate application from same translator
+      const alreadyApplied = existingApps.documents.find(
+        (a) => (a as any).translatorId === data.translatorId
+      );
+      if (alreadyApplied) {
+        throw new Error("You have already applied for this job.");
+      }
+    } else {
+      // For non-test jobs: enforce global maxApplicants cap
+      if (job.maxApplicants && existingApps.total >= job.maxApplicants) {
+        throw new Error("This job has reached the maximum number of applicants");
+      }
     }
 
     const doc = await db.createDocument(DB_ID, COLLECTIONS.applications, generateId("application"), {
@@ -447,14 +472,20 @@ export const appwriteApplicationService = {
       updatedAt: new Date().toISOString(),
     });
 
-    // Auto-close job if max applicants reached
-    const updatedTotal = existingApps.total + 1;
-    if (job.maxApplicants && updatedTotal >= job.maxApplicants) {
-      await appwriteJobService.closeJob(data.jobId);
+    // For non-test jobs only: auto-close when global maxApplicants is hit
+    if (!job.requiresTest && job.maxApplicants) {
+      const updatedTotal = existingApps.total + 1;
+      if (updatedTotal >= job.maxApplicants) {
+        await db.updateDocument(DB_ID, COLLECTIONS.jobs, data.jobId, {
+          status: "closed",
+          updatedAt: new Date().toISOString(),
+        });
+      }
     }
 
     return mapDoc<Application>(doc as Record<string, unknown>);
   },
+
 
   async getApplications(jobId: string): Promise<Application[]> {
     const db = getDatabases();

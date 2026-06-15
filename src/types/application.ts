@@ -16,6 +16,7 @@ export interface Application {
   invited?: boolean;
   conversationId?: string;
   testInvitedAt?: string;
+  testDeadline?: string;
   rejectionReason?: string;
   status: ApplicationStatus;
   createdAt: string;

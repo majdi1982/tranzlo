@@ -459,11 +459,11 @@ function ProfileContent() {
     try {
       const services = getServices();
       if (role === "translator") {
-        const maxLangs = translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2;
-        if (translatorData.languages.length < 2) {
+        const maxLangs = translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 10 : 1;
+        if (translatorData.languages.length < (maxLangs === 1 ? 1 : 2)) {
           toast({
-            title: "At Least 2 Languages Required",
-            description: "You must select at least 2 working languages to configure your translation pairs.",
+            title: maxLangs === 1 ? "Language Required" : "At Least 2 Languages Required",
+            description: maxLangs === 1 ? "You must select at least 1 working language." : "You must select at least 2 working languages to configure your translation pairs.",
             variant: "destructive",
           });
           setSaving(false);
@@ -576,7 +576,7 @@ function ProfileContent() {
           activePairs: newActivePairs,
         };
       }
-      const limit = prev.planTier === "standard" || prev.planTier === "pro" ? 5 : prev.planTier === "plus" ? 7 : 2;
+      const limit = prev.planTier === "standard" || prev.planTier === "pro" ? 5 : prev.planTier === "plus" ? 10 : 1;
       if (prev.languages.length >= limit) {
         toast({
           title: "Language Limit Reached",
@@ -1490,7 +1490,7 @@ function ProfileContent() {
                         <div className="space-y-0.5">
                           <span className="text-4xs font-bold text-muted-foreground uppercase tracking-wider block">Languages Limit</span>
                           <span className="text-xs font-bold text-foreground">
-                            {translatorData.languages.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 7 : 2} Used
+                            {translatorData.languages.length} / {translatorData.planTier === "standard" || translatorData.planTier === "pro" ? 5 : translatorData.planTier === "plus" ? 10 : 1} Used
                           </span>
                         </div>
                         {translatorData.planTier !== "plus" && (

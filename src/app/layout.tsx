@@ -5,9 +5,24 @@ import { CookieBanner } from "@/components/cookie-banner";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Tranzlo - Translation Marketplace",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://tranzlo.net"),
+  title: "Tranzlo | Professional Translation Platform & Marketplace",
   description:
-    "Connect with top freelance translators worldwide. Post translation projects, find work, and grow your translation business.",
+    "Connect with top freelance translators worldwide on the leading translation platform. Post translation projects, find work, and grow your business.",
+  keywords: ["translation platform", "freelance translators", "translation marketplace", "language translation", "professional translators"],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://tranzlo.net",
+    title: "Tranzlo | Professional Translation Platform",
+    description: "Connect with top freelance translators worldwide on the leading translation platform. Post translation projects, find work, and grow your business.",
+    siteName: "Tranzlo",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tranzlo | Professional Translation Platform",
+    description: "Connect with top freelance translators worldwide on the leading translation platform.",
+  },
   icons: {
     icon: "/favicon.png",
   },

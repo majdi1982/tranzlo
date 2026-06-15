@@ -41,6 +41,7 @@ export type NotificationType =
   | "invitation"
   | "test_distributed"
   | "test_reminder"
+  | "test_expired"
   | "translator_selected"
   | "job_closed_max_applicants";
 

@@ -299,7 +299,7 @@ function JobCard({
         contentStr += `\nDeadline: ${new Date(job.deadline).toLocaleDateString()}`;
       }
       
-      if (job.visibility === "private" && job.translationFileUrl) {
+      if (job.translationFileUrl) {
         contentStr += `\n\nHere is the private translation file for this job: ${job.translationFileUrl}`;
       }
 

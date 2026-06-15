@@ -103,16 +103,16 @@ export default function HomePage() {
         <div className="relative max-w-4xl mx-auto animate-in">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary mb-8 animate-in animate-in-delay-1">
             <Globe className="h-3.5 w-3.5" />
-            The #1 Translation Marketplace
+            The #1 Translation Platform
           </div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight animate-in animate-in-delay-2">
-            Connect with Top
+            The Complete
             <br />
-            <span className="text-gradient">Translation Talent</span>
+            <span className="text-gradient">Translation Platform</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-in animate-in-delay-3">
             Post translation projects, find expert freelance translators, and grow your global reach.
-            Tranzlo connects companies with verified language professionals across 50+ languages.
+            Tranzlo is the leading translation platform connecting companies with verified language professionals across 50+ languages.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 animate-in animate-in-delay-4">
             {user ? (

@@ -15,6 +15,9 @@ export const metadata = {
   title: "Tranzlo Translation Blog - Industry Trends & AI Translation Insights",
   description: "Stay ahead of the curve with translation industry trends, AI localization tips, and expert guides from the Tranzlo developer and linguist network.",
   keywords: ["translation blog", "AI translation", "machine learning localization", "freelance translation tips"],
+  alternates: {
+    canonical: "https://tranzlo.net/blog",
+  },
 };
 
 const CATEGORIES = [
@@ -58,6 +61,26 @@ export default async function BlogPage(props: {
 
   return (
     <div className="min-h-screen bg-background text-foreground py-12 px-4 sm:px-6 lg:px-8 relative bg-grid">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Blog",
+            "name": "Tranzlo Translation Blog",
+            "description": "Stay ahead of the curve with translation industry trends, AI localization tips, and expert guides from the Tranzlo developer and linguist network.",
+            "url": "https://tranzlo.net/blog",
+            "publisher": {
+              "@type": "Organization",
+              "name": "Tranzlo",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://tranzlo.net/logo.png"
+              }
+            }
+          })
+        }}
+      />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[350px] bg-hero-glow pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto z-10 space-y-12">
