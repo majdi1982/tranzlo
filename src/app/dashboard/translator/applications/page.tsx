@@ -107,9 +107,18 @@ export default function MyApplicationsPage() {
       const fileUrl = `${storage.client.config.endpoint}/storage/buckets/${BUCKETS.TRANSLATOR_DOCUMENTS}/files/${uploaded.$id}/view?project=${storage.client.config.project}`;
 
       const services = getServices();
-      // Keep status as test_invited but set testStatus to pending
       await services.application.updateApplicationStatus(selectedApp.$id, "test_invited", "pending", fileUrl);
       
+      if (job?.companyId) {
+        await services.notification.createNotification({
+          userId: job.companyId,
+          type: "job_updated",
+          title: "Test Solution Submitted",
+          body: `A translator has submitted their test solution for "${job.title}".`,
+          data: { jobId: job.$id },
+        });
+      }
+
       toast({ title: "Success", description: "Test solution uploaded successfully!" });
       setTestModalOpen(false);
       setTestFile(null);

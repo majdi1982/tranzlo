@@ -189,6 +189,14 @@ function JobCard({
 
       await services.application.updateApplicationWithFeedback(applicationId, updatePayload);
       
+      await services.notification.createNotification({
+        userId: app.translatorId,
+        type: "job_updated",
+        title: "Test Graded",
+        body: `Your test for "${job.title}" has been graded: ${testStatus.toUpperCase()}.`,
+        data: { jobId: job.$id },
+      });
+
       setApps((prev) => prev.map((a) => {
         if (a.$id === applicationId) {
           const updatedA = { ...a, testStatus, testFeedback: feedback, testGradedAt: new Date().toISOString() };
