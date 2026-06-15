@@ -72,12 +72,6 @@ export default function MyApplicationsPage() {
   const filteredApps = React.useMemo(() => {
     return apps.filter((app) => {
       if (activeTab === "all") return true;
-      if (activeTab === "progress") {
-        return app.status === "accepted" && app.job?.status !== "closed" && app.job?.status !== "filled";
-      }
-      if (activeTab === "completed") {
-        return app.status === "accepted" && (app.job?.status === "closed" || app.job?.status === "filled");
-      }
       if (activeTab === "rejected") {
         return app.status === "rejected";
       }
@@ -335,7 +329,7 @@ export default function MyApplicationsPage() {
                         )}
                         
                         {/* ACCEPTED JOBS ACTIONS */}
-                        {app.status === "accepted" && app.job?.status !== "closed" && app.job?.status !== "filled" && (
+                        {app.status === "accepted" && (
                           <div className="mt-3 flex items-center gap-2">
                             {app.conversationId && (
                               <Link href={`/messages?conversation=${app.conversationId}`}>
