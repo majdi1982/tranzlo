@@ -58,8 +58,9 @@ function parseMessageContent(text: string, isMe: boolean) {
 }
 
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function MessagesPage() {
+function MessagesContent() {
   const searchParams = useSearchParams();
   const isEmbed = searchParams.get("embed") === "true";
   const { user } = useSession();
@@ -366,5 +367,13 @@ export default function MessagesPage() {
         {!isEmbed && <Footer />}
       </div>
     </AuthGuard>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <MessagesContent />
+    </Suspense>
   );
 }
