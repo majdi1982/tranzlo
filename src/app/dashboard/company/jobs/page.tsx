@@ -157,6 +157,9 @@ function JobCard({
   const [rejectDialogApp, setRejectDialogApp] = React.useState<any | null>(null);
   const [profiles, setProfiles] = React.useState<Record<string, any>>({});
   const [selectedProfile, setSelectedProfile] = React.useState<any | null>(null);
+  const [disputeApp, setDisputeApp] = React.useState<any | null>(null);
+  const [disputeReasonText, setDisputeReasonText] = React.useState("");
+  const [submittingDisputeApp, setSubmittingDisputeApp] = React.useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useSession();
 
@@ -308,6 +311,68 @@ function JobCard({
       toast({ title: "Translator selected. Chat opened and others rejected.", variant: "success" });
     } catch {
       toast({ title: "Failed to select translator", variant: "destructive" });
+    }
+  }
+
+  async function handleFileDispute(app: any) {
+    if (disputeReasonText.trim().length < 20) {
+      toast({
+        title: "Reason too short",
+        description: "Please explain the reason for the dispute (minimum 20 characters).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmittingDisputeApp(app.$id);
+    try {
+      const services = getServices();
+      // 1. Create dispute
+      const dispute = await services.dispute.create({
+        jobId: app.jobId,
+        reason: disputeReasonText.trim(),
+        raisedById: user?.$id || "",
+      });
+
+      // 2. Update Application with escrowStatus = "disputed" and disputeId
+      await services.application.updateApplicationWithFeedback(app.$id, {
+        escrowStatus: "disputed",
+        disputeId: dispute.$id,
+      });
+
+      // Update local state
+      setApps((prev) =>
+        prev.map((a) =>
+          a.$id === app.$id ? { ...a, escrowStatus: "disputed" as const, disputeId: dispute.$id } : a
+        )
+      );
+
+      // 3. Create Notification for Translator
+      await services.notification.createNotification({
+        userId: app.translatorId,
+        type: "dispute_update",
+        title: "Dispute Opened on Project",
+        body: `The client has opened a dispute for "${job.title}". Reason: ${disputeReasonText.substring(0, 50)}...`,
+        data: { jobId: job.$id, disputeId: dispute.$id },
+      });
+
+      toast({
+        title: "Dispute Filed Successfully",
+        description: "Your dispute has been recorded and will be reviewed by the admin.",
+        variant: "success",
+      });
+
+      setDisputeApp(null);
+      setDisputeReasonText("");
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: "Failed to submit dispute",
+        description: err.message || "An error occurred while submitting the dispute.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingDisputeApp(null);
     }
   }
 
@@ -823,6 +888,43 @@ function JobCard({
                                               💳 Escrow Deposit Payout
                                             </Button>
                                           )}
+
+                                          {app.deliveryFileUrl && (
+                                            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/20">
+                                              <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer" className="w-full">
+                                                <Button className="w-full justify-start gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-semibold" variant="default">
+                                                  <FileText className="h-4 w-4" />
+                                                  Download Translation
+                                                </Button>
+                                              </a>
+                                              {app.deliveryDate && (
+                                                <span className="text-[10px] text-muted-foreground text-center block font-medium">
+                                                  Delivered: {new Date(app.deliveryDate).toLocaleDateString()} {new Date(app.deliveryDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                              )}
+
+                                              {app.escrowStatus === "disputed" ? (
+                                                <div className="flex flex-col gap-1 items-center justify-center p-2 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400 mt-1 select-none">
+                                                  <span className="text-2xs font-bold flex items-center gap-1">
+                                                    <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                                                    Dispute: Active
+                                                  </span>
+                                                  <span className="text-[9px] text-amber-600/80 dark:text-amber-500/80 font-medium">
+                                                    Under Admin Review
+                                                  </span>
+                                                </div>
+                                              ) : (
+                                                <Button
+                                                  onClick={() => setDisputeApp(app)}
+                                                  className="w-full justify-start gap-2 border-rose-200/60 hover:bg-rose-50 text-rose-700 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/20 shadow-sm mt-1 font-semibold"
+                                                  variant="outline"
+                                                >
+                                                  <ShieldAlert className="h-4 w-4 text-rose-500" />
+                                                  File a Dispute
+                                                </Button>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                     )}
@@ -915,6 +1017,52 @@ function JobCard({
               >
                 Reject Applicant
               </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* File a Dispute Dialog */}
+        <Dialog open={!!disputeApp} onOpenChange={(open) => { if (!open) { setDisputeApp(null); setDisputeReasonText(""); } }}>
+          <DialogContent className="max-w-md bg-card border border-border/50">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-rose-500" />
+                <span>File a Dispute / رفع نزاع</span>
+              </DialogTitle>
+              <DialogDescription>
+                Explain why you are raising a dispute. Minimally 20 characters. The administration team will review this case.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 my-2">
+              <textarea
+                placeholder="Reason for dispute..."
+                value={disputeReasonText}
+                onChange={(e) => setDisputeReasonText(e.target.value)}
+                className="w-full text-sm p-3 rounded-md border border-border/30 bg-background resize-none h-32"
+              />
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => { setDisputeApp(null); setDisputeReasonText(""); }}
+                  disabled={submittingDisputeApp === disputeApp?.$id}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={disputeReasonText.trim().length < 20 || submittingDisputeApp === disputeApp?.$id}
+                  onClick={() => disputeApp && handleFileDispute(disputeApp)}
+                >
+                  {submittingDisputeApp === disputeApp?.$id ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Dispute / رفع النزاع"
+                  )}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

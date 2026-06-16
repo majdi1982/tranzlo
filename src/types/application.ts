@@ -25,6 +25,8 @@ export interface Application {
   extensionDate?: string;
   deliveryFileUrl?: string;
   deliveryDate?: string;
+  escrowStatus?: "unfunded" | "funded" | "approved" | "released" | "disputed" | "refunded";
+  disputeId?: string;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;
