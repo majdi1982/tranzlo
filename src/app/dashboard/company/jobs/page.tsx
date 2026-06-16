@@ -977,12 +977,6 @@ function JobCard({
 
                                           {app.deliveryFileUrl && (
                                             <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/20">
-                                              <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer" className="w-full">
-                                                <Button className="w-full justify-start gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-semibold" variant="default">
-                                                  <FileText className="h-4 w-4" />
-                                                  Download Translation
-                                                </Button>
-                                              </a>
                                               {app.deliveryDate && (
                                                 <span className="text-[10px] text-muted-foreground text-center block font-medium">
                                                   Delivered: {new Date(app.deliveryDate).toLocaleDateString()} {new Date(app.deliveryDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
