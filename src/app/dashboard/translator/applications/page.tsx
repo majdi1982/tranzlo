@@ -142,8 +142,13 @@ export default function MyApplicationsPage() {
       const fileUrl = `${storage.client.config.endpoint}/storage/buckets/${BUCKETS.TRANSLATOR_DOCUMENTS}/files/${uploaded.$id}/view?project=${storage.client.config.project}`;
 
       const services = getServices();
-      // For accepted jobs, maybe we just send a notification and message with the file
-      // Since there's no delivery status field, we send it as a message to the company
+      const deliveryDateStr = new Date().toISOString();
+
+      await services.application.updateApplicationWithFeedback(selectedApp.$id, {
+        deliveryFileUrl: fileUrl,
+        deliveryDate: deliveryDateStr
+      });
+
       if (selectedApp.conversationId) {
         await services.message.sendMessage({
           conversationId: selectedApp.conversationId,
@@ -162,6 +167,7 @@ export default function MyApplicationsPage() {
         });
       }
 
+      setApps(prev => prev.map(a => a.$id === selectedApp.$id ? { ...a, deliveryFileUrl: fileUrl, deliveryDate: deliveryDateStr } : a));
       toast({ title: "Success", description: "Final work delivered successfully!" });
       setDeliveryModalOpen(false);
       setTestFile(null);

@@ -770,6 +770,31 @@ function JobCard({
                                               )}
                                             </div>
                                           )}
+
+                                          {/* Delivery Workflow */}
+                                          {app.deliveryFileUrl && (
+                                            <div className="bg-emerald-50/80 border border-emerald-200/50 p-4 rounded-xl">
+                                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+                                                <div>
+                                                  <p className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
+                                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                                                    Final Project Delivered
+                                                  </p>
+                                                  {app.deliveryDate && (
+                                                    <p className="text-xs text-emerald-700/80 mt-1">
+                                                      Delivered on: {new Date(app.deliveryDate).toLocaleString()}
+                                                    </p>
+                                                  )}
+                                                </div>
+                                                <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer">
+                                                  <Button size="sm" className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-md flex items-center gap-2 w-full sm:w-auto">
+                                                    <FileText className="h-3.5 w-3.5" />
+                                                    Download Delivery
+                                                  </Button>
+                                                </a>
+                                              </div>
+                                            </div>
+                                          )}
                                         </div>
 
                                         {/* Right Side: Action Buttons */}

@@ -23,6 +23,8 @@ export interface Application {
   extensionReason?: string;
   extensionRequestedAt?: string;
   extensionDate?: string;
+  deliveryFileUrl?: string;
+  deliveryDate?: string;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;
