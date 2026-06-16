@@ -924,28 +924,44 @@ function JobCard({
 
                                           {/* Delivery Workflow */}
                                           {app.deliveryFileUrl && (
-                                            <div className="bg-emerald-50/80 border border-emerald-200/50 p-4 rounded-xl space-y-4">
-                                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-emerald-200/30">
-                                                <div>
-                                                  <p className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
-                                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                                                    Final Project Delivered
+                                            <div className="bg-emerald-50/80 border border-emerald-200/50 p-4 rounded-xl">
+                                              <div>
+                                                <p className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
+                                                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                                                  Final Project Delivered
+                                                </p>
+                                                {app.deliveryDate && (
+                                                  <p className="text-xs text-emerald-700/80 mt-1">
+                                                    Delivered on: {new Date(app.deliveryDate).toLocaleString()}
                                                   </p>
-                                                  {app.deliveryDate && (
-                                                    <p className="text-xs text-emerald-700/80 mt-1">
-                                                      Delivered on: {new Date(app.deliveryDate).toLocaleString()}
-                                                    </p>
-                                                  )}
-                                                </div>
-                                                <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer">
-                                                  <Button size="sm" className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-md flex items-center gap-2 w-full sm:w-auto">
-                                                    <FileText className="h-3.5 w-3.5" />
-                                                    Download Delivery
-                                                  </Button>
-                                                </a>
+                                                )}
                                               </div>
+                                            </div>
+                                          )}
 
-                                              <div className="flex flex-wrap gap-2 items-center">
+                                          {/* Unified Actions Bar - Single Row */}
+                                          <div className="flex flex-wrap gap-2.5 items-center pt-3 border-t border-teal-500/10">
+                                            {/* 1. Chat */}
+                                            <Link href="/messages">
+                                              <Button size="sm" className="h-8 text-xs bg-white hover:bg-teal-50 text-teal-700 border-teal-200/60 shadow-sm" variant="outline">
+                                                <MessageCircle className="h-4 w-4" />
+                                                Open Chat Workspace
+                                              </Button>
+                                            </Link>
+
+                                            {/* 2. Download Delivery (Download Translation) */}
+                                            {app.deliveryFileUrl && (
+                                              <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer">
+                                                <Button size="sm" className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-md flex items-center gap-2 shadow-sm font-semibold">
+                                                  <FileText className="h-3.5 w-3.5" />
+                                                  Download Delivery
+                                                </Button>
+                                              </a>
+                                            )}
+
+                                            {/* 3 & 4. Reject and Dispute */}
+                                            {app.deliveryFileUrl && (
+                                              <>
                                                 {app.escrowStatus === "disputed" ? (
                                                   <div className="flex gap-1.5 items-center justify-center px-3 py-1.5 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400 select-none">
                                                     <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
@@ -974,19 +990,10 @@ function JobCard({
                                                     </Button>
                                                   </>
                                                 )}
-                                              </div>
-                                            </div>
-                                          )}
+                                              </>
+                                            )}
 
-                                          {/* Chat & Escrow Deposit buttons - Always visible for the active project */}
-                                          <div className="flex flex-wrap gap-3 items-center pt-3 border-t border-teal-500/10">
-                                            <Link href="/messages">
-                                              <Button size="sm" className="h-8 text-xs bg-white hover:bg-teal-50 text-teal-700 border-teal-200/60 shadow-sm" variant="outline">
-                                                <MessageCircle className="h-4 w-4" />
-                                                Open Chat Workspace
-                                              </Button>
-                                            </Link>
-
+                                            {/* 5. Escrow release / hold status */}
                                             {app.financialFileId ? (
                                               <div className="flex flex-wrap gap-2 items-center">
                                                 <span className="inline-flex items-center justify-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/20 select-none">
