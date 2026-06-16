@@ -79,23 +79,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No readable article paragraphs found at the competitor URL." }, { status: 400 });
     }
 
-    // 3. OpenRouter Content Generation (using meta-llama/llama-3.3-70b-instruct:free model)
-    let generatedPost;
-    try {
-      const openRouterApiKey = process.env.OPENROUTER_API_KEY;
-      if (!openRouterApiKey) {
-        throw new Error("OPENROUTER_API_KEY environment variable is not set.");
-      }
+    // 3. OpenRouter Content Generation (with fallbacks for rate limits/429)
+    const candidateModels = [
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "google/gemma-4-31b-it:free",
+      "qwen/qwen3-coder:free",
+      "openrouter/free"
+    ];
 
-      const aiRes = await axios.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          model: "meta-llama/llama-3.3-70b-instruct:free",
-          response_format: { type: "json_object" },
-          messages: [
-            {
-              role: "system",
-              content: `You are a world-class SEO content writer and strategist.
+    let generatedPost = null;
+    let lastError: any = null;
+
+    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterApiKey) {
+      return NextResponse.json({ error: "OPENROUTER_API_KEY environment variable is not set." }, { status: 500 });
+    }
+
+    for (const modelName of candidateModels) {
+      try {
+        console.log(`Attempting AI generation with model: ${modelName}`);
+        const aiRes = await axios.post(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            model: modelName,
+            response_format: { type: "json_object" },
+            messages: [
+              {
+                role: "system",
+                content: `You are a world-class SEO content writer and strategist.
 Your task is to analyze the provided competitor article text and generate an optimized, high-CTR blog post for Tranzlo (a translation marketplace) in English.
 You MUST output ONLY a JSON object matching this schema:
 {
@@ -107,27 +118,38 @@ You MUST output ONLY a JSON object matching this schema:
   "secondaryKeywords": ["keyword1", "keyword2", "keyword3"],
   "imagePrompt": "A highly detailed, professional, descriptive visual prompt for generating a featured cover image representing this article. Focus on technology, translation, human-AI collaboration, with a premium, sleek blue/cyan aesthetic."
 }`,
-            },
-            {
-              role: "user",
-              content: `Competitor Article Content:\n\n${competitorText}`,
-            },
-          ],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${openRouterApiKey}`,
-            "Content-Type": "application/json",
+              },
+              {
+                role: "user",
+                content: `Competitor Article Content:\n\n${competitorText}`,
+              },
+            ],
           },
-          timeout: 45000,
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${openRouterApiKey}`,
+              "Content-Type": "application/json",
+            },
+            timeout: 45000,
+          }
+        );
 
-      const resText = aiRes.data.choices[0].message.content;
-      generatedPost = JSON.parse(resText);
-    } catch (err: any) {
-      console.error("OpenRouter generation failed:", err);
-      return NextResponse.json({ error: `AI content generation failed: ${err.message}` }, { status: 500 });
+        const resText = aiRes.data.choices[0].message.content;
+        generatedPost = JSON.parse(resText);
+        if (generatedPost && generatedPost.title && generatedPost.content) {
+          break; // successfully generated
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`Model ${modelName} failed or was rate-limited:`, err.message || err);
+        // Continue loop to try next model
+      }
+    }
+
+    if (!generatedPost) {
+      return NextResponse.json({ 
+        error: `AI content generation failed across all free models. Last error: ${lastError?.message || lastError || "Unknown error"}` 
+      }, { status: 500 });
     }
 
     // 4. Gemini Image Generation (using Imagen 3 model)
