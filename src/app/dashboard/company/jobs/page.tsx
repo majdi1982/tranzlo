@@ -869,9 +869,9 @@ function JobCard({
 
                                     {/* Hired active translator detailed progress workflow */}
                                     {isActive && (
-                                      <div className="mt-4 flex flex-col md:flex-row gap-4 p-4 rounded-xl border border-teal-500/30 bg-teal-50/40">
-                                        {/* Left Side: Dates & Extensions */}
-                                        <div className="flex-1 flex flex-col gap-4">
+                                      <div className="mt-4 flex flex-col gap-4 p-4 rounded-xl border border-teal-500/30 bg-teal-50/40">
+                                        {/* Dates & Extensions */}
+                                        <div className="flex flex-col gap-4 w-full">
                                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/60 p-4 rounded-xl border border-teal-100/50">
                                             <div>
                                               <p className="text-xs text-muted-foreground mb-1">Started Working</p>
@@ -924,8 +924,8 @@ function JobCard({
 
                                           {/* Delivery Workflow */}
                                           {app.deliveryFileUrl && (
-                                            <div className="bg-emerald-50/80 border border-emerald-200/50 p-4 rounded-xl">
-                                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+                                            <div className="bg-emerald-50/80 border border-emerald-200/50 p-4 rounded-xl space-y-4">
+                                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-emerald-200/30">
                                                 <div>
                                                   <p className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
                                                     <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
@@ -944,80 +944,75 @@ function JobCard({
                                                   </Button>
                                                 </a>
                                               </div>
-                                            </div>
-                                          )}
-                                        </div>
 
-                                        {/* Right Side: Action Buttons */}
-                                        <div className="flex flex-col gap-3 min-w-[200px] shrink-0">
-                                          <Link href="/messages">
-                                            <Button className="w-full justify-start gap-2 bg-white hover:bg-teal-50 text-teal-700 border-teal-200/60 shadow-sm" variant="outline">
-                                              <MessageCircle className="h-4 w-4" />
-                                              Open Chat Workspace
-                                            </Button>
-                                          </Link>
-
-                                          {app.financialFileId ? (
-                                            <div className="flex flex-col gap-2">
-                                              <span className="inline-flex items-center justify-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-2.5 rounded-md border border-emerald-500/20 select-none">
-                                                💵 Paid / Deposited (${app.bidAmount || job.budget})
-                                              </span>
-                                              <span className="inline-flex items-center justify-center gap-1 text-2xs font-bold text-cyan-600 bg-cyan-500/10 px-3 py-2 rounded-md border border-cyan-500/20 select-none">
-                                                🔒 Escrow Hold ({app.financialFileId.slice(0, 8)})
-                                              </span>
-                                            </div>
-                                          ) : (
-                                            <Button
-                                              onClick={() => setHiringApp(app)}
-                                              className="w-full justify-start gap-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
-                                            >
-                                              💳 Escrow Deposit Payout
-                                            </Button>
-                                          )}
-
-                                          {app.deliveryFileUrl && (
-                                            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/20">
-                                              {app.escrowStatus === "disputed" ? (
-                                                <div className="flex flex-col gap-1 items-center justify-center p-2 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400 mt-1 select-none">
-                                                  <span className="text-2xs font-bold flex items-center gap-1">
+                                              <div className="flex flex-wrap gap-2 items-center">
+                                                {app.escrowStatus === "disputed" ? (
+                                                  <div className="flex gap-1.5 items-center justify-center px-3 py-1.5 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400 select-none">
                                                     <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
-                                                    Dispute: Active
-                                                  </span>
-                                                  <span className="text-[9px] text-amber-600/80 dark:text-amber-500/80 font-medium">
-                                                    Under Admin Review
-                                                  </span>
-                                                </div>
-                                              ) : (
-                                                <>
-                                                  <Button
-                                                    onClick={() => setRejectTranslationApp(app)}
-                                                    className="w-full justify-start gap-2 bg-rose-600 hover:bg-rose-700 text-white shadow-sm font-semibold mt-1"
-                                                  >
-                                                    <XCircle className="h-4 w-4" />
-                                                    Reject Translation
-                                                  </Button>
-                                                  
-                                                  <Button
-                                                    onClick={() => setDisputeApp(app)}
-                                                    className="w-full justify-start gap-2 border-rose-200/60 hover:bg-rose-50 text-rose-700 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/20 shadow-sm mt-1 font-semibold"
-                                                    variant="outline"
-                                                  >
-                                                    <ShieldAlert className="h-4 w-4 text-rose-500" />
-                                                    File a Dispute
-                                                  </Button>
-                                                </>
-                                              )}
+                                                    <span className="text-2xs font-bold">Dispute: Active</span>
+                                                    <span className="text-[9px] text-amber-600/80 dark:text-amber-500/80 font-medium">(Under Admin Review)</span>
+                                                  </div>
+                                                ) : (
+                                                  <>
+                                                    <Button
+                                                      size="sm"
+                                                      onClick={() => setRejectTranslationApp(app)}
+                                                      className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-sm font-semibold"
+                                                    >
+                                                      <XCircle className="h-4 w-4" />
+                                                      Reject Translation
+                                                    </Button>
+                                                    
+                                                    <Button
+                                                      size="sm"
+                                                      onClick={() => setDisputeApp(app)}
+                                                      className="h-8 text-xs border-rose-200/60 hover:bg-rose-50 text-rose-700 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/20 shadow-sm font-semibold"
+                                                      variant="outline"
+                                                    >
+                                                      <ShieldAlert className="h-4 w-4 text-rose-500" />
+                                                      File a Dispute
+                                                    </Button>
+                                                  </>
+                                                )}
+                                              </div>
                                             </div>
                                           )}
 
-                                          {app.revisionStatus === "requested" && (
-                                            <div className="flex flex-col gap-1 items-center justify-center p-2.5 rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50 text-orange-700 dark:text-orange-400 mt-2 select-none">
-                                              <span className="text-2xs font-bold flex items-center gap-1">
+                                          {/* Chat & Escrow Deposit buttons - Always visible for the active project */}
+                                          <div className="flex flex-wrap gap-3 items-center pt-3 border-t border-teal-500/10">
+                                            <Link href="/messages">
+                                              <Button size="sm" className="h-8 text-xs bg-white hover:bg-teal-50 text-teal-700 border-teal-200/60 shadow-sm" variant="outline">
+                                                <MessageCircle className="h-4 w-4" />
+                                                Open Chat Workspace
+                                              </Button>
+                                            </Link>
+
+                                            {app.financialFileId ? (
+                                              <div className="flex flex-wrap gap-2 items-center">
+                                                <span className="inline-flex items-center justify-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/20 select-none">
+                                                  💵 Paid / Deposited (${app.bidAmount || job.budget})
+                                                </span>
+                                                <span className="inline-flex items-center justify-center gap-1 text-[10px] font-bold text-cyan-600 bg-cyan-500/10 px-2.5 py-1 rounded-md border border-cyan-500/20 select-none">
+                                                  🔒 Escrow Hold ({app.financialFileId.slice(0, 8)})
+                                                </span>
+                                              </div>
+                                            ) : (
+                                              <Button
+                                                size="sm"
+                                                onClick={() => setHiringApp(app)}
+                                                className="h-8 text-xs bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
+                                              >
+                                                💳 Escrow Deposit Payout
+                                              </Button>
+                                            )}
+
+                                            {app.revisionStatus === "requested" && (
+                                              <div className="inline-flex gap-1.5 items-center justify-center px-3 py-1.5 rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50 text-orange-700 dark:text-orange-400 select-none">
                                                 <Clock className="h-3.5 w-3.5 text-orange-500 animate-pulse" />
-                                                Revision Requested
-                                              </span>
-                                            </div>
-                                          )}
+                                                <span className="text-2xs font-bold">Revision Requested</span>
+                                              </div>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
                                     )}
