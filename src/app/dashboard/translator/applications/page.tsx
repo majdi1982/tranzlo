@@ -149,14 +149,6 @@ export default function MyApplicationsPage() {
         deliveryDate: deliveryDateStr
       });
 
-      if (selectedApp.conversationId) {
-        await services.message.sendMessage({
-          conversationId: selectedApp.conversationId,
-          senderId: user?.$id!,
-          content: `Final Delivery: ${fileUrl}`
-        });
-      }
-
       if (selectedApp.job?.companyId) {
         await services.notification.createNotification({
           userId: selectedApp.job.companyId,
