@@ -156,7 +156,7 @@ export default function MyApplicationsPage() {
         await services.notification.createNotification({
           userId: selectedApp.job.companyId,
           type: "job_updated",
-          title: isRevision ? "Revised Translation Delivered / تسليم الترجمة المعدلة" : "Final Work Delivered / تسليم العمل النهائي",
+          title: isRevision ? "Revised Translation Delivered" : "Final Work Delivered",
           body: `The translator has delivered the work for "${selectedApp.job.title}".`,
           data: { url: "/dashboard/company/jobs", jobId: selectedApp.job.$id },
         });
@@ -347,14 +347,14 @@ export default function MyApplicationsPage() {
                               <div className="bg-orange-50/95 border border-orange-200/50 p-4 rounded-xl flex flex-col gap-2 text-orange-950">
                                 <div className="flex items-center gap-2">
                                   <Clock className="h-4 w-4 shrink-0 text-orange-500 animate-pulse" />
-                                  <p className="text-xs font-bold">تعديل مطلوب / Revision Requested</p>
+                                  <p className="text-xs font-bold">Revision Requested</p>
                                 </div>
                                 <p className="text-[11px] text-orange-800/90 leading-relaxed bg-white/60 p-3 rounded-lg border border-orange-100/50 font-medium">
-                                  <strong>Client Feedback / ملاحظات العميل:</strong> {app.revisionReason}
+                                  <strong>Client Feedback:</strong> {app.revisionReason}
                                 </p>
                                 {app.revisionReviewedFileUrl && (
                                   <a href={app.revisionReviewedFileUrl} target="_blank" rel="noopener noreferrer" className="text-2xs font-semibold text-orange-700 hover:underline flex items-center gap-1">
-                                    <FileText className="h-3.5 w-3.5" /> Download Checked/Reviewed File / تحميل ملف الملاحظات
+                                    <FileText className="h-3.5 w-3.5" /> Download Checked/Reviewed File
                                   </a>
                                 )}
                               </div>
@@ -365,8 +365,8 @@ export default function MyApplicationsPage() {
                               <div className="bg-rose-50/90 border border-rose-200/50 p-4 rounded-xl flex items-center gap-3 text-rose-800">
                                 <ShieldAlert className="h-5 w-5 shrink-0 text-rose-600 animate-pulse" />
                                 <div className="flex-1">
-                                  <p className="text-xs font-bold">تنبيه: تم رفع نزاع على هذا المشروع من قبل العميل</p>
-                                  <p className="text-[10px] text-rose-700/80 font-medium">Attention: Client has raised a dispute on this project. Please submit your justifications and evidence.</p>
+                                  <p className="text-xs font-bold">Attention: Dispute Filed by Client</p>
+                                  <p className="text-[10px] text-rose-700/80 font-medium">The client has raised a dispute on this project. Please submit your justifications and evidence.</p>
                                 </div>
                               </div>
                             )}
@@ -411,11 +411,11 @@ export default function MyApplicationsPage() {
                             >
                               <Upload className="h-4 w-4" />
                               {app.escrowStatus === "disputed" ? (
-                                "Disputed / قيد النزاع"
+                                "Disputed"
                               ) : app.revisionStatus === "requested" ? (
-                                "Re-deliver Work / تسليم التعديلات"
+                                "Re-deliver Work"
                               ) : app.deliveryFileUrl ? (
-                                "Work Delivered / تم التسليم"
+                                "Work Delivered"
                               ) : (
                                 "Deliver Work"
                               )}
@@ -425,7 +425,7 @@ export default function MyApplicationsPage() {
                               <Link href={`/dashboard/translator/disputes?id=${app.disputeId}`} className="w-full">
                                 <Button className="w-full justify-start gap-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-semibold">
                                   <ShieldAlert className="h-4 w-4 animate-pulse" />
-                                  Dispute Details / تفاصيل النزاع
+                                  Dispute Details
                                 </Button>
                               </Link>
                             ) : (

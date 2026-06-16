@@ -172,7 +172,7 @@ export default function TranslatorDisputesPage() {
               <CardHeader className="bg-gradient-to-br from-background/30 to-accent/5 pb-4 border-b border-border/20">
                 <CardTitle className="text-base font-bold flex items-center gap-2 text-rose-600 dark:text-rose-500">
                   <ShieldAlert className="h-5 w-5" />
-                  <span>Active Dispute details / تفاصيل النزاع النشط</span>
+                  <span>Active Dispute Details</span>
                 </CardTitle>
                 <CardDescription className="text-2xs">
                   Review the client's reason for raising this dispute
@@ -186,13 +186,13 @@ export default function TranslatorDisputesPage() {
                   </div>
                 )}
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Client's Dispute Reason / سبب نزاع العميل</span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Client's Dispute Reason</span>
                   <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 text-xs text-foreground/90 mt-1 whitespace-pre-wrap leading-relaxed">
                     {dispute.reason}
                   </div>
                 </div>
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Status / حالة النزاع</span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Status</span>
                   <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2.5 py-0.5 text-2xs font-semibold text-amber-600 dark:text-amber-400 capitalize mt-1 border border-amber-500/20">
                     {dispute.status}
                   </span>
@@ -203,7 +203,7 @@ export default function TranslatorDisputesPage() {
             {/* Counter-Argument & Evidence Form */}
             <Card className="border-border/50 bg-card rounded-2xl shadow-sm">
               <CardHeader>
-                <CardTitle className="text-base font-bold">Submit Evidence / تقديم الإثباتات والرد</CardTitle>
+                <CardTitle className="text-base font-bold">Submit Evidence</CardTitle>
                 <CardDescription className="text-2xs">
                   Explain your position and upload files (translations, screenshots, instructions) to defend your work
                 </CardDescription>
@@ -212,7 +212,7 @@ export default function TranslatorDisputesPage() {
                 <CardContent className="space-y-5">
                   <div className="space-y-1.5">
                     <Label htmlFor="justification" className="text-xs font-bold text-foreground">
-                      Your Position/Justification (Required) / مبرراتك ودفاعك (مطلوب)
+                      Your Position/Justification (Required)
                     </Label>
                     <Textarea
                       id="justification"
@@ -226,7 +226,7 @@ export default function TranslatorDisputesPage() {
 
                   <div className="space-y-2">
                     <Label className="text-xs font-bold text-foreground block">
-                      Evidence Documents (Optional) / الوثائق الإثباتية (اختياري)
+                      Evidence Documents (Optional)
                     </Label>
                     <div className="flex items-center justify-center w-full">
                       <label
@@ -317,7 +317,7 @@ export default function TranslatorDisputesPage() {
                         Submitting...
                       </>
                     ) : (
-                      "Submit Evidence / تقديم الإثباتات"
+                      "Submit Evidence"
                     )}
                   </Button>
                 </div>

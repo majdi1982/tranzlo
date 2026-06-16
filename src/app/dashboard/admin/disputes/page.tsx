@@ -320,7 +320,7 @@ export default function AdminDisputesPage() {
                   className="flex items-center gap-1.5 px-3 py-1 text-2xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
                 >
                   <ExternalLink className="h-3 w-3" />
-                  <span>عرض الملف / View File</span>
+                  <span>View File</span>
                 </a>
               </div>
               <button
@@ -342,8 +342,7 @@ export default function AdminDisputesPage() {
               />
               <div className="text-center p-6 space-y-3 z-0">
                 <FileText className="h-10 w-10 text-muted-foreground mx-auto animate-pulse" />
-                <p className="text-xs text-muted-foreground">إذا لم يظهر الملف تلقائياً، يمكنك فتحه مباشرة بالضغط على الزر في الأعلى.</p>
-                <p className="text-3xs text-muted-foreground/60">If the document preview doesn't load, use the "View File" button above.</p>
+                <p className="text-xs text-muted-foreground">If the document preview doesn't load, use the "View File" button above.</p>
               </div>
             </div>
           </div>

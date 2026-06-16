@@ -385,16 +385,16 @@ function JobCard({
   async function handleRejectTranslation(app: any) {
     if (!revisionFile) {
       toast({
-        title: "الملف مطلوب / File Required",
-        description: "يرجى رفع ملف الترجمة المعدّل أو الموضح عليه التعديلات أولاً.",
+        title: "File Required",
+        description: "Please upload the reviewed/markup translation file first.",
         variant: "destructive",
       });
       return;
     }
     if (!revisionFeedbackText.trim()) {
       toast({
-        title: "التعليق مطلوب / Feedback Required",
-        description: "يرجى توضيح التعليقات والتعديلات المطلوبة للمترجم.",
+        title: "Feedback Required",
+        description: "Please provide requested corrections for the translator.",
         variant: "destructive",
       });
       return;
@@ -436,14 +436,14 @@ function JobCard({
       await services.notification.createNotification({
         userId: app.translatorId,
         type: "job_updated",
-        title: "Revision Requested / طلب تعديل الترجمة",
+        title: "Revision Requested",
         body: `The client requested a revision for "${job.title}". Please check details.`,
         data: { jobId: job.$id },
       });
 
       toast({
-        title: "تم طلب التعديل بنجاح",
-        description: "تم إرسال طلب المراجعة والملف المرفق إلى المترجم.",
+        title: "Revision Requested Successfully",
+        description: "The revision request and reviewed file have been sent to the translator.",
         variant: "success",
       });
 
@@ -453,8 +453,8 @@ function JobCard({
     } catch (err: any) {
       console.error(err);
       toast({
-        title: "فشل في إرسال طلب المراجعة",
-        description: err.message || "حدث خطأ ما أثناء إرسال الطلب.",
+        title: "Failed to Send Revision Request",
+        description: err.message || "An error occurred while sending the request.",
         variant: "destructive",
       });
     } finally {
@@ -787,7 +787,7 @@ function JobCard({
                                                 {isBreached ? (
                                                   <span className="text-rose-500 font-bold flex items-center gap-1">
                                                     <ShieldAlert className="h-3.5 w-3.5" />
-                                                    48h Response SLA Breached (احتيال محتمل)
+                                                    48h Response SLA Breached
                                                   </span>
                                                 ) : (
                                                   <span className="text-amber-500 font-semibold flex items-center gap-1 animate-pulse">
@@ -1006,7 +1006,7 @@ function JobCard({
                                                     className="w-full justify-start gap-2 bg-rose-600 hover:bg-rose-700 text-white shadow-sm font-semibold mt-1"
                                                   >
                                                     <XCircle className="h-4 w-4" />
-                                                    Reject Translation / طلب تعديل
+                                                    Reject Translation
                                                   </Button>
                                                   
                                                   <Button
@@ -1026,7 +1026,7 @@ function JobCard({
                                             <div className="flex flex-col gap-1 items-center justify-center p-2.5 rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50 text-orange-700 dark:text-orange-400 mt-2 select-none">
                                               <span className="text-2xs font-bold flex items-center gap-1">
                                                 <Clock className="h-3.5 w-3.5 text-orange-500 animate-pulse" />
-                                                Revision Requested / طلب تعديل معلق
+                                                Revision Requested
                                               </span>
                                             </div>
                                           )}
@@ -1132,7 +1132,7 @@ function JobCard({
             <SheetHeader className="text-left">
               <SheetTitle className="flex items-center gap-2 text-xl font-bold text-rose-600">
                 <XCircle className="h-6 w-6" />
-                <span>Reject Translation / طلب تعديل</span>
+                <span>Reject Translation</span>
               </SheetTitle>
               <SheetDescription>
                 Provide feedback and upload a reviewed markup file to request revisions from the translator. Both are mandatory.
@@ -1142,7 +1142,7 @@ function JobCard({
             <div className="space-y-4 flex-1">
               <div className="space-y-1.5">
                 <Label htmlFor="revisionFile" className="text-xs font-bold text-foreground block">
-                  Reviewed File (Required) / ملف المراجعة (مطلوب)
+                  Reviewed File (Required)
                 </Label>
                 <Input
                   id="revisionFile"
@@ -1154,7 +1154,7 @@ function JobCard({
 
               <div className="space-y-1.5">
                 <Label htmlFor="revisionReason" className="text-xs font-bold text-foreground block">
-                  Comments & Feedback (Required) / الملاحظات والتعديلات (مطلوب)
+                  Comments & Feedback (Required)
                 </Label>
                 <Textarea
                   id="revisionReason"
@@ -1173,7 +1173,7 @@ function JobCard({
                 disabled={submittingRevision}
                 className="text-xs font-semibold"
               >
-                Cancel / إلغاء
+                Cancel
               </Button>
               <Button
                 variant="destructive"
@@ -1187,7 +1187,7 @@ function JobCard({
                     Submitting...
                   </>
                 ) : (
-                  "Request Revision / طلب التعديل"
+                  "Request Revision"
                 )}
               </Button>
             </div>
@@ -1200,7 +1200,7 @@ function JobCard({
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-rose-500" />
-                <span>File a Dispute / رفع نزاع</span>
+                <span>File a Dispute</span>
               </DialogTitle>
               <DialogDescription>
                 Explain why you are raising a dispute. Minimally 20 characters. The administration team will review this case.
@@ -1232,7 +1232,7 @@ function JobCard({
                       Submitting...
                     </>
                   ) : (
-                    "Submit Dispute / رفع النزاع"
+                    "Submit Dispute"
                   )}
                 </Button>
               </div>
@@ -1380,32 +1380,31 @@ function JobCard({
                     className="flex items-center gap-1.5 px-3 py-1 text-2xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
                   >
                     <ExternalLink className="h-3 w-3" />
-                    <span>عرض الملف / View File</span>
-                  </a>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPreviewUrl(null);
-                    setPreviewTitle("");
-                  }}
-                  className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors"
-                >
-                  <XCircle className="h-5 w-5" />
-                </button>
+                  <span>View File</span>
+                </a>
               </div>
-              <div className="flex-1 w-full h-full bg-black/10 rounded-xl overflow-hidden relative flex flex-col items-center justify-center">
-                <iframe
-                  src={previewUrl}
-                  className="w-full h-full border-0 absolute inset-0 z-10"
-                  title={previewTitle}
-                />
-                <div className="text-center p-6 space-y-3 z-0">
-                  <FileText className="h-10 w-10 text-muted-foreground mx-auto animate-pulse" />
-                  <p className="text-xs text-muted-foreground">إذا لم يظهر الملف تلقائياً، يمكنك فتحه مباشرة بالضغط على الزر في الأعلى.</p>
-                  <p className="text-3xs text-muted-foreground/60">If the document preview doesn't load, use the "View File" button above.</p>
-                </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPreviewUrl(null);
+                  setPreviewTitle("");
+                }}
+                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors"
+              >
+                <XCircle className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex-1 w-full h-full bg-black/10 rounded-xl overflow-hidden relative flex flex-col items-center justify-center">
+              <iframe
+                src={previewUrl}
+                className="w-full h-full border-0 absolute inset-0 z-10"
+                title={previewTitle}
+              />
+              <div className="text-center p-6 space-y-3 z-0">
+                <FileText className="h-10 w-10 text-muted-foreground mx-auto animate-pulse" />
+                <p className="text-xs text-muted-foreground">If the document preview doesn't load, use the "View File" button above.</p>
               </div>
+            </div>
             </div>
           </div>
         )}
