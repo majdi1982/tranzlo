@@ -33,6 +33,8 @@ import { AuthGuard } from "@/guards/auth-guard";
 import { RoleGuard } from "@/guards/role-guard";
 import { getServices } from "@/services";
 import type { BlogPost } from "@/types";
+import { getAccount } from "@/lib/appwrite";
+
 
 export default function AdminBlogReviewPage() {
   const { toast } = useToast();
@@ -57,9 +59,20 @@ export default function AdminBlogReviewPage() {
       const t1 = setTimeout(() => setGenerationStep("Analyzing SEO & generating article..."), 2000);
       const t2 = setTimeout(() => setGenerationStep("Generating featured cover image..."), 10000);
       
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const account = getAccount();
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT for AI blog generation:", jwtErr);
+      }
+
       const res = await fetch("/api/blog/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ competitorUrl, category: targetCategory }),
       });
       
