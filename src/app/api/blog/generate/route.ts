@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No readable article paragraphs found at the competitor URL." }, { status: 400 });
     }
 
-    // 3. OpenRouter Content Generation (using google/gemini-2.5-flash:free model)
+    // 3. OpenRouter Content Generation (using meta-llama/llama-3.3-70b-instruct:free model)
     let generatedPost;
     try {
       const openRouterApiKey = process.env.OPENROUTER_API_KEY;
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
       const aiRes = await axios.post(
         "https://openrouter.ai/api/v1/chat/completions",
         {
-          model: "google/gemini-2.5-flash:free",
+          model: "meta-llama/llama-3.3-70b-instruct:free",
           response_format: { type: "json_object" },
           messages: [
             {
