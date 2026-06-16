@@ -135,7 +135,57 @@ You MUST output ONLY a JSON object matching this schema:
         );
 
         const resText = aiRes.data.choices[0].message.content;
-        generatedPost = JSON.parse(resText);
+        
+        // Sanitize the response text before parsing
+        let cleanText = resText.trim();
+        if (cleanText.startsWith("```json")) {
+          cleanText = cleanText.substring(7);
+        } else if (cleanText.startsWith("```")) {
+          cleanText = cleanText.substring(3);
+        }
+        if (cleanText.endsWith("```")) {
+          cleanText = cleanText.substring(0, cleanText.length - 3);
+        }
+        cleanText = cleanText.trim();
+
+        try {
+          generatedPost = JSON.parse(cleanText);
+        } catch (parseErr) {
+          try {
+            // Replace raw backslashes and strip control characters
+            const sanitized = cleanText
+              .replace(/\\(?!["\\\/bfnrtu])/g, "\\\\")
+              .replace(/[\u0000-\u001F]+/g, " ");
+            generatedPost = JSON.parse(sanitized);
+          } catch (innerErr) {
+            // Try extracting using regex
+            const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const sanitized = jsonMatch[0]
+                .replace(/\\(?!["\\\/bfnrtu])/g, "\\\\")
+                .replace(/[\u0000-\u001F]+/g, " ");
+              generatedPost = JSON.parse(sanitized);
+            } else {
+              throw innerErr;
+            }
+          }
+        }
+
+        // If the parsed JSON is missing title/content or parsing completely failed
+        if (!generatedPost && (cleanText.startsWith("<") || cleanText.toLowerCase().includes("<p>"))) {
+          const titleMatch = cleanText.match(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/i);
+          const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, "").trim() : "AI Generated Blog Post";
+          generatedPost = {
+            title: title,
+            slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+            excerpt: "AI Generated Article draft for Tranzlo.",
+            content: cleanText,
+            primaryKeyword: "translation",
+            secondaryKeywords: ["translation services"],
+            imagePrompt: title
+          };
+        }
+
         if (generatedPost && generatedPost.title && generatedPost.content) {
           break; // successfully generated
         }
@@ -149,7 +199,7 @@ You MUST output ONLY a JSON object matching this schema:
     if (!generatedPost) {
       return NextResponse.json({ 
         error: `AI content generation failed across all free models. Last error: ${lastError?.message || lastError || "Unknown error"}` 
-      }, { status: 500 });
+      }, { status: 400 }); // Return 400 instead of 500 to prevent Nginx HTML error page interception
     }
 
     // 4. Gemini Image Generation (using Imagen 3 model)
@@ -238,6 +288,6 @@ You MUST output ONLY a JSON object matching this schema:
 
   } catch (err: any) {
     console.error("API generate route encountered error:", err);
-    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 400 });
   }
 }
