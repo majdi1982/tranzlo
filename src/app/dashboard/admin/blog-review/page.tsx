@@ -13,7 +13,8 @@ import {
   Calendar, 
   AlertCircle,
   Sparkles,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,54 @@ export default function AdminBlogReviewPage() {
   const [selectedPost, setSelectedPost] = React.useState<BlogPost | null>(null);
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+
+  // AI Generator state
+  const [competitorUrl, setCompetitorUrl] = React.useState("");
+  const [targetCategory, setTargetCategory] = React.useState("general");
+  const [generating, setGenerating] = React.useState(false);
+  const [generationStep, setGenerationStep] = React.useState("Generate AI Article Draft");
+
+  async function handleGenerate() {
+    if (!competitorUrl.trim()) return;
+    setGenerating(true);
+    setGenerationStep("Scraping competitor article...");
+    try {
+      // Step feedback timeouts
+      const t1 = setTimeout(() => setGenerationStep("Analyzing SEO & generating article..."), 2000);
+      const t2 = setTimeout(() => setGenerationStep("Generating featured cover image..."), 10000);
+      
+      const res = await fetch("/api/blog/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ competitorUrl, category: targetCategory }),
+      });
+      
+      clearTimeout(t1);
+      clearTimeout(t2);
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Generation failed.");
+      }
+      
+      toast({
+        title: "AI Draft Generated! ✨",
+        description: "Competitor article was analyzed and optimized. Review the draft below.",
+      });
+      
+      setCompetitorUrl("");
+      loadPendingPosts();
+    } catch (err: any) {
+      toast({
+        title: "Generation failed",
+        description: err.message || "An unexpected error occurred during draft generation.",
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
+      setGenerationStep("Generate AI Article Draft");
+    }
+  }
 
   React.useEffect(() => {
     loadPendingPosts();
@@ -158,6 +207,67 @@ export default function AdminBlogReviewPage() {
                 <Badge variant="secondary">Pinterest (tranzlo)</Badge>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Blog Draft Generator */}
+        <Card className="border-primary/20 bg-card/60 backdrop-blur-sm shadow-md">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2 text-primary font-bold">
+              <Sparkles className="h-5 w-5 animate-pulse text-primary" />
+              AI Blog Draft Generator
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Enter a competitor's article URL to automatically scrape, perform SEO keyword analysis, generate an optimized English article, and paint a featured cover image.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 space-y-1.5">
+                <label className="text-2xs font-bold text-muted-foreground uppercase tracking-wide block">Competitor Article URL</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/blog/competitor-post"
+                  value={competitorUrl}
+                  onChange={(e) => setCompetitorUrl(e.target.value)}
+                  className="w-full h-9 rounded-lg border border-border bg-background px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                  disabled={generating}
+                />
+              </div>
+              <div className="w-full sm:w-[200px] space-y-1.5">
+                <label className="text-2xs font-bold text-muted-foreground uppercase tracking-wide block">Target Category</label>
+                <select
+                  value={targetCategory}
+                  onChange={(e) => setTargetCategory(e.target.value)}
+                  className="w-full h-9 rounded-lg border border-border bg-background px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                  disabled={generating}
+                >
+                  <option value="general">General</option>
+                  <option value="translation">Translation</option>
+                  <option value="technology">Technology</option>
+                  <option value="finance">Finance</option>
+                  <option value="business">Business</option>
+                </select>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleGenerate}
+              disabled={generating || !competitorUrl.trim()}
+              className="gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 text-white shadow-sm font-semibold h-9 rounded-lg"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {generationStep}
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Generate AI Article Draft
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
 

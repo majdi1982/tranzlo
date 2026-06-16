@@ -1,0 +1,1900 @@
+{
+  "name": "Blogging_Agent_Template",
+  "nodes": [
+    {
+      "parameters": {
+        "messages": {
+          "message": [
+            {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message0_Text', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.perplexityTool",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        1584
+      ],
+      "id": "a814fe7d-6870-4e53-b6a2-4e2f6d107403",
+      "name": "Perplexity Search",
+      "credentials": {
+        "perplexityApi": {
+          "id": "g4eb5OnhvmxSlgRw",
+          "name": "Perplexity account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "SEO Agent",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an SEO Manager orchestrating a sequential blog analysis pipeline.\n\nCRITICAL: You MUST execute these steps ONE AT A TIME in this EXACT order. Wait for each step to complete before starting the next.\n\n## SEQUENTIAL EXECUTION (MANDATORY):\n\n**STEP 1 : run Competitor_Article_analysis FIRST:**\n**STEP 2 : run keyword Research_Agent SECOND:**\n**STEP 3 : run Title_Generator THIRD:**\n**STEP 4 : run description_Generator FOURTH:**\n**STEP 5 : run Internal Linking Agent FIFTH:**\n**STEP 6 : run External Linking Agent SIXTH:**\n\n## IMPORTANT RULES:\n- Call agents SEQUENTIALLY - each must complete before next starts\n- Do NOT call multiple agents at the same time\n\n\n## OUTPUT:\n{\n  \"improved_Title\": \"[Step 1 output]\",\n  \"permalink_slug\": \"[Step 1 output]\", \n  \"optimized_meta_description\": \"[Step 2 output]\",\n  \"content_gaps\": \"[Step 3 output]\",\n  \"content_structure\": \"[Step 3 output]\",\n  \"primary_keyword\": \"[Step 4 output]\",\n  \"secondaryKeywords\":\"\",\n  \"keyword_strategy\": \"[Step 4 output]\"\n  \"Internal_links\": \"Internal_url_1,Internal_url_2,Internal_url_3\",\n  \"External_links\": \"External_url_1,External_url_2,External_url_3\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        1872,
+        912
+      ],
+      "id": "3a0e7d85-5bf1-4b14-a512-23ccd98f3f23",
+      "name": "SEO Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Competitor title : {{ $json['Competitor  title'] }}\n\nCompetitor link\t: {{ $json['Competitor link'] }}\n\nCompetitor Categories : {{ $json.Categories }}\n\nCompetitor description : {{ $json['Competitor description'] }}\n\nCompetitor Full Content : {{ $json['Competitor Full Content'] }}\n\nCompetitor Featured IMG : data",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a blog Manager orchestrating a sequential blogging analysis pipeline.\n\nCRITICAL: You MUST execute these steps ONE AT A TIME in this EXACT order and Wait for each step to complete before starting the next : \n\n## SEQUENTIAL EXECUTION (MANDATORY):\n\n**STEP 1 : run SEO Manager FIRST:**\n\n**STEP 2 : run Image Agent SECOND:**\n\n**STEP 3 : Store OUTPUT from SEO Manager to WordPress Data\n\n\n## IMPORTANT RULES:\n- Call Agents SEQUENTIALLY. \n- each Agent must complete before next starts.\n- Do NOT call multiple agents at the same time.\n- Return final consolidated JSON with all outputs.\n\n## TOOls:\n- use WordPress Data in tools to Store OUTPUT.\n\n## OUTPUT FORMAT (JSON) :\n{\n  \"improved_Title\": \"[Step 1 output]\",\n  \"permalink_slug\": \"[Step 1 output]\",\n  \"improved_description\": \"[Step 2 output]\",\n  \"primary_keyword\": \"[Step 4 output]\",\n  \"secondaryKeywords\":\"\",\n  \"keyword_strategy\": \"[Step 4 output]\"\n  \"Image_Prompt\": \"Prompt\"\n  \"Internal_links\": [\n    \"Internal_url_1\",\n    \"Internal_url_2\",\n    \"Internal_url_3\"\n  ],\n\n  \"External_links\": [\n    \"External_url_1\",\n    \"External_url_2\",\n    \"External_url_3\"\n  ]\n\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2192,
+        368
+      ],
+      "id": "56d43279-979b-4400-be44-d0a7e2b701ee",
+      "name": "Blog Manager"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"improved_Title\": \"\",\n  \"permalink_slug\": \"\",\n  \"optimized_meta_description\": \"\",\n  \"primary_keyword\": \"\",\n  \"secondaryKeywords\":\"\",\n  \"keyword_strategy\": \"\",\n  \"content_gaps\": \"\",\n  \"content_structure\": \"\",\n  \"Image_Prompt\": \"\",\n  \"Internal_links\": [\n    \"Internal_url_1\",\n    \"Internal_url_2\",\n    \"Internal_url_3\"\n  ],\n\n  \"External_links\": [\n    \"External_url_1\",\n    \"External_url_2\",\n    \"External_url_3\"\n  ]\n\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2320,
+        592
+      ],
+      "id": "0b6702ef-9d9b-453c-81ff-5dd12eb91d24",
+      "name": "Output"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Internal linking Agent ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=## ROLE  \nYou are an Internal Link Fetching Agent for a blog.\n\n## TASK  \nBased on the User Message and the provided \"improved_title\", use the WordPress tool to:\n\n1. Identify 3 of the most relevant categories\n2. Retrieve 3 published posts inside those categories\n3. OUTPUT only 1 url per category.\n\n\nThese links will be used by another AI agent during article writing for internal linking.\n\n## REQUIREMENTS  \n- Use the WordPress tool to access categories and posts  \n- Work only with published posts  \n- Focus on category-based retrieval first, then post relevance  \n- Return ONLY the top 3 most relevant posts  \n- Extract:\n  - Post URL  \n\n## RULES  \n- Do NOT generate keywords or perform SEO analysis  \n- Do NOT write or modify content  \n- Do NOT include drafts, private posts, or irrelevant pages  \n- Ignore admin pages, tags-only pages, or system URLs  \n- Only return useful internal blog post links  \n\n## RULES  \n\n- use WordPress tool to acess categories.\n\n## output the Require Specific OUTPUT Format\n\n{\n  \"internal_links\": [\n    {\n      \"Internal_url_1\": \"\",\n      \"category\": \"\"\n    },\n    {\n      \"Internal_url_2\": \"\",\n      \"category\": \"\"\n    },\n    {\n      \"Internal_url_3\": \"\",\n      \"category\": \"\"\n    }\n  ]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2336,
+        1376
+      ],
+      "id": "781ea332-5850-4279-9d12-3cb68e00a88c",
+      "name": "Internal Linking Agent"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpressTool",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        1584
+      ],
+      "id": "5089e212-fe4c-425c-85c3-4cce514b4afd",
+      "name": "WordPress tool",
+      "credentials": {
+        "wordpressApi": {
+          "id": "uccOJqy64nsVlE4I",
+          "name": "RSS News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Competitor_Article_analysis Agent",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=## ROLE\nYou are a world-class SEO content strategist. Your job is to Analyze the given competitor article and provide a detailed breakdown of its SEO strengths, weaknesses, and opportunities.\n\n## STRICT RULES\n- Generate ONLY ONE final output\n- DO NOT repeat the analysis\n- DO NOT create multiple versions\n- DO NOT add explanations before or after\n- STOP immediately after completing the output\n\n## ANALYSIS CRITERIA\n\nEvaluate the article and group insights into ONLY these 3 categories:\n\n1. Keyword Analysis\n- Identify primary keyword\n- Extract 3 secondary keywords\n- Evaluate keyword placement (title, headers, intro, body)\n- Detect keyword strengths and missed opportunities\n\n2. Content Structure\n- Analyze logical flow and readability\n- Evaluate header hierarchy (H1, H2, H3)\n- Check use of formatting (lists, bullet points, bold text)\n- Assess introduction hook and clarity\n- Review CTA presence and effectiveness\n- Evaluate overall content depth and organization\n\n3. Content Gap\n- Identify missing topics or weak coverage\n- Detect opportunities to improve or expand\n- Highlight unique angles used by competitor\n- Extract key subtopics covered\n- Identify internal linking opportunities\n- Summarize competitor strengths to leverage\n\n## STRICT INSTRUCTIONS\n- Map ALL insights into ONLY these 3 fields\n- DO NOT create additional sections\n- DO NOT repeat information\n- Keep output concise but actionable\n\n\n## OUTPUT the Require Specific Output Format.\n\n{\n  \"Competitortitle\": \"\",\n  \"keywordAnalysis\": \"\",\n  \"contentStructure\": \"\",\n  \"contentGap\": \"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        912,
+        1376
+      ],
+      "id": "5fdf7de9-0b36-4297-ba0a-c9569894bf3a",
+      "name": "Competitor_Article_analysis"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Keyword Analysis Agent ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=## ROLE\nYou are a world-class SEO keyword strategist. \n\n## TASK\nyour task is to use Perplexity to Analyze the 'keywordAnalysis' from 'Competitor_Article_analysis' and generate a  keyword strategy including : \n\n- 1 primary keyword  \n- 2 secondary keywords\n- keyword Strategy\n\n- choose only One keyword to use from keywordAnalysis and : \n\n## ANALYSIS CRITERIA\n\nEvaluate keywords using Perplexity tool based on:\n\n1. **Search Volume** - Monthly search volume and demand\n2. **Keyword Difficulty** - Competition level (1-100)\n3. **Search Intent** - Informational, Commercial, Transactional, Navigational\n4. **Relevance** - How closely related to the main topic\n5. **User Intent Alignment** - Does it match target audience needs?\n6. **Long-tail Potential** - Specificity and conversion potential\n7. **Semantic Relationship** - How keywords relate semantically\n8. **Trend Direction** - Growing, stable, or declining\n\n## PRIMARY KEYWORD ANALYSIS\n\nIdentify the single best keyword that:\n- Highest search volume with reasonable difficulty\n- Best matches core topic intent\n- Has strong commercial or informational value\n- Broad enough to capture main traffic\n- Clear search intent alignment\n- don't make the PRIMARY KEYWORD  too long\n\n## SECONDARY KEYWORDS\n\nFind 8-12 secondary keywords that:\n- Support the primary keyword\n- Target related search intents\n- Fill specific gaps in the topic\n- Have decent search volume (100+ monthly)\n- Moderate to low competition\n- Natural integration opportunities\n\n## LSI KEYWORDS (Latent Semantic Indexing)\n\nIdentify 15-20 LSI keywords that:\n- Are semantically related to primary keyword\n- Help Google understand content context\n- Use synonyms and variations\n- Include related questions and topics\n- Support featured snippet opportunities\n- Improve content relevance signals\n\n## GUIDELINES\n\n- Focus on relevance over volume\n- Consider search intent alignment\n- Balance difficulty with opportunity\n- Include long-tail variations\n- Target featured snippet keywords\n- Include question-based keywords\n- Provide actionable, research-backed data\n- Consider user journey and pain points\n- Include voice search optimized keywords\n- Prioritize conversion-focused keywords where applicable\n\n## TOOLS (REQUIRED)\n- use 'Perplexity Search' in tools for Research\n\n## OUTPUT FORMAT (JSON)\n\n{\n\t\"topic\": \"\",\n\t\"primaryKeyword\": \"\",\n\t\"secondaryKeywords\":\"\",\n\t\"lsiKeywords\": \"\",\n\t\"keywordStrategy\":\"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        1280,
+        1376
+      ],
+      "id": "a9b3f3ab-3583-49fe-a134-9e2773b82df4",
+      "name": "keyword Research_Agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Title Generator Agent",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=### ROLE\nYou are an expert SEO copywriter and competitive headline analyst specializing in high-CTR search headlines and SEO permalink optimization.\n\n### TASK\nBased on the data from the `keyword Research_Agent` generate:\n\n1. ONE optimized SEO title\n2. ONE optimized permalink slug\n\n### TITLE RULES (CRITICAL)\n- always use the exact 'primarykeyword' in improved_Title and permalink_slug\n- NEVER copy phrases longer than 2 consecutive words.\n- Mirror structure, NOT sentences.\n- Improve clarity or curiosity slightly vs competitors.\n\n### TITLE OPTIMIZATION RULES\n\n#### Character Count\nmax 60 characters (strict)\n\n#### Word Balance (REQUIRED)\nInclude:\n- 1–2 Emotion words\n- 1–2 Common words\n- 1 Uncommon word\n- 1 Power word\n\n#### Sentiment\nPositive or strongly negative only — never neutral.\n\n#### Headline Structure Priority\n1. Match dominant competitor structure\n2. Improve subtly for CTR\n\n\n### SLUG GENERATION RULES (CRITICAL)\n\nCreate an SEO-optimized permalink slug derived from the title.\n\nRules:\n- lowercase only\n- hyphen-separated words\n- 3–6 words maximum\n- include the primary keyword or strongest keyword phrase\n- remove stop words (the, a, to, for, and, of, in, with, on, at)\n- remove emotion words and filler language\n- prioritize clarity + search intent\n- NO dates or numbers unless essential\n- NO brand names unless competitors consistently use them\n- must read naturally as a search query\n\nSlug goal:\nShort, keyword-focused, and highly crawlable.\n\n\n### SEO STRATEGY REQUIREMENTS\n- Maintain news-style clarity and credibility\n- Avoid clickbait exaggeration\n- Title and slug must align semantically but NOT be identical.\n\n\n## OUTPUT FORMAT (STRICT)\n\n{\n  \"improved_Title\": \"\",\n  \"permalink_slug\": \"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        1632,
+        1376
+      ],
+      "id": "68f751bc-a73c-41aa-be3c-39aad2801b54",
+      "name": "Title_Generator"
+    },
+    {
+      "parameters": {
+        "toolDescription": "description Generator Agent",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=## ROLE\nYou are an expert SEO copywriter specialized in writing high-converting meta descriptions.\n\n## TASK\nAnalyze the given 'competitor description' a for SEO effectiveness, identify weaknesses, and rewrite it to achieve higher click-through rates and better search visibility.\n\n\n## RULES\n1. always use the exact 'primaryKeyword' naturally in the Improved_Description.\n2. Keep length of description  147 characters\n3. Make it clear, engaging, and benefit-driven\n4. Improve upon the competitor (clearer value, better hook)\n5. Add a soft CTA (e.g., Discover, Learn, Get, Try)\n6. Avoid keyword stuffing\n7. No quotes, no emojis, no clickbait\n8. Make it readable and natural (human tone)\n\n## OPTIMIZATION STRATEGY\n- Identify what competitor is missing (clarity, benefit, CTA)\n- Make your version more compelling and specific\n- Focus on user intent\n\n### OUTPUT FORMAT (STRICT)\n\n{\n  \"Improved_Description\": \"\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2000,
+        1392
+      ],
+      "id": "e763f47c-a744-4974-80a4-b76403772841",
+      "name": "description_Generator"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"Image_prompt\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2592,
+        1088
+      ],
+      "id": "b537c20f-dff9-4da4-8d82-ad7acba1a80c",
+      "name": "Structured Output"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        1088
+      ],
+      "id": "1d9cf1c6-d039-4b2b-855a-d3e5b4804b76",
+      "name": "LLM",
+      "credentials": {
+        "openRouterApi": {
+          "id": "8yztolwCznntBeU2",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Image Analysis Agent ",
+        "text": "=data",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Your task is to analyze the Competitor Featured IMG (data) in a single paragraph. and turn it into a prompt.\n\n## Tools : \n\n- Gemini IMG\n\n##OUTPUT FORMAT (STRICT):\n\n{\n  \"Image_prompt\": \"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2400,
+        896
+      ],
+      "id": "c78ec371-d451-475c-a9d6-3b327fa253a7",
+      "name": "Image Agent"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-lite-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-lite-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values0_Prompt', ``, 'string') }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGeminiTool",
+      "typeVersion": 1.1,
+      "position": [
+        2432,
+        1088
+      ],
+      "id": "bf154330-3d0d-4575-87d8-23e7d42f80e4",
+      "name": "Gemini IMG",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MiuR7XGEb7ufgAW7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://yourdomain.com/wp-json/wp/v2/media/{{ $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ $('Blog Manager').item.json.output.improved_Title }}"
+            },
+            {
+              "name": "slug",
+              "value": "={{ $('Blog Manager').item.json.output.permalink_slug }}"
+            },
+            {
+              "name": "alt_text",
+              "value": "={{ $('Blog Manager').item.json.output.primary_keyword }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $('Blog Manager').item.json.output.optimized_meta_description }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ $('Blog Manager').item.json.output.optimized_meta_description }}"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4032,
+        816
+      ],
+      "id": "b7f695f3-8cb1-489c-86ea-c757058050dc",
+      "name": "Planting IMG SEO",
+      "credentials": {
+        "wordpressApi": {
+          "id": "uccOJqy64nsVlE4I",
+          "name": "RSS News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3312,
+        368
+      ],
+      "id": "b96b6365-fa2d-4bd9-a307-7c85dbf85c8c",
+      "name": "Wait1",
+      "webhookId": "1ab306de-e853-4ae0-b27b-3e55ff79bf90"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"nano-banana-pro\",\n  \"callBackUrl\": \"https://your-domain.com/api/callback\",\n  \"input\": {\n    \"prompt\": \"{{ $json.Image_Prompt }}\",\n    \"aspect_ratio\": \"16:9\",\n    \"resolution\": \"1K\",\n    \"output_format\": \"png\"\n  }\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3008,
+        368
+      ],
+      "id": "59eaae90-45e3-4231-9efa-4842948f20a6",
+      "name": "Generate IMG ",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "s9Te5yKlrAyh3ljn",
+          "name": "Kie API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ JSON.parse($json.data.resultJson).resultUrls[0] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3312,
+        816
+      ],
+      "id": "70d197f7-29ee-467d-ae94-bd57ed197027",
+      "name": "binary data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://yourdomain.com/wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename=\"{{ $('Blog Manager').item.json.output.primary_keyword.replace(/\\s+/g,'-') }}.{{ $binary.data.fileExtension }}\""
+            },
+            {
+              "name": "Content-type",
+              "value": "={{ $binary.data.mimeType }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3552,
+        816
+      ],
+      "id": "10809ec9-ee25-481c-a261-f31d5e2205dd",
+      "name": "upload image WP",
+      "credentials": {
+        "wordpressApi": {
+          "id": "uccOJqy64nsVlE4I",
+          "name": "RSS News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=improved Title : {{ $json.meta_title }}\n\nprimary Keyword :{{ $json.primary_keyword }}\n\nkeyword Strategy : {{ $json.keyword_strategy }}\n\ncontent Gaps : {{ $json.content_gaps }}\n\ncontent Structure : {{ $json['content Structure'] }}\n\nInternal_links : {{ $json.Internal_links }}\n\nExternal_links : {{ $json.External_links }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an expert tech journalist and content writer specializing in consumer electronics, AI, and startup culture.\n\nINPUT UTILIZATION RULES\n- improved Title defines the editorial framing, news angle, and narrative direction of the article. Use it to understand positioning and context, but do NOT output or restate the title.\n- primary Keyword defines the main SEO focus and must guide topic relevance and terminology.\n- keyword Strategy must guide semantic variations, terminology choices, and topical emphasis throughout the article without keyword stuffing.\n- content Structure is the organizational backbone of the article. Progress logically through its points while maintaining natural journalistic flow. Do not add headings or labels.\n- content Gaps must be addressed naturally by adding missing explanations, context, examples, or analysis where appropriate.\n- Internal_links and External_links must be used exactly as provided and follow all linking rules below.\n\nWRITING STYLE\n- Open with a bold, specific claim or provocative statement.\n- Use an inverted pyramid: lead claim → context → detail → examples → implication.\n- Write short, scannable paragraphs (2–4 sentences max).\n- Build the argument naturally and end with a synthesis or implication, never abruptly on a quote.\n- Tone must be neutral, journalistic, confident, and lightly analytical.\n- Avoid hype, promotion, weak transitions, filler phrases, and unexplained jargon.\n- Use “such as” instead of “like” in formal constructions.\n- Define niche or emerging terms on first use.\n- Keep pronoun perspective consistent.\n- Quotes must advance the argument, not decorate it.\n- Do not stack more than two quotes without a narrative beat.\n- Introduce quotes with context, and paraphrase if too long or repetitive.\n\nSEO & READABILITY\n- Integrate the primary keyword naturally within the first 1–2 sentences.\n- Follow the provided content Structure for organization.\n- Address all provided content Gaps naturally within the narrative.\n- Apply the keyword Strategy to reinforce topical authority using semantic variation.\n- Embed internal and external links naturally, never in the opening sentence and never clustered.\n\nAVOID\n- Hype or press-release tone\n- Vague transitions\n- Unexplained jargon\n- Ending on a quote without synthesis\n- Keyword stuffing\n- Unnatural link placement\n- Hollow bridge sentences\n\nINPUT RULES\n- Start directly with the Introduction section.\n- Do not include a title or description.\n- Generate only the article body content from Introduction through Conclusion.\n- Do not include an H1 title.\n\nINTRODUCTION STYLE\n- Start the first sentence with the main subject of the news, event, or announcement.\n- Include an important fact, number, or key outcome if available.\n- Do not start with generic opening phrases.\n- Keep the introduction to 1–2 sentences.\n\nWORDPRESS OUTPUT\n- Output must be ready for direct publishing via WordPress automation.\n- Return only clean HTML optimized for WordPress.\n- Do not use Markdown, code blocks, or <html>, <head>, or <body> tags.\n\nINTERNAL LINKS\n- Use all 3 internal links naturally in the body.\n- Format each as: <a href=\"EXACT_URL_FROM_INPUT\">descriptive anchor text</a>\n- Copy each URL exactly as provided.\n- Place links in relevant sections, not grouped together.\n- Use descriptive, keyword-rich anchor text.\n- Do not use generic anchors.\n- Each internal link must appear only once.\n- All 3 internal links must appear.\n\nEXTERNAL LINKS\n- Use all 3 external links to support facts, definitions, or statistics.\n- Format each as: <a href=\"EXACT_URL_FROM_INPUT\" target=\"_blank\" rel=\"noopener noreferrer\">descriptive, keyword-rich anchor text</a>\n- Copy each URL exactly as provided.\n- Place links where credibility is needed.\n- Use descriptive, keyword-rich anchor text.\n- Each external link must appear only once.\n- Do not place external links in the conclusion.\n- All 3 external links must appear.\n\nLINK DISTRIBUTION\n- Distribute links naturally across the full article.\n- Place at least:\n  - 1 link in the first 30%,\n  - 1 in the middle,\n  - 1 before the final paragraph (not in the conclusion).\n- Never cluster multiple links in one paragraph.\n- Maximum 1 link per paragraph.\n- Links must feel fully integrated into the sentence.\n- If structural constraints conflict, prioritize readability while still using all links exactly once.\n\nOUTPUT FORMAT\n- Write a clean editorial news piece.\n- No subheadings, section titles, H2s, or H3s.\n- No bullets, numbered lists, bold text, italics, dividers, pull quotes, or callout boxes.\n- Use pure flowing prose from first paragraph to last.\n- Separate paragraphs with a single line break.\n- Quotes must be their own paragraph and formatted naturally.\n- The article should read as one continuous piece of journalism.\n\nLENGTH\n- Target 650 words.\n- Minimum 600 words.\n- Maximum 700 words.\n- Keep paragraphs concise while maintaining depth.\n- Do not exceed the maximum length."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3296,
+        1248
+      ],
+      "id": "fdb6b1ae-2c33-4d89-baf2-c1983d9859d8",
+      "name": "Article Writer"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3296,
+        1472
+      ],
+      "id": "a23317a8-bc58-4d0b-ac5b-9a7f2e87a954",
+      "name": "gpt writer",
+      "credentials": {
+        "openRouterApi": {
+          "id": "8yztolwCznntBeU2",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"article\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3440,
+        1488
+      ],
+      "id": "280dd974-6444-4395-be71-59255d24ae66",
+      "name": "Structured Output1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://yourdomain.com/wp-json/wp/v2/posts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ $('Get Article status').item.json.meta_title }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $('Article Writer').item.json.output.article }}"
+            },
+            {
+              "name": "status",
+              "value": "draft"
+            },
+            {
+              "name": "featured_media",
+              "value": "={{ $('upload image WP').item.json.id }}"
+            },
+            {
+              "name": "excerpt",
+              "value": "={{ $('Blog Manager').item.json.output.optimized_meta_description }}"
+            },
+            {
+              "name": "slug",
+              "value": "={{ $('Blog Manager').item.json.output.permalink_slug }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3712,
+        1248
+      ],
+      "id": "79c1d48b-4ed5-4c2e-8031-677618ac5c79",
+      "name": "Post To Wordpress",
+      "credentials": {
+        "wordpressApi": {
+          "id": "uccOJqy64nsVlE4I",
+          "name": "RSS News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://yourdomain.com/wp-json/rank-math-api/v1/update-meta\n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "post_id",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "rank_math_title",
+              "value": "={{ $('Get Article status').item.json.meta_title }}"
+            },
+            {
+              "name": "rank_math_description",
+              "value": "={{ $('Get Article status').item.json.meta_description }}"
+            },
+            {
+              "name": "rank_math_focus_keyword",
+              "value": "={{ $('Get Article status').item.json.primary_keyword }},{{ $('Get Article status').item.json.secondary_Keywords }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4192,
+        1248
+      ],
+      "id": "0d290bc5-aa5c-462e-87fa-94d0eab6f80f",
+      "name": "Rank Math SEO",
+      "credentials": {
+        "wordpressApi": {
+          "id": "uccOJqy64nsVlE4I",
+          "name": "RSS News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.state }}",
+                    "rightValue": "success",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5ed2248b-4903-4219-b1a1-c42ef2cbbd34"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "success"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f6852708-5c7f-48e9-9771-d7311dbb4a57",
+                    "leftValue": "={{ $json.data.state }}",
+                    "rightValue": "waiting",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "waiting"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7a6cfe86-4562-4e4e-879b-a99eb061ca5f",
+                    "leftValue": "={{ $json.data.state }}",
+                    "rightValue": "generating",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "generating"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f4068256-b3c3-4c81-a2cc-99e63a26d8ae",
+                    "leftValue": "={{ $json.data.state }}",
+                    "rightValue": "fail",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "fail"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        3776,
+        336
+      ],
+      "id": "76dc1dac-837c-469f-97c4-4345107dcf3e",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.kie.ai/api/v1/jobs/recordInfo?taskId={{ $json.data.taskId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3568,
+        368
+      ],
+      "id": "96ebe081-8f4c-48d7-b288-e5efaf364fb5",
+      "name": "Get IMG URL",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "s9Te5yKlrAyh3ljn",
+          "name": "Kie API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"Competitortitle\": \"\",\n  \"keywordAnalysis\": \"\",\n  \"contentStructure\": \"\",\n  \"contentGap\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1152,
+        1584
+      ],
+      "id": "92a9ffd4-1039-44f9-9c9d-49c9a9d85e2f",
+      "name": "Competitor_Article_analysis_Output"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"topic\": \"\",\n\t\"primaryKeyword\": \"\",\n\t\"secondaryKeywords\":\"\",\n\t\"keywordStrategy\":\"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1520,
+        1584
+      ],
+      "id": "e24d477c-fa79-4da5-b441-0d145e3b4d1b",
+      "name": "keyword Research_Agent_Output"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"improved_Title\": \"\",\n  \"permalink_slug\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1776,
+        1584
+      ],
+      "id": "00a0e802-5071-4e13-8b4c-7ba03c9cb8c2",
+      "name": "Title_Generator_Output"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"Improved_Description\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2144,
+        1584
+      ],
+      "id": "94ca4139-0df5-4152-a073-a1d24b7a6d35",
+      "name": "description_Generator_Output",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"internal_links\": [\n    {\n      \"Internal_url_1\": \"\",\n      \"category\": \"\"\n    },\n    {\n      \"Internal_url_2\": \"\",\n      \"category\": \"\"\n    },\n    {\n      \"Internal_url_3\": \"\",\n      \"category\": \"\"\n    }\n  ]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2512,
+        1584
+      ],
+      "id": "6daac2be-2765-40e5-9ef6-be1ec935602e",
+      "name": "Internal Linking Agent_Output"
+    },
+    {
+      "parameters": {
+        "toolDescription": "External linking Agent ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=## ROLE  \nYou are an External Authority Link Agent.\n\n## TASK  \nUse the given \"Competitor title\" as a search query in Tavily and return the best 3 authoritative URLs.\n\n## TOOLS  \n- tavily search\n\n## RULES  \n- Do NOT include: affiliate, promotional, or sales pages  \n- RIORITIZE Trusted authority sites (Google, HubSpot, Forbes, etc.)  \n- Return EXACTLY the top 3 most relevant results after filtering  \n\n## EXCLUDE DOMAINS:\nyoutube.com  \nvimeo.com  \ndailymotion.com  \ntwitch.tv  \nfacebook.com  \ninstagram.com  \ntiktok.com  \ntwitter.com  \nx.com  \nlinkedin.com  \npinterest.com  \nsnapchat.com  \namazon.com  \nebay.com  \naliexpress.com  \nwalmart.com  \nblogspot.com  \n\n## OUTPUT (JSON - STRICT)\n{\n  \"External_url_1\": \"\",\n  \"External_url_2\": \"\",\n  \"External_url_3\": \"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2720,
+        1376
+      ],
+      "id": "dc0cb3c2-f2f3-4cfc-a18b-a5844e3d15b7",
+      "name": "External linking Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"External_url_1\": \"\",\n    \"External_url_2\": \"\",\n    \"External_url_3\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2944,
+        1568
+      ],
+      "id": "fa9a0c7b-05c4-484f-b18f-05e57263dbbc",
+      "name": "External_linking_Agent_Output"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1984,
+        1936
+      ],
+      "id": "a9311809-5fe1-4b91-8d6d-ee0a6572139f",
+      "name": "Sub_agents_Brain",
+      "credentials": {
+        "openRouterApi": {
+          "id": "8yztolwCznntBeU2",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        592
+      ],
+      "id": "f51dd420-d68a-44d7-9d8f-1c4c25322cfc",
+      "name": "Main_Brain",
+      "credentials": {
+        "openRouterApi": {
+          "id": "OKyKqcDzIIXaQP7b",
+          "name": "OpenRouter 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function cleanPrompt(text) {\n  return String(text || \"\")\n    .replace(/[\\n\\r]/g, \" \")          // remove line breaks\n    .replace(/[\"'`]/g, \"\")           // remove quotes\n    .replace(/[^a-zA-Z0-9\\s]/g, \"\")  // remove special characters\n    .replace(/\\s+/g, \" \")            // normalize spaces\n    .trim();\n}\n\nconst prompt = $json.output?.Image_Prompt;\n\nreturn [\n  {\n    json: {\n      Image_Prompt: cleanPrompt(prompt)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2752,
+        368
+      ],
+      "id": "6ce2cee4-af62-45d7-b3f0-06e71c377a0f",
+      "name": "Validate Json"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3760,
+        816
+      ],
+      "id": "111a8921-bce2-4085-ba0f-838d78c8528e",
+      "name": "Wait",
+      "webhookId": "8556eea9-1b10-43be-b89f-57097dad251d"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3968,
+        1248
+      ],
+      "id": "1fab4f39-7e6e-49ca-b0c6-304fc59449c2",
+      "name": "Wait2",
+      "webhookId": "4fe99602-9914-4fb6-8181-63f7b656a46e"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('RSS Feed Trigger').item.json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        864,
+        368
+      ],
+      "id": "3f638af7-13fc-4c53-969b-3d0ac558844b",
+      "name": "Get HTML Content"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "fullContent",
+              "cssSelector": ".single-content"
+            },
+            {
+              "key": "image",
+              "cssSelector": ".wp-site-blocks .post-thumbnail img",
+              "returnValue": "attribute",
+              "attribute": "src"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1056,
+        368
+      ],
+      "id": "15419746-daa0-4329-8ed1-671359282d56",
+      "name": "Extract Content"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get incoming item\nconst content = $input.first().json.fullContent || \"\";\n\n// Clean text (remove extra line breaks & spaces)\nconst cleanedContent = content\n  .replace(/\\n+/g, \" \")   // remove line breaks\n  .replace(/\\s+/g, \" \")   // normalize spaces\n  .trim();\n\n// Return formatted output\nreturn [\n  {\n    json: {\n      Full_Article: cleanedContent\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        368
+      ],
+      "id": "4732a090-5db2-4f0c-9bb0-9ca286c09ef3",
+      "name": "Clean data"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 4
+            }
+          ]
+        },
+        "feedUrl": ""
+      },
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        224,
+        384
+      ],
+      "id": "1b8b2974-7cf1-49e4-8586-3eaf66d1719a",
+      "name": "RSS Feed Trigger"
+    },
+    {
+      "parameters": {
+        "content": "## RSS Feed Generator",
+        "height": 80,
+        "width": 1632,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        224
+      ],
+      "id": "e23ca953-8ce5-4217-a28c-ca6eb7281bdd",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Upload  Image + Meta SEO",
+        "height": 80,
+        "width": 1248,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3296,
+        672
+      ],
+      "id": "e703b113-7715-44f4-82ab-f6057e561c3f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Generate  Article  + Meta SEO",
+        "height": 80,
+        "width": 1248,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3296,
+        1088
+      ],
+      "id": "c80fdc15-15c1-42c8-9623-078fa8cdb2cd",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c89059c1-7714-4a2d-b890-9ea038726b34",
+              "leftValue": "={{ $json.content_status }}",
+              "rightValue": "pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        384
+      ],
+      "id": "dc389f24-2900-42bb-83c3-0bd004439f96",
+      "name": "If_Topic_Exists"
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {
+          "max_results": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Max_Results', ``, 'number') }}",
+          "exclude_domains": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('exclude_domains0_Exclude_Domains', ``, 'string') }}"
+          ],
+          "auto_parameters": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Auto_Parameters', ``, 'boolean') }}"
+        }
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        2768,
+        1568
+      ],
+      "id": "70b3b10b-1468-460a-9117-55a9fa80a3a9",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "pjzpMkCli5UIQuqM",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json['Competitor Featured IMG'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1904,
+        368
+      ],
+      "id": "24df634b-b40b-4edd-abda-681b4c0a7762",
+      "name": "Featured IMG binary"
+    },
+    {
+      "parameters": {
+        "content": "## Image Generation",
+        "height": 80,
+        "width": 1472,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2544,
+        224
+      ],
+      "id": "b3c1de66-268d-42aa-8e88-07c1a0c6095e",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        384
+      ],
+      "id": "31b74145-6801-404b-9605-844850c0f854",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8xJvKkYYgU8O89Nb",
+          "name": "Google account ( Nid )"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        368
+      ],
+      "id": "869326a2-f3a2-458e-ba90-f839bc45ae76",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8xJvKkYYgU8O89Nb",
+          "name": "Google account ( Nid )"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        2160,
+        592
+      ],
+      "id": "ffc9bac4-6257-487e-84ed-b24d7cc35cc9",
+      "name": "WordPress Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8xJvKkYYgU8O89Nb",
+          "name": "Google account ( Nid )"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4016,
+        416
+      ],
+      "id": "3b46a6b0-e06e-4587-9eca-e4d24308667f",
+      "name": "Image_Status",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8xJvKkYYgU8O89Nb",
+          "name": "Google account ( Nid )"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4272,
+        816
+      ],
+      "id": "2a166b2b-2c85-441a-896c-a6843443b407",
+      "name": "Get Article status",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8xJvKkYYgU8O89Nb",
+          "name": "Google account ( Nid )"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4400,
+        1248
+      ],
+      "id": "11970632-bf02-4b54-9955-4a0a8c122c88",
+      "name": "Article_Status",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8xJvKkYYgU8O89Nb",
+          "name": "Google account ( Nid )"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Perplexity Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "keyword Research_Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Blog Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Blog Manager": {
+      "main": [
+        [
+          {
+            "node": "Validate Json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Blog Manager",
+            "type": "ai_outputParser",
+            "index": 0
+          },
+          {
+            "node": "SEO Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Internal Linking Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WordPress tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Internal Linking Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Competitor_Article_analysis": {
+      "ai_tool": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "keyword Research_Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Title_Generator": {
+      "ai_tool": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "description_Generator": {
+      "ai_tool": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Image Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Blog Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini IMG": {
+      "ai_tool": [
+        [
+          {
+            "node": "Image Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planting IMG SEO": {
+      "main": [
+        [
+          {
+            "node": "Get Article status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Get IMG URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate IMG ": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "binary data": {
+      "main": [
+        [
+          {
+            "node": "upload image WP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "upload image WP": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Article Writer": {
+      "main": [
+        [
+          {
+            "node": "Post To Wordpress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpt writer": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Article Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Article Writer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post To Wordpress": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rank Math SEO": {
+      "main": [
+        [
+          {
+            "node": "Article_Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "binary data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Image_Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get IMG URL": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Competitor_Article_analysis_Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Competitor_Article_analysis",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "keyword Research_Agent_Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "keyword Research_Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Title_Generator_Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Title_Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "description_Generator_Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "description_Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Internal Linking Agent_Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Internal Linking Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "External linking Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "External_linking_Agent_Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "External linking Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub_agents_Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "External linking Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Internal Linking Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "description_Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Title_Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "keyword Research_Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Competitor_Article_analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main_Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Blog Manager",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "SEO Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Json": {
+      "main": [
+        [
+          {
+            "node": "Generate IMG ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Planting IMG SEO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Rank Math SEO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get HTML Content": {
+      "main": [
+        [
+          {
+            "node": "Extract Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Content": {
+      "main": [
+        [
+          {
+            "node": "Clean data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean data": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If_Topic_Exists": {
+      "main": [
+        [
+          {
+            "node": "Get HTML Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "External linking Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Featured IMG binary": {
+      "main": [
+        [
+          {
+            "node": "Blog Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If_Topic_Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Featured IMG binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WordPress Data": {
+      "ai_tool": [
+        [
+          {
+            "node": "Blog Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image_Status": {
+      "main": [
+        []
+      ]
+    },
+    "Get Article status": {
+      "main": [
+        [
+          {
+            "node": "Article Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "126b18b2-eeb2-491c-bf2b-972b84553630",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3089840af78a179c45fa43c42861124090cf8d18ff771ab9e51dc941942c72bf"
+  },
+  "id": "PFHCBsl8XJJ9qOsy",
+  "tags": []
+}
