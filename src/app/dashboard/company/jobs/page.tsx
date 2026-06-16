@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -160,6 +162,10 @@ function JobCard({
   const [disputeApp, setDisputeApp] = React.useState<any | null>(null);
   const [disputeReasonText, setDisputeReasonText] = React.useState("");
   const [submittingDisputeApp, setSubmittingDisputeApp] = React.useState<string | null>(null);
+  const [rejectTranslationApp, setRejectTranslationApp] = React.useState<any | null>(null);
+  const [revisionFeedbackText, setRevisionFeedbackText] = React.useState("");
+  const [revisionFile, setRevisionFile] = React.useState<File | null>(null);
+  const [submittingRevision, setSubmittingRevision] = React.useState(false);
   const { toast } = useToast();
   const { user } = useSession();
 
@@ -373,6 +379,86 @@ function JobCard({
       });
     } finally {
       setSubmittingDisputeApp(null);
+    }
+  }
+
+  async function handleRejectTranslation(app: any) {
+    if (!revisionFile) {
+      toast({
+        title: "الملف مطلوب / File Required",
+        description: "يرجى رفع ملف الترجمة المعدّل أو الموضح عليه التعديلات أولاً.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!revisionFeedbackText.trim()) {
+      toast({
+        title: "التعليق مطلوب / Feedback Required",
+        description: "يرجى توضيح التعليقات والتعديلات المطلوبة للمترجم.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmittingRevision(true);
+    try {
+      const storage = getStorage();
+      const uploaded = await storage.createFile(BUCKETS.TRANSLATOR_DOCUMENTS, ID.unique(), revisionFile);
+      const fileUrl = `${storage.client.config.endpoint}/storage/buckets/${BUCKETS.TRANSLATOR_DOCUMENTS}/files/${uploaded.$id}/view?project=${storage.client.config.project}`;
+
+      const services = getServices();
+      await services.application.updateApplicationWithFeedback(app.$id, {
+        revisionStatus: "requested",
+        revisionReason: revisionFeedbackText.trim(),
+        revisionReviewedFileUrl: fileUrl,
+        // Reset delivery fields so translator can re-submit
+        deliveryFileUrl: "", 
+        deliveryDate: "",
+      });
+
+      // Update local state
+      setApps((prev) =>
+        prev.map((a) =>
+          a.$id === app.$id
+            ? {
+                ...a,
+                revisionStatus: "requested" as const,
+                revisionReason: revisionFeedbackText.trim(),
+                revisionReviewedFileUrl: fileUrl,
+                deliveryFileUrl: undefined,
+                deliveryDate: undefined,
+              }
+            : a
+        )
+      );
+
+      // Create notification for Translator
+      await services.notification.createNotification({
+        userId: app.translatorId,
+        type: "job_updated",
+        title: "Revision Requested / طلب تعديل الترجمة",
+        body: `The client requested a revision for "${job.title}". Please check details.`,
+        data: { jobId: job.$id },
+      });
+
+      toast({
+        title: "تم طلب التعديل بنجاح",
+        description: "تم إرسال طلب المراجعة والملف المرفق إلى المترجم.",
+        variant: "success",
+      });
+
+      setRejectTranslationApp(null);
+      setRevisionFeedbackText("");
+      setRevisionFile(null);
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: "فشل في إرسال طلب المراجعة",
+        description: err.message || "حدث خطأ ما أثناء إرسال الطلب.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingRevision(false);
     }
   }
 
@@ -914,15 +1000,34 @@ function JobCard({
                                                   </span>
                                                 </div>
                                               ) : (
-                                                <Button
-                                                  onClick={() => setDisputeApp(app)}
-                                                  className="w-full justify-start gap-2 border-rose-200/60 hover:bg-rose-50 text-rose-700 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/20 shadow-sm mt-1 font-semibold"
-                                                  variant="outline"
-                                                >
-                                                  <ShieldAlert className="h-4 w-4 text-rose-500" />
-                                                  File a Dispute
-                                                </Button>
+                                                <>
+                                                  <Button
+                                                    onClick={() => setRejectTranslationApp(app)}
+                                                    className="w-full justify-start gap-2 bg-rose-600 hover:bg-rose-700 text-white shadow-sm font-semibold mt-1"
+                                                  >
+                                                    <XCircle className="h-4 w-4" />
+                                                    Reject Translation / طلب تعديل
+                                                  </Button>
+                                                  
+                                                  <Button
+                                                    onClick={() => setDisputeApp(app)}
+                                                    className="w-full justify-start gap-2 border-rose-200/60 hover:bg-rose-50 text-rose-700 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/20 shadow-sm mt-1 font-semibold"
+                                                    variant="outline"
+                                                  >
+                                                    <ShieldAlert className="h-4 w-4 text-rose-500" />
+                                                    File a Dispute
+                                                  </Button>
+                                                </>
                                               )}
+                                            </div>
+                                          )}
+
+                                          {app.revisionStatus === "requested" && (
+                                            <div className="flex flex-col gap-1 items-center justify-center p-2.5 rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50 text-orange-700 dark:text-orange-400 mt-2 select-none">
+                                              <span className="text-2xs font-bold flex items-center gap-1">
+                                                <Clock className="h-3.5 w-3.5 text-orange-500 animate-pulse" />
+                                                Revision Requested / طلب تعديل معلق
+                                              </span>
                                             </div>
                                           )}
                                         </div>
@@ -1020,6 +1125,74 @@ function JobCard({
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Reject Translation & Request Revision Sheet */}
+        <Sheet open={!!rejectTranslationApp} onOpenChange={(open) => { if (!open) { setRejectTranslationApp(null); setRevisionFeedbackText(""); setRevisionFile(null); } }}>
+          <SheetContent side="right" className="bg-card border-l border-border/50 max-h-screen overflow-y-auto sm:max-w-md w-full p-6 shadow-2xl flex flex-col gap-6">
+            <SheetHeader className="text-left">
+              <SheetTitle className="flex items-center gap-2 text-xl font-bold text-rose-600">
+                <XCircle className="h-6 w-6" />
+                <span>Reject Translation / طلب تعديل</span>
+              </SheetTitle>
+              <SheetDescription>
+                Provide feedback and upload a reviewed markup file to request revisions from the translator. Both are mandatory.
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="space-y-4 flex-1">
+              <div className="space-y-1.5">
+                <Label htmlFor="revisionFile" className="text-xs font-bold text-foreground block">
+                  Reviewed File (Required) / ملف المراجعة (مطلوب)
+                </Label>
+                <Input
+                  id="revisionFile"
+                  type="file"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRevisionFile(e.target.files?.[0] || null)}
+                  className="w-full text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="revisionReason" className="text-xs font-bold text-foreground block">
+                  Comments & Feedback (Required) / الملاحظات والتعديلات (مطلوب)
+                </Label>
+                <Textarea
+                  id="revisionReason"
+                  placeholder="Explain requested corrections in detail..."
+                  value={revisionFeedbackText}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRevisionFeedbackText(e.target.value)}
+                  className="min-h-[150px] text-xs rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-border/20 pt-4 flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => { setRejectTranslationApp(null); setRevisionFeedbackText(""); setRevisionFile(null); }}
+                disabled={submittingRevision}
+                className="text-xs font-semibold"
+              >
+                Cancel / إلغاء
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={!revisionFile || !revisionFeedbackText.trim() || submittingRevision}
+                onClick={() => handleRejectTranslation(rejectTranslationApp)}
+                className="text-xs font-semibold"
+              >
+                {submittingRevision ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Request Revision / طلب التعديل"
+                )}
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
 
         {/* File a Dispute Dialog */}
         <Dialog open={!!disputeApp} onOpenChange={(open) => { if (!open) { setDisputeApp(null); setDisputeReasonText(""); } }}>

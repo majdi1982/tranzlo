@@ -69,7 +69,7 @@ export interface IApplicationService {
   ): Promise<Application>;
   updateApplicationWithFeedback(
     applicationId: string,
-    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string }
+    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string; testReviewedFileUrl?: string; extensionStatus?: string; extensionReason?: string; extensionRequestedAt?: string; extensionDate?: string; deliveryFileUrl?: string; deliveryDate?: string; escrowStatus?: string; disputeId?: string; revisionStatus?: string; revisionReason?: string; revisionReviewedFileUrl?: string; }
   ): Promise<Application>;
   selectTranslator(jobId: string, selectedAppId: string): Promise<void>;
   getInvitedJobs(translatorId: string): Promise<Job[]>;
@@ -130,10 +130,16 @@ export interface IComplaintService {
 export interface IDisputeService {
   create(data: DisputeInput & { raisedById: string }): Promise<Dispute>;
   getDisputes(jobId?: string): Promise<Dispute[]>;
+  getDispute(disputeId: string): Promise<Dispute | null>;
   resolve(
     disputeId: string,
     decision: string,
     note: string
+  ): Promise<Dispute>;
+  submitEvidence(
+    disputeId: string,
+    justifications: string,
+    evidenceFiles: string[]
   ): Promise<Dispute>;
 }
 

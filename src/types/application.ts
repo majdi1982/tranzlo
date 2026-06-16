@@ -27,6 +27,9 @@ export interface Application {
   deliveryDate?: string;
   escrowStatus?: "unfunded" | "funded" | "approved" | "released" | "disputed" | "refunded";
   disputeId?: string;
+  revisionStatus?: "none" | "requested" | "submitted";
+  revisionReason?: string;
+  revisionReviewedFileUrl?: string;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;

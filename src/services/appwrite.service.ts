@@ -530,7 +530,7 @@ export const appwriteApplicationService = {
 
   async updateApplicationWithFeedback(
     applicationId: string,
-    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string; testReviewedFileUrl?: string; extensionStatus?: string; extensionReason?: string; extensionRequestedAt?: string; extensionDate?: string; deliveryFileUrl?: string; deliveryDate?: string; escrowStatus?: string; disputeId?: string; }
+    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string; testReviewedFileUrl?: string; extensionStatus?: string; extensionReason?: string; extensionRequestedAt?: string; extensionDate?: string; deliveryFileUrl?: string; deliveryDate?: string; escrowStatus?: string; disputeId?: string; revisionStatus?: string; revisionReason?: string; revisionReviewedFileUrl?: string; }
   ): Promise<Application> {
     const db = getDatabases();
     const updateData: Record<string, any> = {
@@ -1029,6 +1029,16 @@ export const appwriteDisputeService = {
     return result.documents.map((d) => mapDoc<Dispute>(d as Record<string, unknown>));
   },
 
+  async getDispute(disputeId: string): Promise<Dispute | null> {
+    try {
+      const db = getDatabases();
+      const doc = await db.getDocument(DB_ID, COLLECTIONS.disputes, disputeId);
+      return mapDoc<Dispute>(doc as Record<string, unknown>);
+    } catch {
+      return null;
+    }
+  },
+
   async resolve(disputeId: string, decision: string, note: string): Promise<Dispute> {
     const db = getDatabases();
     const doc = await db.updateDocument(DB_ID, COLLECTIONS.disputes, disputeId, {
@@ -1036,6 +1046,17 @@ export const appwriteDisputeService = {
       decision,
       adminDecisionNote: note,
       resolvedAt: new Date().toISOString(),
+    });
+    return mapDoc<Dispute>(doc as Record<string, unknown>);
+  },
+
+  async submitEvidence(disputeId: string, justifications: string, evidenceFiles: string[]): Promise<Dispute> {
+    const db = getDatabases();
+    const doc = await db.updateDocument(DB_ID, COLLECTIONS.disputes, disputeId, {
+      justifications,
+      evidenceFiles,
+      status: "pending",
+      updatedAt: new Date().toISOString(),
     });
     return mapDoc<Dispute>(doc as Record<string, unknown>);
   },
