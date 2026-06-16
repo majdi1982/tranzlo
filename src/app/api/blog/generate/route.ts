@@ -212,7 +212,7 @@ You MUST output ONLY a JSON object matching this schema:
 
     const draftDocument = await databases.createDocument(
       dbId,
-      "blogPosts", // COLLECTION ID
+      "blog_posts", // COLLECTION ID
       ID.unique(),
       {
         authorId: userId,
