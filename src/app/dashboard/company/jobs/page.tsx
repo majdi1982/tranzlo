@@ -977,12 +977,6 @@ function JobCard({
 
                                           {app.deliveryFileUrl && (
                                             <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/20">
-                                              {app.deliveryDate && (
-                                                <span className="text-[10px] text-muted-foreground text-center block font-medium">
-                                                  Delivered: {new Date(app.deliveryDate).toLocaleDateString()} {new Date(app.deliveryDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </span>
-                                              )}
-
                                               {app.escrowStatus === "disputed" ? (
                                                 <div className="flex flex-col gap-1 items-center justify-center p-2 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400 mt-1 select-none">
                                                   <span className="text-2xs font-bold flex items-center gap-1">
