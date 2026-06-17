@@ -67,6 +67,11 @@ export default function JobDetailsPage() {
       try {
         const services = getServices();
         const j = await services.job.getJob(params.id);
+        if (!j) {
+          setLoading(false);
+          setLoadingApps(false);
+          return;
+        }
         setJob(j);
 
         const results = await services.application.getApplications(j.$id);
