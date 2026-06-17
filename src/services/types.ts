@@ -72,6 +72,8 @@ export interface IApplicationService {
     data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string; testReviewedFileUrl?: string; extensionStatus?: string; extensionReason?: string; extensionRequestedAt?: string; extensionDate?: string; deliveryFileUrl?: string; deliveryDate?: string; escrowStatus?: string; disputeId?: string; revisionStatus?: string; revisionReason?: string; revisionReviewedFileUrl?: string; }
   ): Promise<Application>;
   selectTranslator(jobId: string, selectedAppId: string): Promise<void>;
+  acceptDelivery(jobId: string, applicationId: string, translatorId: string, baseValue: number, companyId: string): Promise<void>;
+  fundEscrow(jobId: string, companyId: string, baseValue: number, captureId: string): Promise<any>;
   getInvitedJobs(translatorId: string): Promise<Job[]>;
   inviteToTest(applicationId: string, jobId: string, companyId: string): Promise<Application>;
 }

@@ -587,6 +587,12 @@ export const appwriteApplicationService = {
     }
   },
 
+  async fundEscrow(jobId: string, companyId: string, baseValue: number, captureId: string): Promise<any> {
+    const db = getDatabases();
+    const ledgerEntry = await appwriteLedgerService.processEscrowFunding(jobId, companyId, baseValue, captureId);
+    return ledgerEntry;
+  },
+
   async inviteToTest(applicationId: string, jobId: string, companyId: string): Promise<Application> {
     const db = getDatabases();
     const app = await db.getDocument(DB_ID, COLLECTIONS.applications, applicationId);
@@ -1123,6 +1129,105 @@ export const appwriteSettingsService = {
 };
 
 export const appwriteLedgerService = {
+  async processEscrowFunding(jobId: string, companyId: string, baseValue: number, captureId: string): Promise<any> {
+    const db = getDatabases();
+    
+    // 1. Get Company Profile to check plan Tier
+    const profiles = await db.listDocuments(DB_ID, COLLECTIONS.companyProfiles, [
+      Query.equal("userId", companyId),
+      Query.limit(1)
+    ]);
+    const planTier = profiles.documents.length > 0 ? (profiles.documents[0].planTier || "free") : "free";
+
+    // 2. Calculate Fee
+    let feePercent = 0.05; // Free: 5%
+    if (planTier === "pro") feePercent = 0.02; // Pro: 2%
+    if (planTier === "plus") feePercent = 0.0; // Plus: 0%
+    const feeAmount = baseValue * feePercent;
+    const totalAmount = baseValue + feeAmount;
+
+    // 3. Create Company Invoice
+    await db.createDocument(DB_ID, COLLECTIONS.invoices, generateId("inv"), {
+      jobId,
+      userId: companyId,
+      type: "company_funding",
+      planTier,
+      jobBaseValue: baseValue,
+      feeAmount: feeAmount,
+      totalAmount: totalAmount,
+      status: "paid",
+      createdAt: new Date().toISOString()
+    });
+
+    // 4. Create Transaction Ledger entry
+    return this.createTransaction({
+      transactionId: captureId,
+      code: `escrow_fund_${jobId}`,
+      userId: companyId,
+      userName: profiles.documents[0]?.companyName || "Company",
+      userEmail: "", 
+      type: "job_escrow",
+      planTier,
+      amount: totalAmount,
+      feeDeducted: feeAmount,
+      status: "funded"
+    });
+  },
+
+  async processEscrowRelease(jobId: string, translatorId: string, baseValue: number): Promise<any> {
+    const db = getDatabases();
+    
+    // 1. Get Translator Profile
+    const profiles = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
+      Query.equal("userId", translatorId),
+      Query.limit(1)
+    ]);
+    const profile = profiles.documents[0];
+    const planTier = profile?.planTier || "free";
+
+    // 2. Calculate Fee
+    let feePercent = 0.20; // Free: 20%
+    if (planTier === "pro") feePercent = 0.10; // Pro: 10%
+    if (planTier === "plus") feePercent = 0.05; // Plus: 5%
+    const feeAmount = baseValue * feePercent;
+    const netPayout = baseValue - feeAmount;
+
+    // 3. Create Translator Invoice
+    await db.createDocument(DB_ID, COLLECTIONS.invoices, generateId("inv"), {
+      jobId,
+      userId: translatorId,
+      type: "translator_payout",
+      planTier,
+      jobBaseValue: baseValue,
+      feeAmount: feeAmount,
+      totalAmount: netPayout,
+      status: "paid",
+      createdAt: new Date().toISOString()
+    });
+
+    // 4. Update Translator Balance
+    if (profile) {
+      await db.updateDocument(DB_ID, COLLECTIONS.translatorProfiles, profile.$id, {
+        availableBalance: (profile.availableBalance || 0) + netPayout,
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    // 5. Create Transaction Ledger entry
+    return this.createTransaction({
+      transactionId: generateId("payout"),
+      code: `escrow_release_${jobId}`,
+      userId: translatorId,
+      userName: profile?.fullName || "Translator",
+      userEmail: "", 
+      type: "job_escrow",
+      planTier,
+      amount: netPayout,
+      feeDeducted: feeAmount,
+      status: "released"
+    });
+  },
+
   async getInvoices(): Promise<any[]> {
     try {
       const db = getDatabases();
