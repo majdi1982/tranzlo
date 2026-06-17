@@ -542,17 +542,20 @@ function JobCard({
   }
 
   return (
-    <Card className="glass-card overflow-hidden">
+    <Card className={`glass-card overflow-hidden transition-colors ${showApplicants ? 'border-primary/50 ring-1 ring-primary/20' : 'hover:border-primary/30'}`}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
+          <div 
+            className="min-w-0 flex-1 cursor-pointer group" 
+            onClick={() => setShowApplicants(!showApplicants)}
+          >
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold truncate">{job.title}</h3>
+              <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{job.title}</h3>
               <Badge variant={statusBadge[job.status] || "outline"} className="shrink-0">
                 {job.status}
               </Badge>
             </div>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors">
               <span className="flex items-center gap-1">
                 <Globe className="h-3.5 w-3.5" />
                 {(() => {

@@ -1123,6 +1123,19 @@ export const appwriteSettingsService = {
 };
 
 export const appwriteLedgerService = {
+  async getInvoices(): Promise<any[]> {
+    try {
+      const db = getDatabases();
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.invoices, [
+        Query.orderDesc("$createdAt"),
+        Query.limit(100),
+      ]);
+      return res.documents.map((d) => mapDoc<any>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
+  },
+
   async getTransactions(): Promise<any[]> {
     try {
       const db = getDatabases();

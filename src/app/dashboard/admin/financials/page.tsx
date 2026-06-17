@@ -62,6 +62,21 @@ interface Employee {
   lastPayoutDate?: string;
 }
 
+interface Invoice {
+  $id: string;
+  invoiceNumber: string;
+  companyName: string;
+  translatorName: string;
+  projectTitle: string;
+  jobBaseValue: number;
+  totalCompanyPaid: number;
+  netTranslatorEarned: number;
+  companyFeeAmount: number;
+  translatorFeeAmount: number;
+  status: string;
+  createdAt: string;
+}
+
 export default function AdminFinancialsPage() {
   const { toast } = useToast();
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
@@ -72,7 +87,8 @@ export default function AdminFinancialsPage() {
   const [payingEmployeeId, setPayingEmployeeId] = React.useState<string | null>(null);
   
   const [search, setSearch] = React.useState("");
-  const [activeTab, setActiveTab] = React.useState<"manual" | "auto" | "revenue" | "employees">("manual");
+  const [activeTab, setActiveTab] = React.useState<"manual" | "auto" | "revenue" | "employees" | "job_invoices">("manual");
+  const [invoices, setInvoices] = React.useState<Invoice[]>([]);
 
   // Withdrawal Modal state
   const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
@@ -104,7 +120,9 @@ export default function AdminFinancialsPage() {
     try {
       const services = getServices();
       const txs = await services.ledger.getTransactions();
+      const invs = await services.ledger.getInvoices();
       setTransactions(txs as Transaction[]);
+      setInvoices(invs as Invoice[]);
     } catch {
       toast({ title: "Failed to load transactions", variant: "destructive" });
     } finally {
@@ -303,6 +321,16 @@ export default function AdminFinancialsPage() {
         e.name.toLowerCase().includes(search.toLowerCase()) ||
         e.jobTitle.toLowerCase().includes(search.toLowerCase()) ||
         e.payoutAccount.toLowerCase().includes(search.toLowerCase())
+    );
+  };
+
+  const getFilteredInvoices = () => {
+    return invoices.filter(
+      (i) =>
+        i.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
+        i.companyName.toLowerCase().includes(search.toLowerCase()) ||
+        i.translatorName.toLowerCase().includes(search.toLowerCase()) ||
+        i.projectTitle.toLowerCase().includes(search.toLowerCase())
     );
   };
 
@@ -590,6 +618,18 @@ export default function AdminFinancialsPage() {
             <Users className="h-4 w-4 text-teal-600" />
             Employee Salaries
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveTab("job_invoices")}
+            className={cn(
+              "rounded-lg gap-2 text-xs font-semibold px-4 py-2 transition-all",
+              activeTab === "job_invoices" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+            )}
+          >
+            <FileText className="h-4 w-4 text-teal-600" />
+            Job Invoices
+          </Button>
         </div>
       </div>
 
@@ -799,6 +839,68 @@ export default function AdminFinancialsPage() {
                     </div>
                   ))}
                 </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      ) : activeTab === "job_invoices" ? (
+        <Card className="rounded-2xl border border-border/50 shadow-sm overflow-hidden bg-card/25">
+          <CardHeader className="pb-3 border-b border-border/20 bg-muted/10">
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              <FileText className="h-5 w-5 text-teal-600" />
+              Job Invoices & Payments
+            </CardTitle>
+            <CardDescription className="text-3xs">
+              View payments, fees, and net payouts for each completed job.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="p-6 space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="h-14 animate-pulse rounded-xl bg-muted" />
+                ))}
+              </div>
+            ) : getFilteredInvoices().length === 0 ? (
+              <div className="py-20 text-center">
+                <FileText className="h-12 w-12 text-muted-foreground/35 mx-auto mb-3" />
+                <h3 className="text-sm font-semibold text-muted-foreground">No invoices found</h3>
+                <p className="text-2xs text-muted-foreground mt-1">Job invoices will appear here once jobs are completed.</p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[50vh]">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-muted/30 sticky top-0 border-b border-border/30">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Invoice</th>
+                      <th className="px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Project</th>
+                      <th className="px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Company</th>
+                      <th className="px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Translator</th>
+                      <th className="px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Base Value</th>
+                      <th className="px-4 py-3 font-semibold text-emerald-600 uppercase tracking-wider text-[10px]">Company Paid</th>
+                      <th className="px-4 py-3 font-semibold text-teal-600 uppercase tracking-wider text-[10px]">Net Earned</th>
+                      <th className="px-4 py-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/20">
+                    {getFilteredInvoices().map((inv) => (
+                      <tr key={inv.$id} className="hover:bg-muted/10 transition-colors">
+                        <td className="px-4 py-3 font-mono text-muted-foreground">{inv.invoiceNumber}</td>
+                        <td className="px-4 py-3 font-semibold truncate max-w-[150px]" title={inv.projectTitle}>{inv.projectTitle}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{inv.companyName}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{inv.translatorName}</td>
+                        <td className="px-4 py-3 font-semibold">${inv.jobBaseValue?.toFixed(2) || "0.00"}</td>
+                        <td className="px-4 py-3 font-bold text-emerald-600">${inv.totalCompanyPaid?.toFixed(2) || "0.00"}</td>
+                        <td className="px-4 py-3 font-bold text-teal-600">${inv.netTranslatorEarned?.toFixed(2) || "0.00"}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant="outline" className={cn("rounded-lg text-[9px] font-semibold px-2 py-0.5 border capitalize", getStatusBadge(inv.status))}>
+                            {inv.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </ScrollArea>
             )}
           </CardContent>

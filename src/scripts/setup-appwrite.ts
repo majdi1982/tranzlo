@@ -520,6 +520,44 @@ const SCHEMA: Col[] = [
       { id: "idx_emp_id", type: "unique", attributes: ["employeeId"] }
     ]
   },
+  {
+    id: "plans", name: "Plans",
+    attrs: [
+      { key: "name", type: "string", size: 64, required: true },
+      { key: "type", type: "enum", elements: ["company", "translator"], required: true },
+      { key: "feePercentage", type: "float", required: true },
+      { key: "features", type: "string", size: 2000, required: false, array: true },
+      { key: "monthlyPrice", type: "float", required: false, default: 0 },
+      { key: "createdAt", type: "datetime", required: false },
+      { key: "updatedAt", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_plan_type", type: "key", attributes: ["type"] }
+    ]
+  },
+  {
+    id: "invoices", name: "Invoices",
+    attrs: [
+      { key: "invoiceNumber", type: "string", size: 64, required: true },
+      { key: "projectId", type: "string", size: 64, required: true },
+      { key: "companyId", type: "string", size: 64, required: true },
+      { key: "translatorId", type: "string", size: 64, required: true },
+      { key: "jobBaseValue", type: "float", required: true },
+      { key: "companyFeeAmount", type: "float", required: true },
+      { key: "translatorFeeAmount", type: "float", required: true },
+      { key: "totalCompanyPaid", type: "float", required: true },
+      { key: "netTranslatorEarned", type: "float", required: true },
+      { key: "status", type: "enum", elements: ["pending", "held", "completed", "refunded", "failed"], required: true },
+      { key: "createdAt", type: "datetime", required: false },
+      { key: "updatedAt", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_inv_number", type: "unique", attributes: ["invoiceNumber"] },
+      { id: "idx_inv_companyId", type: "key", attributes: ["companyId"] },
+      { id: "idx_inv_translatorId", type: "key", attributes: ["translatorId"] },
+      { id: "idx_inv_projectId", type: "key", attributes: ["projectId"] }
+    ]
+  },
 ];
 
 async function main() {
