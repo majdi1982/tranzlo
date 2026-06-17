@@ -10,6 +10,7 @@ export type ApplicationStatus =
   | "shortlisted"
   | "test_invited"
   | "accepted"
+  | "completed"
   | "rejected"
   | "withdrawn";
 
