@@ -3,6 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { Plus, Briefcase, Globe, MapPin, DollarSign, Calendar, ChevronRight, MoreHorizontal, Eye, FileText, XCircle } from "lucide-react";
+import { useSession } from "@/providers/session-provider";
+import { getServices } from "@/services";
+import { AuthGuard } from "@/guards/auth-guard";
+import { RoleGuard } from "@/guards/role-guard";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { getLanguageName } from "@/data/languages";
+import type { Job } from "@/types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
