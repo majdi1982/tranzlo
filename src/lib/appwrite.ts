@@ -73,6 +73,7 @@ export const COLLECTIONS = {
   systemSettings: "system_settings",
   transactionsLedger: "transactions_ledger",
   employeeSalaries: "employee_salaries",
+  invoices: "invoices",
 };
 
 export { ID, Query };
