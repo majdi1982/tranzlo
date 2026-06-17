@@ -574,6 +574,41 @@ export const appwriteApplicationService = {
     });
   },
 
+  async acceptDelivery(jobId: string, applicationId: string, translatorId: string, baseValue: number, companyId: string): Promise<void> {
+    const db = getDatabases();
+    
+    // 1. Process Escrow Release
+    await appwriteLedgerService.processEscrowRelease(jobId, translatorId, baseValue);
+
+    // 2. Update Application Status
+    await db.updateDocument(DB_ID, COLLECTIONS.applications, applicationId, {
+      status: "completed",
+      updatedAt: new Date().toISOString(),
+    });
+
+    // 3. Update Job Status
+    await appwriteJobService.updateJob(jobId, {
+      status: "closed",
+    });
+
+    // 4. Send Notifications
+    await appwriteNotificationService.createNotification({
+      userId: translatorId,
+      type: "job_completed",
+      title: "Project Completed & Paid",
+      body: `The client has accepted your delivery for the project. Funds have been added to your balance.`,
+      data: { jobId, applicationId },
+    });
+    
+    await appwriteNotificationService.createNotification({
+      userId: companyId,
+      type: "job_completed",
+      title: "Delivery Accepted",
+      body: `You have accepted the delivery. The project is now marked as completed.`,
+      data: { jobId, applicationId },
+    });
+  },
+
   async getInvitedJobs(translatorId: string): Promise<Job[]> {
     try {
       const db = getDatabases();
