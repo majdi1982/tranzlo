@@ -470,7 +470,7 @@ export default function JobDetailsPage() {
                     {job.specializations && (
                       <li className="flex gap-2">
                         <span className="font-medium min-w-24">Specializations:</span>
-                        <span className="text-muted-foreground">{job.specializations.split(',').join(', ')}</span>
+                        <span className="text-muted-foreground">{Array.isArray(job.specializations) ? job.specializations.join(', ') : job.specializations}</span>
                       </li>
                     )}
                     <li className="flex gap-2">
