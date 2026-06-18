@@ -474,13 +474,21 @@ export default function JobDetailsPage() {
                       </li>
                     )}
                     <li className="flex gap-2">
-                      <span className="font-medium min-w-24">Translator Role:</span>
-                      <span className="text-muted-foreground capitalize">{job.translatorRole?.replace('_', ' ') || 'Any'}</span>
+                      <span className="font-medium min-w-24">Job Type:</span>
+                      <span className="text-muted-foreground capitalize">{job.jobType?.replace('_', ' ')}</span>
                     </li>
-                    <li className="flex gap-2">
-                      <span className="font-medium min-w-24">Payment Type:</span>
-                      <span className="text-muted-foreground capitalize">{job.budgetType} {job.budgetType === 'hourly' && `($${job.budget}/hr)`}</span>
-                    </li>
+                    {job.industry && (
+                      <li className="flex gap-2">
+                        <span className="font-medium min-w-24">Industry:</span>
+                        <span className="text-muted-foreground">{job.industry}</span>
+                      </li>
+                    )}
+                    {job.wordCount && (
+                      <li className="flex gap-2">
+                        <span className="font-medium min-w-24">Word Count:</span>
+                        <span className="text-muted-foreground">{job.wordCount} words</span>
+                      </li>
+                    )}
                     <li className="flex gap-2">
                       <span className="font-medium min-w-24">Visibility:</span>
                       <span className="text-muted-foreground capitalize">{job.visibility} {job.privateType ? `(${job.privateType})` : ''}</span>
@@ -501,10 +509,10 @@ export default function JobDetailsPage() {
                         )}
                       </span>
                     </li>
-                    {job.requiresTest && job.testInstructions && (
-                      <li className="flex gap-2 flex-col">
-                        <span className="font-medium">Test Instructions:</span>
-                        <span className="text-muted-foreground bg-background/50 p-2 rounded text-xs whitespace-pre-wrap border border-border/30">{job.testInstructions}</span>
+                    {job.requiresTest && job.testDuration && (
+                      <li className="flex gap-2 items-center">
+                        <span className="font-medium min-w-24">Test Duration:</span>
+                        <span className="text-muted-foreground">{job.testDuration} minutes</span>
                       </li>
                     )}
                     {job.testFileUrl && (
@@ -515,11 +523,11 @@ export default function JobDetailsPage() {
                         </a>
                       </li>
                     )}
-                    {job.referenceFilesUrl && (
+                    {job.translationFileUrl && (
                       <li className="flex gap-2 items-center pt-1">
-                        <span className="font-medium min-w-24">Reference Files:</span>
-                        <a href={job.referenceFilesUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
-                          <ExternalLink className="h-3.5 w-3.5" /> View Files
+                        <span className="font-medium min-w-24">Reference File:</span>
+                        <a href={job.translationFileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                          <ExternalLink className="h-3.5 w-3.5" /> View File
                         </a>
                       </li>
                     )}
