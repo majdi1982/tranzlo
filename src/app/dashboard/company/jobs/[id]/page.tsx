@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock, MessageCircle, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award, Loader2, CheckCircle2, ExternalLink, XCircle, DollarSign, MapPin, Globe, Calendar, Users, Eye } from "lucide-react";
+import { ArrowLeft, Clock, MessageCircle, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award, Loader2, CheckCircle2, ExternalLink, XCircle, DollarSign, MapPin, Globe, Calendar, Users, Eye, TestTube, Upload } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
