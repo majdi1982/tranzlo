@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Send, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AdminAnnouncementsPage() {
   const [loading, setLoading] = React.useState(false);
@@ -74,11 +73,15 @@ export default function AdminAnnouncementsPage() {
       </div>
 
       {status && (
-        <Alert variant={status.type === "error" ? "destructive" : "default"} className={status.type === "success" ? "bg-emerald-50 text-emerald-900 border-emerald-200" : ""}>
-          {status.type === "success" ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <AlertCircle className="h-4 w-4" />}
-          <AlertTitle>{status.type === "success" ? "Success" : "Error"}</AlertTitle>
-          <AlertDescription>{status.message}</AlertDescription>
-        </Alert>
+        <div className={`flex p-4 rounded-xl border ${status.type === "success" ? "bg-emerald-50 text-emerald-900 border-emerald-200" : "bg-red-50 text-red-900 border-red-200"}`}>
+          <div className="mr-3 mt-0.5">
+            {status.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-red-600" />}
+          </div>
+          <div>
+            <h3 className="font-semibold">{status.type === "success" ? "Success" : "Error"}</h3>
+            <p className="text-sm mt-1 opacity-90">{status.message}</p>
+          </div>
+        </div>
       )}
 
       <Card>
