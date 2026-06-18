@@ -636,24 +636,47 @@ export default function JobDetailsPage() {
                                     </p>
 
                                     {/* Test Section */}
-                                    {job.requiresTest && app.testSolutionUrl && (
-                                      <div className="p-4 rounded-lg border border-border/40 bg-card/60 space-y-3">
-                                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                                          <div className="flex items-center gap-2">
-                                            <FileText className="h-4 w-4 text-cyan-500" />
-                                            <span className="text-sm font-semibold">Test Solution Document</span>
+                                    {job.requiresTest && (app.status === "test_invited" || app.testSolutionUrl) && (
+                                      <div className="mt-4 bg-indigo-50 border border-indigo-200/60 p-4 rounded-xl flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                          <p className="text-xs font-bold text-indigo-800 uppercase tracking-wider flex items-center gap-1.5">
+                                            <TestTube className="h-4 w-4" /> Test Phase
+                                          </p>
+                                          <Badge variant={app.testStatus === "passed" ? "success" : app.testStatus === "failed" ? "destructive" : "warning"} className="bg-white">
+                                            {app.testStatus || "Pending Submission"}
+                                          </Badge>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                          <div className="space-y-2">
+                                            <p className="text-xs text-indigo-700/80 font-medium">Original Test File</p>
+                                            {job.testFileUrl ? (
+                                              <a href={job.testFileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 text-sm text-indigo-700 hover:text-indigo-800 font-semibold p-2.5 bg-white rounded-lg border border-indigo-100 shadow-sm transition-all w-full">
+                                                <FileText className="h-4 w-4" /> Download Test File
+                                              </a>
+                                            ) : (
+                                              <div className="p-2.5 bg-white/50 rounded-lg border border-indigo-100/50 text-xs text-indigo-500 italic text-center">No test file provided</div>
+                                            )}
                                           </div>
-                                          <div className="flex gap-2 items-center">
-                                            <button
-                                              type="button"
-                                              onClick={() => { setPreviewUrl(app.testSolutionUrl!); setPreviewTitle(`Test Solution`); }}
-                                              className="p-1.5 hover:bg-muted text-cyan-500 rounded transition-colors text-xs flex items-center gap-1.5 font-semibold border border-cyan-500/20"
-                                            >
-                                              <Eye className="h-3.5 w-3.5" /> Preview
-                                            </button>
-                                            <a href={app.testSolutionUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-muted text-muted-foreground rounded transition-colors border border-border/50">
-                                              <ExternalLink className="h-3.5 w-3.5" />
-                                            </a>
+
+                                          <div className="space-y-2">
+                                            <p className="text-xs text-indigo-700/80 font-medium">Translator's Solution</p>
+                                            {app.testSolutionUrl ? (
+                                              <div className="flex items-center gap-2">
+                                                <button
+                                                  type="button"
+                                                  onClick={() => { setPreviewUrl(app.testSolutionUrl!); setPreviewTitle(`Test Solution`); }}
+                                                  className="flex-1 flex items-center justify-center gap-2 text-sm text-teal-700 font-semibold p-2.5 bg-teal-50 rounded-lg border border-teal-200 shadow-sm transition-all hover:bg-teal-100/50"
+                                                >
+                                                  <Eye className="h-4 w-4" /> Preview
+                                                </button>
+                                                <a href={app.testSolutionUrl} target="_blank" rel="noopener noreferrer" className="p-2.5 hover:bg-muted text-teal-700 rounded-lg transition-colors border border-teal-200 bg-white shadow-sm flex-shrink-0">
+                                                  <ExternalLink className="h-4 w-4" />
+                                                </a>
+                                              </div>
+                                            ) : (
+                                              <div className="p-2.5 bg-white/50 rounded-lg border border-indigo-100/50 text-xs text-indigo-500 italic text-center">Waiting for translator...</div>
+                                            )}
                                           </div>
                                         </div>
 
@@ -721,6 +744,55 @@ export default function JobDetailsPage() {
                                           <div>
                                             <p className="text-xs text-muted-foreground mb-1 uppercase font-semibold">Delivery Deadline</p>
                                             <p className="text-sm font-bold flex items-center gap-2"><Clock className="h-4 w-4 text-rose-500" /> {job.deadline ? new Date(job.deadline).toLocaleString() : "Not set"}</p>
+                                          </div>
+                                        </div>
+
+                                        {/* Project Files & Financials */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                          <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-xl flex flex-col gap-3">
+                                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                              <FileText className="h-3.5 w-3.5" /> Project Files
+                                            </p>
+                                            <div className="space-y-2">
+                                              {job.translationFileUrl && (
+                                                <a href={job.translationFileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium p-2 bg-white rounded-lg border border-teal-100/50 shadow-sm transition-all">
+                                                  <Upload className="h-4 w-4 rotate-180" /> Download Job Reference File
+                                                </a>
+                                              )}
+                                              {app.deliveryFileUrl && (
+                                                <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium p-2 bg-white rounded-lg border border-blue-100/50 shadow-sm transition-all">
+                                                  <CheckCircle className="h-4 w-4" /> Download Delivered Work
+                                                </a>
+                                              )}
+                                              {!job.translationFileUrl && !app.deliveryFileUrl && (
+                                                <p className="text-xs text-muted-foreground italic">No files exchanged yet.</p>
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          <div className="bg-emerald-50 border border-emerald-200/60 p-4 rounded-xl flex flex-col gap-3">
+                                            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+                                              <DollarSign className="h-3.5 w-3.5" /> Financial Details
+                                            </p>
+                                            <div className="space-y-1">
+                                              <div className="flex justify-between text-xs text-emerald-700">
+                                                <span>Job Value:</span>
+                                                <span className="font-semibold">${job.budget || 0}</span>
+                                              </div>
+                                              <div className="flex justify-between text-xs text-rose-600 border-b border-emerald-200/60 pb-1">
+                                                <span>Platform Fee:</span>
+                                                <span>(Calculated at payment)</span>
+                                              </div>
+                                              <div className="flex justify-between text-sm font-bold text-emerald-900 pt-1">
+                                                <span>Total Cost:</span>
+                                                <span>~${job.budget ? (job.budget * 1.05).toFixed(2) : 0}</span>
+                                              </div>
+                                            </div>
+                                            {job.status === "closed" && (
+                                              <Button variant="outline" size="sm" className="w-full mt-2 bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-100" onClick={() => window.open(`/invoice/company/${app.$id}`, '_blank')}>
+                                                <FileText className="h-3.5 w-3.5 mr-1.5" /> Download Invoice
+                                              </Button>
+                                            )}
                                           </div>
                                         </div>
 

@@ -589,6 +589,11 @@ export const appwriteApplicationService = {
     return mapDoc<Application>(doc as Record<string, unknown>);
   },
 
+  async getApplicationById(id: string): Promise<Application> {
+    const db = getDatabases();
+    const doc = await db.getDocument(DB_ID, COLLECTIONS.applications, id);
+    return mapDoc<Application>(doc as Record<string, unknown>);
+  },
 
   async getApplications(jobId: string): Promise<Application[]> {
     const db = getDatabases();
