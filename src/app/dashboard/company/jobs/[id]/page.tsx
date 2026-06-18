@@ -391,8 +391,9 @@ export default function JobDetailsPage() {
 
       toast({ title: "Contract secured and translator hired successfully!", variant: "success" });
       setHiringApp(null);
-    } catch {
-      toast({ title: "Hiring update failed. Please contact support.", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Hiring error:", err);
+      toast({ title: "Hiring update failed.", description: err.message || "Please contact support.", variant: "destructive" });
     }
   }
 
