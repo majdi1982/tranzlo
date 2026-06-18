@@ -747,9 +747,9 @@ export const appwriteApplicationService = {
     }
   },
 
-  async fundEscrow(jobId: string, companyId: string, baseValue: number, captureId: string): Promise<any> {
+  async fundEscrow(jobId: string, companyId: string, translatorId: string, baseValue: number, captureId: string): Promise<any> {
     const db = getDatabases();
-    const ledgerEntry = await appwriteLedgerService.processEscrowFunding(jobId, companyId, baseValue, captureId);
+    const ledgerEntry = await appwriteLedgerService.processEscrowFunding(jobId, companyId, translatorId, baseValue, captureId);
     return ledgerEntry;
   },
 
@@ -1308,7 +1308,7 @@ export const appwriteSettingsService = {
 };
 
 export const appwriteLedgerService = {
-  async processEscrowFunding(jobId: string, companyId: string, baseValue: number, captureId: string): Promise<any> {
+  async processEscrowFunding(jobId: string, companyId: string, translatorId: string, baseValue: number, captureId: string): Promise<any> {
     const db = getDatabases();
     
     // 1. Get Company Profile to check plan Tier
@@ -1326,15 +1326,15 @@ export const appwriteLedgerService = {
     // 3. Create Company Invoice
     await db.createDocument(DB_ID, COLLECTIONS.invoices, generateId("inv"), {
       invoiceNumber: `INV-${Date.now()}`,
-      jobId,
-      userId: companyId,
-      type: "company_funding",
-      planTier,
+      projectId: jobId,
+      companyId: companyId,
+      translatorId: translatorId,
       jobBaseValue: baseValue,
-      feeAmount: feeAmount,
-      totalAmount: totalAmount,
-      status: "paid",
-      createdAt: new Date().toISOString()
+      companyFeeAmount: feeAmount,
+      translatorFeeAmount: 0,
+      totalCompanyPaid: totalAmount,
+      netTranslatorEarned: 0,
+      status: "completed",
     });
 
     // 4. Create Transaction Ledger entry
@@ -1355,6 +1355,10 @@ export const appwriteLedgerService = {
   async processEscrowRelease(jobId: string, translatorId: string, baseValue: number): Promise<any> {
     const db = getDatabases();
     
+    // Get job to find companyId
+    const job = await db.getDocument(DB_ID, COLLECTIONS.jobs, jobId);
+    const companyId = job.companyId as string;
+
     // 1. Get Translator Profile
     const profiles = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
       Query.equal("userId", translatorId),
@@ -1371,15 +1375,15 @@ export const appwriteLedgerService = {
     // 3. Create Translator Invoice
     await db.createDocument(DB_ID, COLLECTIONS.invoices, generateId("inv"), {
       invoiceNumber: `INV-${Date.now()}`,
-      jobId,
-      userId: translatorId,
-      type: "translator_payout",
-      planTier,
+      projectId: jobId,
+      companyId: companyId,
+      translatorId: translatorId,
       jobBaseValue: baseValue,
-      feeAmount: feeAmount,
-      totalAmount: netPayout,
-      status: "paid",
-      createdAt: new Date().toISOString()
+      companyFeeAmount: 0,
+      translatorFeeAmount: feeAmount,
+      totalCompanyPaid: 0,
+      netTranslatorEarned: netPayout,
+      status: "completed",
     });
 
     // 4. Update Translator Balance

@@ -74,7 +74,7 @@ export interface IApplicationService {
   ): Promise<Application>;
   selectTranslator(jobId: string, selectedAppId: string): Promise<void>;
   acceptDelivery(jobId: string, applicationId: string, translatorId: string, baseValue: number, companyId: string): Promise<void>;
-  fundEscrow(jobId: string, companyId: string, baseValue: number, captureId: string): Promise<any>;
+  fundEscrow(jobId: string, companyId: string, translatorId: string, baseValue: number, captureId: string): Promise<any>;
   getInvitedJobs(translatorId: string): Promise<Job[]>;
   inviteToTest(applicationId: string, jobId: string, companyId: string): Promise<Application>;
 }
@@ -153,7 +153,7 @@ export interface IRatingService {
 }
 
 export interface ILedgerService {
-  processEscrowFunding(jobId: string, companyId: string, baseValue: number, captureId: string): Promise<any>;
+  processEscrowFunding(jobId: string, companyId: string, translatorId: string, baseValue: number, captureId: string): Promise<any>;
   processEscrowRelease(jobId: string, translatorId: string, baseValue: number): Promise<any>;
   getInvoices(): Promise<Invoice[]>;
   getInvoicesByUser(userId: string): Promise<Invoice[]>;

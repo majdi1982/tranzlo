@@ -369,7 +369,7 @@ export default function JobDetailsPage() {
     try {
       const services = getServices();
       await services.application.updateApplicationStatus(hiringApp.$id, "accepted");
-      await services.application.fundEscrow(job.$id, user.$id, hiringApp.bidAmount || job.budget, captureId);
+      await services.application.fundEscrow(job.$id, user.$id, hiringApp.translatorId, hiringApp.bidAmount || job.budget, captureId);
       
       setApps((prev) => prev.map((a) => a.$id === hiringApp.$id ? { ...a, status: "accepted", financialFileId: captureId, escrowStatus: "funded" } : a));
 
