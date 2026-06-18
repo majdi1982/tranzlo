@@ -502,7 +502,7 @@ export const appwriteInvitationService = {
       });
 
       if (response === "accepted") {
-        await appwriteApplicationService.submitApplication({
+        await appwriteApplicationService.apply({
           jobId,
           translatorId,
           coverLetter: "Automatically applied via invitation acceptance",
