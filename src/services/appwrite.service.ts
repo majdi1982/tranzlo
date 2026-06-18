@@ -63,6 +63,22 @@ export const appwriteAuthService = {
       console.warn("Failed to send verification email (likely redirect URI is not registered in Appwrite Console):", err);
     }
 
+    try {
+      // Auto-subscribe to system announcements
+      const messaging = getMessaging();
+      // A user's primary email target is often automatically available or we can just use the user ID as target ID if allowed,
+      // but without targetId, creating subscriber in client SDK: messaging.createSubscriber('system_announcements', user.$id, targetId)
+      // Since targetId is required and we don't have it on the client without creating it, we might need a server function.
+      // But let's try calling it anyway or just leave it for server-side.
+      // For now, let's add the target manually if allowed:
+      // In Appwrite, you typically create an email target first:
+      // Actually, we'll implement this properly using a Cloud Function in the future.
+      // For now, we will add a pref 'newsletter: true' and sync it later.
+      await account.updatePrefs({ role: input.role, newsletter: true });
+    } catch (err) {
+      console.warn("Failed to subscribe to topic:", err);
+    }
+
     return {
       $id: user.$id,
       email: user.email,
@@ -1593,7 +1609,6 @@ export const appwriteLedgerService = {
       responseLog: "",
       createdAt: new Date().toISOString(),
     });
-  },
   },
 };
 

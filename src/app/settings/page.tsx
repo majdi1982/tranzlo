@@ -632,6 +632,46 @@ export default function SettingsPage() {
 
           </div>
 
+          {/* Section 1.5: Notification Preferences */}
+          <Card className="rounded-xl border-border/50 bg-card/50 backdrop-blur-xl shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-md font-semibold flex items-center gap-2">
+                <Mail className="h-4.5 w-4.5 text-primary" />
+                Notification Preferences
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Manage your subscription to system announcements and newsletters.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium text-slate-800">System Announcements</Label>
+                <p className="text-xs text-muted-foreground">Receive important updates, tips, and promotions directly to your email.</p>
+              </div>
+              <div className="flex items-center">
+                <Button 
+                  variant={user?.prefs?.newsletter === false ? "outline" : "default"} 
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      const account = getAccount();
+                      const currentPrefs = await account.getPrefs();
+                      const newStatus = currentPrefs.newsletter === false ? true : false;
+                      await account.updatePrefs({ ...currentPrefs, newsletter: newStatus });
+                      toast({ title: newStatus ? "Subscribed to announcements" : "Unsubscribed from announcements", variant: "success" });
+                      window.location.reload();
+                    } catch (err: any) {
+                      toast({ title: "Failed to update preference", description: err.message, variant: "destructive" });
+                    }
+                  }}
+                  className={user?.prefs?.newsletter === false ? "" : "bg-teal-600 hover:bg-teal-700 text-white"}
+                >
+                  {user?.prefs?.newsletter === false ? "Subscribe" : "Subscribed"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Section 2: Linked Accounts (OAuth) */}
           <Card className="rounded-xl border-border/50 bg-card/50 backdrop-blur-xl shadow-lg">
             <CardHeader className="pb-4">

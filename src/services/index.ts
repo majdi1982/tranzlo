@@ -17,5 +17,6 @@ export function getServices() {
     settings: appwrite.appwriteSettingsService,
     ledger: appwrite.appwriteLedgerService,
     invitation: appwrite.appwriteInvitationService,
+    messaging: appwrite.appwriteMessagingService,
   };
 }
