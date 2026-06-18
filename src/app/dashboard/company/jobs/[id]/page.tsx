@@ -245,7 +245,7 @@ export default function JobDetailsPage() {
 
       const app = results.find(a => a.$id === applicationId);
       if (app) {
-        const conv = await services.message.createConversation([user.$id, app.translatorId]);
+        const conv = await services.message.createConversation([user.$id, app.translatorId], job.$id);
         await services.message.sendMessage({
           conversationId: conv.$id,
           senderId: user.$id,
@@ -373,7 +373,7 @@ export default function JobDetailsPage() {
       
       setApps((prev) => prev.map((a) => a.$id === hiringApp.$id ? { ...a, status: "accepted", financialFileId: captureId, escrowStatus: "funded" } : a));
 
-      const conv = await services.message.createConversation([user.$id, hiringApp.translatorId]);
+      const conv = await services.message.createConversation([user.$id, hiringApp.translatorId], job.$id);
       
       let contentStr = `Hello! Escrow deposit of $${hiringApp.bidAmount || job.budget} has been secured for the project "${job.title}". Language Pair: ${hiringApp.languagePair || 'N/A'}. You can now start working.`;
       if (job.deadline) contentStr += `\nDeadline: ${new Date(job.deadline).toLocaleDateString()}`;

@@ -41,7 +41,7 @@ export default function CompanyFinancePage() {
   }, [user?.$id]);
 
   const totalSpent = transactions
-    .filter(t => t.type === "deposit" || t.type === "payment")
+    .filter(t => t.type === "job_escrow" && t.status === "funded")
     .reduce((sum, t) => sum + t.amount, 0);
 
   return (
@@ -130,19 +130,19 @@ export default function CompanyFinancePage() {
                         {transactions.slice(0, 10).map((trx) => (
                           <div key={trx.$id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30">
                             <div className="flex items-center gap-3">
-                              {trx.type === "deposit" ? (
-                                <div className="p-2 bg-emerald-100 text-emerald-700 rounded-full"><ArrowDownRight className="h-4 w-4" /></div>
-                              ) : (
+                              {trx.status === "funded" ? (
                                 <div className="p-2 bg-rose-100 text-rose-700 rounded-full"><ArrowUpRight className="h-4 w-4" /></div>
+                              ) : (
+                                <div className="p-2 bg-emerald-100 text-emerald-700 rounded-full"><ArrowDownRight className="h-4 w-4" /></div>
                               )}
                               <div>
-                                <p className="font-semibold text-sm capitalize">{trx.type}</p>
+                                <p className="font-semibold text-sm capitalize">{trx.type.replace('_', ' ')}</p>
                                 <p className="text-xs text-muted-foreground">{new Date(trx.createdAt).toLocaleDateString()}</p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <span className={trx.type === "deposit" ? "text-emerald-600 font-bold text-sm" : "text-rose-600 font-bold text-sm"}>
-                                {trx.type === "deposit" ? "+" : "-"}${trx.amount.toFixed(2)}
+                              <span className={trx.status === "funded" ? "text-rose-600 font-bold text-sm" : "text-emerald-600 font-bold text-sm"}>
+                                {trx.status === "funded" ? "-" : "+"}${trx.amount.toFixed(2)}
                               </span>
                               <p className="text-[10px] text-muted-foreground uppercase">{trx.status}</p>
                             </div>

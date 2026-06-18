@@ -110,18 +110,18 @@ export default function AdminFinancialsPage() {
                         {transactions.map((trx) => (
                           <div key={trx.$id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30">
                             <div className="flex items-center gap-3">
-                              {trx.type === "deposit" ? (
+                              {trx.status === "funded" ? (
                                 <div className="p-2 bg-emerald-100 text-emerald-700 rounded-full"><ArrowDownRight className="h-4 w-4" /></div>
                               ) : (
                                 <div className="p-2 bg-rose-100 text-rose-700 rounded-full"><ArrowUpRight className="h-4 w-4" /></div>
                               )}
                               <div>
-                                <p className="font-semibold text-sm capitalize">{trx.type}</p>
+                                <p className="font-semibold text-sm capitalize">{trx.type.replace('_', ' ')}</p>
                                 <p className="text-xs text-muted-foreground">{trx.userId} • {new Date(trx.createdAt).toLocaleDateString()}</p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <span className={trx.type === "deposit" ? "text-emerald-600 font-bold text-sm" : "text-rose-600 font-bold text-sm"}>
+                              <span className={trx.status === "funded" ? "text-emerald-600 font-bold text-sm" : "text-rose-600 font-bold text-sm"}>
                                 ${trx.amount.toFixed(2)}
                               </span>
                               <p className="text-[10px] text-muted-foreground uppercase">{trx.status}</p>

@@ -791,6 +791,25 @@ export const appwriteApplicationService = {
 export const appwriteMessageService = {
   async createConversation(participants: string[], jobId?: string, languagePair?: string): Promise<Conversation> {
     const db = getDatabases();
+
+    if (jobId) {
+      try {
+        const existing = await db.listDocuments(DB_ID, COLLECTIONS.conversations, [
+          Query.equal("jobId", jobId)
+        ]);
+        const match = existing.documents.find(doc => 
+          Array.isArray(doc.participants) && 
+          doc.participants.length === participants.length && 
+          participants.every(p => doc.participants.includes(p))
+        );
+        if (match) {
+          return mapDoc<Conversation>(match as Record<string, unknown>);
+        }
+      } catch (err) {
+        // Fallback to create if list fails
+      }
+    }
+
     const doc = await db.createDocument(DB_ID, COLLECTIONS.conversations, generateId("conversation"), {
       participants,
       ...(jobId && { jobId }),

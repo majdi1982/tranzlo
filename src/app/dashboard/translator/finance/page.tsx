@@ -39,7 +39,7 @@ export default function TranslatorFinancePage() {
   }, [user?.$id]);
 
   const totalEarnings = transactions
-    .filter(t => t.type === "payment" && t.status === "completed") // Assuming payouts to translator are payments
+    .filter(t => t.type === "job_escrow" && t.status === "released") // Assuming payouts to translator are released
     .reduce((sum, t) => sum + t.amount, 0);
 
   return (
@@ -101,13 +101,13 @@ export default function TranslatorFinancePage() {
                         {transactions.slice(0, 10).map((trx) => (
                           <div key={trx.$id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30">
                             <div className="flex items-center gap-3">
-                              {trx.type === "deposit" ? (
+                              {trx.status === "released" ? (
                                 <div className="p-2 bg-emerald-100 text-emerald-700 rounded-full"><ArrowDownRight className="h-4 w-4" /></div>
                               ) : (
                                 <div className="p-2 bg-emerald-100 text-emerald-700 rounded-full"><ArrowUpRight className="h-4 w-4" /></div>
                               )}
                               <div>
-                                <p className="font-semibold text-sm capitalize">{trx.type === "payment" ? "Payout" : trx.type}</p>
+                                <p className="font-semibold text-sm capitalize">{trx.status === "released" ? "Payout" : trx.type.replace('_', ' ')}</p>
                                 <p className="text-xs text-muted-foreground">{new Date(trx.createdAt).toLocaleDateString()}</p>
                               </div>
                             </div>
