@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, Functions, Avatars, ID, Query } from "appwrite";
+import { Client, Account, Databases, Storage, Functions, Avatars, ID, Query, Messaging } from "appwrite";
 
 const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://appwrite.tranzlo.net/v1";
 const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "6a156f9000335c99e9be";
@@ -9,6 +9,7 @@ let databases: Databases | null = null;
 let storage: Storage | null = null;
 let functions: Functions | null = null;
 let avatars: Avatars | null = null;
+let messaging: Messaging | null = null;
 
 export function getAppwriteClient(): Client {
   if (!client) {
@@ -22,6 +23,13 @@ export function getAccount(): Account {
     account = new Account(getAppwriteClient());
   }
   return account;
+}
+
+export function getMessaging(): Messaging {
+  if (!messaging) {
+    messaging = new Messaging(getAppwriteClient());
+  }
+  return messaging;
 }
 
 export function getDatabases(): Databases {

@@ -25,8 +25,8 @@ export default function InvoicePage() {
         const job = await services.job.getJob(app.jobId);
         if (!job) throw new Error("Job not found");
 
-        const companyProfile = await services.profile.getProfile(job.companyId);
-        const translatorProfile = await services.profile.getProfile(app.translatorId);
+        const companyProfile = await services.profile.getCompanyProfile(job.companyId);
+        const translatorProfile = await services.profile.getTranslatorProfile(app.translatorId);
 
         setData({ app, job, companyProfile, translatorProfile });
       } catch (err: any) {

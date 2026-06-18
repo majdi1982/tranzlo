@@ -2,6 +2,7 @@ import {
   getAccount,
   getDatabases,
   getFunctions,
+  getMessaging,
   DB_ID,
   COLLECTIONS,
   Query,
@@ -1593,4 +1594,41 @@ export const appwriteLedgerService = {
       createdAt: new Date().toISOString(),
     });
   },
+  },
+};
+
+export const appwriteMessagingService = {
+  async getTopics(): Promise<any[]> {
+    try {
+      const messaging = getMessaging();
+      // Client SDK usually doesn't expose getTopics directly if restricted, 
+      // but we will attempt it or assume topics are pre-created.
+      // For now, let's return a hardcoded list of known topics if we can't fetch.
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  async subscribe(topicId: string, targetId: string): Promise<boolean> {
+    try {
+      const messaging = getMessaging();
+      await messaging.createSubscriber(topicId, targetId, targetId);
+      return true;
+    } catch (e) {
+      console.error("Failed to subscribe:", e);
+      return false;
+    }
+  },
+
+  async unsubscribe(topicId: string, subscriberId: string): Promise<boolean> {
+    try {
+      const messaging = getMessaging();
+      await messaging.deleteSubscriber(topicId, subscriberId);
+      return true;
+    } catch (e) {
+      console.error("Failed to unsubscribe:", e);
+      return false;
+    }
+  }
 };
