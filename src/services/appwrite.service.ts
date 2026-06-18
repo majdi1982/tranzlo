@@ -7,6 +7,7 @@ import {
   Query,
 } from "@/lib/appwrite";
 import { generateId, ID } from "@/lib/ids";
+import { getCompanyCommissionRate, getTranslatorCommissionRate } from "@/types/finance";
 import type {
   User,
   Session,
@@ -290,26 +291,36 @@ export const appwriteProfileService = {
 };
 
 export const appwriteJobService = {
-  async createJob(data: CreateJobInput & { companyId: string; invitedTranslators?: string[] }): Promise<Job> {
+  async createJob(data: CreateJobInput & { companyId: string; invitedTranslators?: string[]; externalTranslatorEmail?: string }): Promise<Job> {
     const db = getDatabases();
     
-    // Extract invitedTranslators before saving, as they might not be part of the job schema natively if we just want to notify
-    const { invitedTranslators, ...jobData } = data;
+    // Extract non-schema fields
+    const { invitedTranslators, externalTranslatorEmail, ...jobData } = data;
     
+    // Default invitation status for invited internal translators
+    let invitationStatusObj: Record<string, string> = {};
+    if (invitedTranslators && invitedTranslators.length > 0) {
+      invitedTranslators.forEach(id => {
+        invitationStatusObj[id] = "pending";
+      });
+    }
+
     const doc = await db.createDocument(DB_ID, COLLECTIONS.jobs, generateId("job"), {
       ...jobData,
       maxApplicants: jobData.maxApplicants || null,
       status: "open",
+      invitationStatus: Object.keys(invitationStatusObj).length > 0 ? JSON.stringify(invitationStatusObj) : null,
+      externalTranslatorEmail: externalTranslatorEmail || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
     
-    // If there are invited internal translators, send them a notification
-    if (invitedTranslators && invitedTranslators.length > 0) {
+    // If private + internal, send notifications
+    if (jobData.visibility === "private" && jobData.privateType === "internal" && invitedTranslators && invitedTranslators.length > 0) {
       const promises = invitedTranslators.map(translatorId => 
         db.createDocument(DB_ID, COLLECTIONS.notifications, generateId("notif"), {
           userId: translatorId,
-          type: "invitation",
+          type: "job_invitation_external", // Used generally for invitations
           title: "You have been invited to a private job",
           body: `A company has invited you to apply for their private job: ${jobData.title}`,
           data: JSON.stringify({ jobId: doc.$id }),
@@ -318,6 +329,11 @@ export const appwriteJobService = {
         })
       );
       await Promise.allSettled(promises);
+    }
+
+    // If private + external, trigger invitation service
+    if (jobData.visibility === "private" && jobData.privateType === "external" && externalTranslatorEmail) {
+      await appwriteInvitationService.sendExternalInvitation(doc.$id, doc.companyId, externalTranslatorEmail);
     }
     
     return mapDoc<Job>(doc as Record<string, unknown>);
@@ -411,6 +427,93 @@ export const appwriteJobService = {
     });
     return mapDoc<Job>(doc as Record<string, unknown>);
   },
+};
+
+export const appwriteInvitationService = {
+  async sendExternalInvitation(jobId: string, companyId: string, email: string): Promise<boolean> {
+    const db = getDatabases();
+    
+    try {
+      const profiles = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
+        Query.equal("email", email),
+        Query.limit(1)
+      ]);
+
+      if (profiles.documents.length > 0) {
+        const translatorId = profiles.documents[0].userId as string;
+        await db.createDocument(DB_ID, COLLECTIONS.notifications, generateId("notif"), {
+          userId: translatorId,
+          type: "job_invitation_external",
+          title: "You have been invited to a private job",
+          body: `A company has invited you to a job. Check your dashboard.`,
+          data: JSON.stringify({ jobId }),
+          read: false,
+          createdAt: new Date().toISOString()
+        });
+
+        const job = await db.getDocument(DB_ID, COLLECTIONS.jobs, jobId);
+        let statusObj: Record<string, string> = {};
+        if (job.invitationStatus) {
+          try { statusObj = JSON.parse(job.invitationStatus); } catch {}
+        }
+        statusObj[translatorId] = "pending";
+        await db.updateDocument(DB_ID, COLLECTIONS.jobs, jobId, {
+          invitationStatus: JSON.stringify(statusObj)
+        });
+
+      } else {
+        console.log(`Sending external invitation email to ${email} for job ${jobId}`);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  async respondToInvitation(jobId: string, translatorId: string, response: "accepted" | "rejected"): Promise<boolean> {
+    try {
+      const db = getDatabases();
+      const job = await db.getDocument(DB_ID, COLLECTIONS.jobs, jobId);
+      
+      let statusObj: Record<string, string> = {};
+      if (job.invitationStatus) {
+        try { statusObj = JSON.parse(job.invitationStatus); } catch {}
+      }
+      statusObj[translatorId] = response;
+
+      await db.updateDocument(DB_ID, COLLECTIONS.jobs, jobId, {
+        invitationStatus: JSON.stringify(statusObj)
+      });
+
+      const profile = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
+        Query.equal("userId", translatorId),
+        Query.limit(1)
+      ]);
+      const translatorName = profile.documents[0]?.fullName || "A translator";
+
+      await db.createDocument(DB_ID, COLLECTIONS.notifications, generateId("notif"), {
+        userId: job.companyId,
+        type: response === "accepted" ? "job_invitation_accepted" : "job_invitation_rejected",
+        title: `Job Invitation ${response === "accepted" ? "Accepted" : "Declined"}`,
+        body: `${translatorName} has ${response} your invitation to ${job.title}`,
+        data: JSON.stringify({ jobId }),
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+
+      if (response === "accepted") {
+        await appwriteApplicationService.submitApplication({
+          jobId,
+          translatorId,
+          coverLetter: "Automatically applied via invitation acceptance",
+        });
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
 };
 
 export const appwriteApplicationService = {
@@ -1174,10 +1277,8 @@ export const appwriteLedgerService = {
     ]);
     const planTier = profiles.documents.length > 0 ? (profiles.documents[0].planTier || "free") : "free";
 
-    // 2. Calculate Fee
-    let feePercent = 0.05; // Free: 5%
-    if (planTier === "pro") feePercent = 0.02; // Pro: 2%
-    if (planTier === "plus") feePercent = 0.0; // Plus: 0%
+    // 2. Calculate Fee (Company: 10% / 5% / 0%)
+    const feePercent = getCompanyCommissionRate(planTier);
     const feeAmount = baseValue * feePercent;
     const totalAmount = baseValue + feeAmount;
 
@@ -1220,10 +1321,8 @@ export const appwriteLedgerService = {
     const profile = profiles.documents[0];
     const planTier = profile?.planTier || "free";
 
-    // 2. Calculate Fee
-    let feePercent = 0.20; // Free: 20%
-    if (planTier === "pro") feePercent = 0.10; // Pro: 10%
-    if (planTier === "plus") feePercent = 0.05; // Plus: 5%
+    // 2. Calculate Fee (Translator: 20% / 15% / 5%)
+    const feePercent = getTranslatorCommissionRate(planTier);
     const feeAmount = baseValue * feePercent;
     const netPayout = baseValue - feeAmount;
 
@@ -1268,6 +1367,48 @@ export const appwriteLedgerService = {
       const db = getDatabases();
       const res = await db.listDocuments(DB_ID, COLLECTIONS.invoices, [
         Query.orderDesc("$createdAt"),
+        Query.limit(100),
+      ]);
+      return res.documents.map((d) => mapDoc<any>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
+  },
+
+  async getInvoicesByUser(userId: string): Promise<any[]> {
+    try {
+      const db = getDatabases();
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.invoices, [
+        Query.equal("userId", userId),
+        Query.orderDesc("$createdAt"),
+        Query.limit(100),
+      ]);
+      return res.documents.map((d) => mapDoc<any>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
+  },
+
+  async getInvoicesByJob(jobId: string): Promise<any[]> {
+    try {
+      const db = getDatabases();
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.invoices, [
+        Query.equal("jobId", jobId),
+        Query.orderDesc("$createdAt"),
+        Query.limit(50),
+      ]);
+      return res.documents.map((d) => mapDoc<any>(d as Record<string, unknown>));
+    } catch {
+      return [];
+    }
+  },
+
+  async getTransactionsByUser(userId: string): Promise<any[]> {
+    try {
+      const db = getDatabases();
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.transactionsLedger, [
+        Query.equal("userId", userId),
+        Query.orderDesc("createdAt"),
         Query.limit(100),
       ]);
       return res.documents.map((d) => mapDoc<any>(d as Record<string, unknown>));

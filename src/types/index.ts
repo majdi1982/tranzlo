@@ -12,5 +12,6 @@ export * from "./complaint";
 export * from "./dispute";
 export * from "./rating";
 export * from "./plan";
+export * from "./finance";
 export * from "./audit";
 export * from "./api";

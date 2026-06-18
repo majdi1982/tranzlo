@@ -22,6 +22,7 @@ import {
   Globe,
   Star,
   Megaphone,
+  DollarSign,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -45,6 +46,7 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/translator/jobs", label: "Browse Jobs", icon: Briefcase },
     { href: "/dashboard/translator/applications", label: "My Applications", icon: FileText },
     { href: "/dashboard/translator/team", label: "Team", icon: Users },
+    { href: "/dashboard/translator/finance", label: "Finance", icon: DollarSign },
     { href: "/dashboard/verification", label: "Verification", icon: Shield },
     { href: "/dashboard/ratings", label: "Ratings", icon: Star },
     { href: "/profile", label: "Profile", icon: User },
@@ -54,6 +56,7 @@ const roleSidebarLinks: Record<Role, SidebarLink[]> = {
     { href: "/dashboard/company/jobs", label: "My Jobs", icon: Briefcase },
     { href: "/dashboard/company/post", label: "Post a Job", icon: FileText },
     { href: "/dashboard/company/team", label: "Team", icon: Users },
+    { href: "/dashboard/company/finance", label: "Finance", icon: DollarSign },
     { href: "/dashboard/verification", label: "Verification", icon: Shield },
     { href: "/dashboard/ratings", label: "Ratings", icon: Star },
     { href: "/profile", label: "Profile", icon: User },

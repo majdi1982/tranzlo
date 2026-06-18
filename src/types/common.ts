@@ -44,7 +44,14 @@ export type NotificationType =
   | "test_reminder"
   | "test_expired"
   | "translator_selected"
-  | "job_closed_max_applicants";
+  | "job_closed_max_applicants"
+  | "job_invitation_external"
+  | "job_invitation_accepted"
+  | "job_invitation_rejected"
+  | "escrow_funded"
+  | "escrow_released"
+  | "invoice_generated"
+  | "job_completed";
 
 export type PlanTier = "free" | "starter" | "professional" | "enterprise";
 

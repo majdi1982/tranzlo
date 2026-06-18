@@ -15,6 +15,7 @@ import type {
   Dispute,
   Rating,
 } from "@/types";
+import type { Invoice, LedgerEntry } from "@/types/finance";
 import type {
   SignupInput,
   LoginInput,
@@ -149,4 +150,19 @@ export interface IRatingService {
   create(data: RatingInput & { fromUserId: string }): Promise<Rating>;
   getRatings(userId: string): Promise<Rating[]>;
   getAverageRating(userId: string): Promise<number>;
+}
+
+export interface ILedgerService {
+  processEscrowFunding(jobId: string, companyId: string, baseValue: number, captureId: string): Promise<any>;
+  processEscrowRelease(jobId: string, translatorId: string, baseValue: number): Promise<any>;
+  getInvoices(): Promise<Invoice[]>;
+  getInvoicesByUser(userId: string): Promise<Invoice[]>;
+  getInvoicesByJob(jobId: string): Promise<Invoice[]>;
+  getTransactions(): Promise<LedgerEntry[]>;
+  getTransactionsByUser(userId: string): Promise<LedgerEntry[]>;
+}
+
+export interface IInvitationService {
+  sendExternalInvitation(jobId: string, companyId: string, email: string): Promise<boolean>;
+  respondToInvitation(jobId: string, translatorId: string, response: "accepted" | "rejected"): Promise<boolean>;
 }

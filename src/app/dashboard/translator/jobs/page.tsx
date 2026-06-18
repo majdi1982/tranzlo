@@ -32,7 +32,19 @@ export default function BrowseJobsPage() {
       try {
         const services = getServices();
         const allJobs = await services.job.getJobs({ status: "open" });
-        setJobs(allJobs);
+        const visibleJobs = allJobs.filter(j => {
+          if (j.visibility === "public" || !j.visibility) return true;
+          if (j.visibility === "private" && user?.$id) {
+            if (j.invitationStatus) {
+              try {
+                const statusObj = JSON.parse(j.invitationStatus);
+                if (statusObj[user.$id]) return true;
+              } catch {}
+            }
+          }
+          return false;
+        });
+        setJobs(visibleJobs);
       } catch {
         // ignore
       } finally {
@@ -146,7 +158,12 @@ export default function BrowseJobsPage() {
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold truncate">{job.title}</h3>
+                          <h3 className="font-semibold truncate flex items-center gap-2">
+                            {job.title}
+                            {job.visibility === "private" && (
+                              <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 text-[10px] py-0 px-1 uppercase tracking-wider">Invited</Badge>
+                            )}
+                          </h3>
                           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Globe className="h-3.5 w-3.5" />

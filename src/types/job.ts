@@ -39,6 +39,8 @@ export interface Job {
   privateType?: "internal" | "external";
   translationFileUrl?: string;
   status: JobStatus;
+  testFileId?: string;
+  invitationStatus?: string; // JSON Record<string, "pending" | "accepted" | "rejected">
   createdAt: string;
   updatedAt: string;
 }

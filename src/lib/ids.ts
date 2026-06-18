@@ -17,6 +17,8 @@ const ID_PREFIXES: Record<string, string> = {
   rating: "RATE",
   plan: "PLAN",
   user: "USR",
+  ledger: "LED",
+  invoice: "INV",
 };
 
 export function generateId(prefix: string): string {

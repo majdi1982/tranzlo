@@ -16,5 +16,6 @@ export function getServices() {
     rating: appwrite.appwriteRatingService,
     settings: appwrite.appwriteSettingsService,
     ledger: appwrite.appwriteLedgerService,
+    invitation: appwrite.appwriteInvitationService,
   };
 }
