@@ -132,7 +132,7 @@ export interface IComplaintService {
 
 export interface IDisputeService {
   create(data: DisputeInput & { raisedById: string }): Promise<Dispute>;
-  getDisputes(jobId?: string): Promise<Dispute[]>;
+  getDisputes(jobId?: string, jobIds?: string[]): Promise<Dispute[]>;
   getDispute(disputeId: string): Promise<Dispute | null>;
   resolve(
     disputeId: string,

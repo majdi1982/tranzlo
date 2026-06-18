@@ -1206,10 +1206,11 @@ export const appwriteDisputeService = {
     return mapDoc<Dispute>(doc as Record<string, unknown>);
   },
 
-  async getDisputes(jobId?: string): Promise<Dispute[]> {
+  async getDisputes(jobId?: string, jobIds?: string[]): Promise<Dispute[]> {
     const db = getDatabases();
     const queries: string[] = [];
     if (jobId) queries.push(Query.equal("jobId", jobId));
+    if (jobIds && jobIds.length > 0) queries.push(Query.equal("jobId", jobIds));
     const result = await db.listDocuments(DB_ID, COLLECTIONS.disputes, queries);
     return result.documents.map((d) => mapDoc<Dispute>(d as Record<string, unknown>));
   },

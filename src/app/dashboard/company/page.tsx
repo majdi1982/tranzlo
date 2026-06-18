@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Briefcase, Plus, Users, FileText, CheckCircle, ArrowRight, TrendingUp, Bell, DollarSign, BarChart2 } from "lucide-react";
+import { Briefcase, Plus, Users, FileText, CheckCircle, ArrowRight, TrendingUp, Bell, DollarSign, BarChart2, Shield } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import type { Job, Notification } from "@/types";
@@ -17,6 +17,7 @@ export default function CompanyDashboard() {
   const [jobs, setJobs] = React.useState<Job[]>([]);
   const [notifs, setNotifs] = React.useState<Notification[]>([]);
   const [totalApplicants, setTotalApplicants] = React.useState(0);
+  const [openDisputesCount, setOpenDisputesCount] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -34,6 +35,12 @@ export default function CompanyDashboard() {
         const appResults = await Promise.all(appPromises);
         setTotalApplicants(appResults.reduce((sum, apps) => sum + apps.length, 0));
 
+        const jobIds = myJobs.map(j => j.$id);
+        if (jobIds.length > 0) {
+           const disputes = await services.dispute.getDisputes(undefined, jobIds);
+           setOpenDisputesCount(disputes.filter(d => d.status === "open").length);
+        }
+
         setNotifs(notifications.filter((n) => !n.read).slice(0, 4));
       } catch {
         // ignore
@@ -46,7 +53,6 @@ export default function CompanyDashboard() {
 
   const openJobs = jobs.filter((j) => j.status === "open");
   const filledJobs = jobs.filter((j) => j.status === "filled");
-  const avgApplicants = jobs.length > 0 ? Math.round((totalApplicants / jobs.length) * 10) / 10 : 0;
 
   return (
     <div className="space-y-8 animate-in">
@@ -132,14 +138,14 @@ export default function CompanyDashboard() {
         <Card className="glass-card border-border/50 rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground uppercase">Hiring Index</span>
-              <div className="rounded-md bg-yellow-500/10 p-2 text-yellow-500">
-                <BarChart2 className="h-4.5 w-4.5" />
+              <span className="text-xs font-medium text-muted-foreground uppercase">Open Disputes</span>
+              <div className="rounded-md bg-rose-500/10 p-2 text-rose-500">
+                <Shield className="h-4.5 w-4.5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-bold tracking-tight">{avgApplicants}</span>
-              <p className="text-2xs text-muted-foreground mt-1">Average applications per project</p>
+              <span className="text-3xl font-bold tracking-tight">{openDisputesCount}</span>
+              <p className="text-2xs text-muted-foreground mt-1 text-rose-600/80">Active job disputes</p>
             </div>
           </CardContent>
         </Card>

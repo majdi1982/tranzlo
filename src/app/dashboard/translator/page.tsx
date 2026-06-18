@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Briefcase, CheckCircle, Star, FileText, ArrowRight, TrendingUp, Bell, Clock, Award, DollarSign, Loader2 } from "lucide-react";
+import { Briefcase, CheckCircle, Star, FileText, ArrowRight, TrendingUp, Bell, Clock, Award, DollarSign, Loader2, Shield } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import type { Job, Application, Notification } from "@/types";
@@ -22,6 +22,7 @@ export default function TranslatorDashboard() {
   const [notifs, setNotifs] = React.useState<Notification[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [rating, setRating] = React.useState(0);
+  const [openDisputesCount, setOpenDisputesCount] = React.useState(0);
   const [profile, setProfile] = React.useState<TranslatorProfile | null>(null);
   
   // Withdrawal State
@@ -45,6 +46,12 @@ export default function TranslatorDashboard() {
         setApplications(myApps);
         setNotifs(notifications.filter((n) => !n.read).slice(0, 4));
         setRating(avgRating);
+        
+        const activeJobIds = myApps.filter(a => a.status === 'accepted' || a.status === 'completed' || a.status === 'submitted').map(a => a.jobId);
+        if (activeJobIds.length > 0) {
+           const disputes = await services.dispute.getDisputes(undefined, activeJobIds);
+           setOpenDisputesCount(disputes.filter(d => d.status === "open").length);
+        }
         setProfile(userProfile);
         if (userProfile?.paypalEmail || userProfile?.email) {
           setPaypalEmail(userProfile.paypalEmail || userProfile.email);
@@ -209,14 +216,14 @@ export default function TranslatorDashboard() {
         <Card className="glass-card border-border/50 rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground uppercase">Completed Jobs</span>
-              <div className="rounded-md bg-emerald-500/10 p-2 text-emerald-500">
-                <CheckCircle className="h-4.5 w-4.5" />
+              <span className="text-xs font-medium text-muted-foreground uppercase">Open Disputes</span>
+              <div className="rounded-md bg-rose-500/10 p-2 text-rose-500">
+                <Shield className="h-4.5 w-4.5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-bold tracking-tight">{completed}</span>
-              <p className="text-2xs text-muted-foreground mt-1">Successfully delivered translations</p>
+              <span className="text-3xl font-bold tracking-tight">{openDisputesCount}</span>
+              <p className="text-2xs text-muted-foreground mt-1 text-rose-600/80">Active job disputes</p>
             </div>
           </CardContent>
         </Card>
