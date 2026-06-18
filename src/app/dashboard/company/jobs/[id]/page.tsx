@@ -931,12 +931,12 @@ export default function JobDetailsPage() {
             </div>
             <div className="flex-1 p-8 overflow-y-auto space-y-6">
               <div className="p-6 bg-primary/5 border border-primary/20 rounded-xl text-center">
-                <span className="text-sm font-semibold text-muted-foreground">Total Escrow Required</span>
-                <div className="text-4xl font-black text-primary mt-2">${hiringApp?.bidAmount || job?.budget}</div>
+                <span className="text-sm font-semibold text-muted-foreground">Total Escrow Required (Includes 5% Platform Fee)</span>
+                <div className="text-4xl font-black text-primary mt-2">${((hiringApp?.bidAmount || job?.budget || 0) * 1.05).toFixed(2)}</div>
               </div>
               <div className="bg-slate-50 border rounded-xl p-6">
                 <div className="flex items-center justify-center gap-2 mb-6"><Lock className="h-4 w-4 text-emerald-500" /><span className="text-sm font-bold text-muted-foreground uppercase">Secure Checkout</span></div>
-                <PayPalButton amount={hiringApp?.bidAmount || job?.budget || 0} applicationId={hiringApp?.$id || ""} onSuccess={handleHiringSuccess} />
+                <PayPalButton amount={parseFloat(((hiringApp?.bidAmount || job?.budget || 0) * 1.05).toFixed(2))} applicationId={hiringApp?.$id || ""} onSuccess={handleHiringSuccess} />
               </div>
             </div>
           </SheetContent>
