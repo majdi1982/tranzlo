@@ -94,12 +94,42 @@ export default function AdminDisputesPage() {
     try {
       const services = getServices();
       await services.dispute.resolve(resolveTarget.$id, decision, note.trim());
+      
+      // Auto-Release Funds & Place Rating Logic
+      if (decision === "release" && resolveTarget.job) {
+        // Find the translator app
+        const translatorId = resolveTarget.job.activeTranslatorId || resolveTarget.raisedById;
+        const companyId = resolveTarget.job.companyId;
+        const app = resolveTarget.applications?.find((a) => a.translatorId === translatorId);
+        
+        if (app && translatorId) {
+          // 1. Accept delivery (transfers funds to translator)
+          await services.application.acceptDelivery(
+            resolveTarget.jobId,
+            app.$id,
+            translatorId,
+            app.bidAmount || resolveTarget.job.budget,
+            companyId
+          );
+          
+          // 2. Automatically grant "Very Good" (4 stars) rating
+          await (services as any).rating.create({
+            jobId: resolveTarget.jobId,
+            fromUserId: companyId, // Looks like company rated them
+            toUserId: translatorId,
+            stars: 4,
+            reviewText: "System automatically assigned a Very Good rating following a dispute resolution in favor of the translator.",
+          });
+        }
+      }
+
       setDisputes((prev) => prev.filter((d) => d.$id !== resolveTarget.$id));
       toast({ title: `Dispute resolved: ${decisionLabels[decision]}` });
       setResolveTarget(null);
       setNote("");
-    } catch {
-      toast({ title: "Failed to resolve dispute", variant: "destructive" });
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Failed to resolve dispute", variant: "destructive", description: e.message });
     } finally {
       setActionLoading(null);
     }
