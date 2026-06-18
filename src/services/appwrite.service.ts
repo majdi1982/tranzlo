@@ -1325,6 +1325,7 @@ export const appwriteLedgerService = {
 
     // 3. Create Company Invoice
     await db.createDocument(DB_ID, COLLECTIONS.invoices, generateId("inv"), {
+      invoiceNumber: `INV-${Date.now()}`,
       jobId,
       userId: companyId,
       type: "company_funding",
@@ -1369,6 +1370,7 @@ export const appwriteLedgerService = {
 
     // 3. Create Translator Invoice
     await db.createDocument(DB_ID, COLLECTIONS.invoices, generateId("inv"), {
+      invoiceNumber: `INV-${Date.now()}`,
       jobId,
       userId: translatorId,
       type: "translator_payout",
