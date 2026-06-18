@@ -761,7 +761,7 @@ export default function JobDetailsPage() {
                                               )}
                                               {app.deliveryFileUrl && (
                                                 <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium p-2 bg-white rounded-lg border border-blue-100/50 shadow-sm transition-all">
-                                                  <CheckCircle className="h-4 w-4" /> Download Delivered Work
+                                                  <CheckCircle2 className="h-4 w-4" /> Download Delivered Work
                                                 </a>
                                               )}
                                               {!job.translationFileUrl && !app.deliveryFileUrl && (
