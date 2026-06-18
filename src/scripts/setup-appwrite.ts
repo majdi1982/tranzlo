@@ -204,6 +204,7 @@ const SCHEMA: Col[] = [
       { key: "testDeadline", type: "datetime", required: false },
       { key: "testLaunched", type: "boolean", required: false, default: false },
       { key: "externalTranslatorEmail", type: "string", size: 255, required: false },
+      { key: "invitationStatus", type: "string", size: 4000, required: false },
       { key: "previousTranslatorId", type: "string", size: 64, required: false },
       { key: "reviewerType", type: "enum", elements: ["company", "translator"], required: true },
       { key: "activeTranslatorId", type: "string", size: 64, required: false },

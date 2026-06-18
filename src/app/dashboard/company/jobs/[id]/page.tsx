@@ -449,7 +449,87 @@ export default function JobDetailsPage() {
           </div>
 
           <Separator />
+          
+          {/* Job Details Card */}
+          <Card className="border-border/50 bg-card/40 shadow-sm">
+            <CardHeader className="pb-3 border-b border-border/30 bg-muted/20">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" /> Job Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-5 space-y-6">
+              <div>
+                <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Description</h4>
+                <div className="text-sm leading-relaxed whitespace-pre-wrap">{job.description}</div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Requirements & Details</h4>
+                  <ul className="space-y-2 text-sm">
+                    {job.specializations && (
+                      <li className="flex gap-2">
+                        <span className="font-medium min-w-24">Specializations:</span>
+                        <span className="text-muted-foreground">{job.specializations.split(',').join(', ')}</span>
+                      </li>
+                    )}
+                    <li className="flex gap-2">
+                      <span className="font-medium min-w-24">Translator Role:</span>
+                      <span className="text-muted-foreground capitalize">{job.translatorRole?.replace('_', ' ') || 'Any'}</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-medium min-w-24">Payment Type:</span>
+                      <span className="text-muted-foreground capitalize">{job.budgetType} {job.budgetType === 'hourly' && `($${job.budget}/hr)`}</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-medium min-w-24">Visibility:</span>
+                      <span className="text-muted-foreground capitalize">{job.visibility} {job.privateType ? `(${job.privateType})` : ''}</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Testing & Materials</h4>
+                  <ul className="space-y-3 text-sm">
+                    <li className="flex gap-2 items-start">
+                      <span className="font-medium min-w-24">Test Required:</span>
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        {job.requiresTest ? (
+                          <><CheckCircle2 className="h-4 w-4 text-success" /> Yes, Test Required</>
+                        ) : (
+                          <><XCircle className="h-4 w-4 text-muted-foreground" /> No</>
+                        )}
+                      </span>
+                    </li>
+                    {job.requiresTest && job.testInstructions && (
+                      <li className="flex gap-2 flex-col">
+                        <span className="font-medium">Test Instructions:</span>
+                        <span className="text-muted-foreground bg-background/50 p-2 rounded text-xs whitespace-pre-wrap border border-border/30">{job.testInstructions}</span>
+                      </li>
+                    )}
+                    {job.testFileUrl && (
+                      <li className="flex gap-2 items-center pt-1">
+                        <span className="font-medium min-w-24">Test File:</span>
+                        <a href={job.testFileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                          <ExternalLink className="h-3.5 w-3.5" /> View File
+                        </a>
+                      </li>
+                    )}
+                    {job.referenceFilesUrl && (
+                      <li className="flex gap-2 items-center pt-1">
+                        <span className="font-medium min-w-24">Reference Files:</span>
+                        <a href={job.referenceFilesUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                          <ExternalLink className="h-3.5 w-3.5" /> View Files
+                        </a>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
+          <Separator />
           {/* Applicants Section */}
           <div className="space-y-5">
             <h2 className="text-xl font-bold flex items-center gap-2"><Users className="h-5 w-5" /> Applicants & Proposals</h2>
