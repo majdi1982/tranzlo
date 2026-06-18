@@ -623,7 +623,7 @@ export default function JobDetailsPage() {
                                       </div>
                                     </div>
                                     
-                                    <p className="text-sm text-muted-foreground leading-relaxed p-3 bg-background/50 rounded-lg border border-border/20">
+                                    <p className="text-sm text-muted-foreground leading-relaxed p-3 bg-background/50 rounded-lg border border-border/20 whitespace-pre-wrap break-words">
                                       "{app.coverLetter}"
                                     </p>
 
