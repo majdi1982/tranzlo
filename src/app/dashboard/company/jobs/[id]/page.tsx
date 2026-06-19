@@ -368,34 +368,46 @@ export default function JobDetailsPage() {
     if (!hiringApp || !user || !job) return;
     try {
       const services = getServices();
-      await services.application.updateApplicationStatus(hiringApp.$id, "accepted");
-      await services.application.fundEscrow(job.$id, user.$id, hiringApp.translatorId, hiringApp.bidAmount || job.budget, captureId);
-      
-      setApps((prev) => prev.map((a) => a.$id === hiringApp.$id ? { ...a, status: "accepted", financialFileId: captureId, escrowStatus: "funded" } : a));
 
+      // 1. Accept application + persist escrowStatus to DB
+      await services.application.updateApplicationStatus(hiringApp.$id, "accepted");
+      await services.application.updateApplicationWithFeedback(hiringApp.$id, {
+        escrowStatus: "funded",
+      });
+      await services.application.fundEscrow(job.$id, user.$id, hiringApp.translatorId, hiringApp.bidAmount || job.budget, captureId);
+
+      setApps((prev) => prev.map((a) => a.$id === hiringApp.$id ? { ...a, status: "accepted", escrowStatus: "funded" } : a));
+
+      // 2. Create conversation and send welcome message
       const conv = await services.message.createConversation([user.$id, hiringApp.translatorId], job.$id);
-      
-      let contentStr = `Hello! Escrow deposit of $${hiringApp.bidAmount || job.budget} has been secured for the project "${job.title}". Language Pair: ${hiringApp.languagePair || 'N/A'}. You can now start working.`;
-      if (job.deadline) contentStr += `\nDeadline: ${new Date(job.deadline).toLocaleDateString()}`;
-      if (job.translationFileUrl) contentStr += `\n\nHere is the private translation file for this job: ${job.translationFileUrl}`;
+
+      const escrowValue = hiringApp.bidAmount || job.budget;
+      let contentStr = `🎉 Congratulations! You've been hired for the project "${job.title}".\n\n`;
+      contentStr += `💰 Escrow deposit of $${escrowValue} USD has been secured and is held safely until you deliver.\n`;
+      contentStr += `🌐 Language Pair: ${hiringApp.languagePair || 'N/A'}\n`;
+      if (job.deadline) contentStr += `📅 Deadline: ${new Date(job.deadline).toLocaleDateString()}\n`;
+      if (job.translationFileUrl) contentStr += `\n📎 Translation file: ${job.translationFileUrl}`;
+      contentStr += `\n\nPlease start working and deliver via your Applications dashboard. Good luck!`;
 
       await services.message.sendMessage({ conversationId: conv.$id, senderId: user.$id, content: contentStr });
 
+      // 3. Send detailed notification to translator
       await services.notification.createNotification({
         userId: hiringApp.translatorId,
         type: "job_escrow_funded",
-        title: "Escrow Secured & Hired!",
-        body: `Escrow for "${job.title}" is funded. Check your messages.`,
-        data: { jobId: job.$id },
+        title: "🎉 You're Hired — Escrow Secured!",
+        body: `Escrow of $${escrowValue} USD is locked for "${job.title}". Open your messages to get the project file and start working.`,
+        data: { jobId: job.$id, conversationId: conv.$id },
       });
 
-      toast({ title: "Contract secured and translator hired successfully!", variant: "success" });
+      toast({ title: "Translator hired & escrow secured!", variant: "success" });
       setHiringApp(null);
     } catch (err: any) {
       console.error("Hiring error:", err);
       toast({ title: "Hiring update failed.", description: err.message || "Please contact support.", variant: "destructive" });
     }
   }
+
 
   if (loading) {
     return (

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { FileText, Eye, Globe, DollarSign, Calendar, Clock, CheckCircle, AlertCircle, Inbox, TestTube, XCircle, MessageCircle, Upload, Loader2, ShieldAlert } from "lucide-react";
+import { FileText, Eye, Globe, DollarSign, Calendar, Clock, CheckCircle, AlertCircle, Inbox, TestTube, XCircle, MessageCircle, Upload, Loader2, ShieldAlert, CheckCircle2, Lock, PackageCheck } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -31,6 +31,86 @@ const statusVariant: Record<string, "default" | "secondary" | "success" | "warni
 };
 
 type TabType = "all" | "progress" | "completed" | "rejected";
+
+// ─── Progress Bar ───────────────────────────────────────────────────────────
+function ApplicationProgressBar({ app }: { app: Application & { job?: Job } }) {
+  const requiresTest = app.job?.requiresTest;
+
+  type Step = { label: string; icon: React.ReactNode; done: boolean; active: boolean; danger?: boolean };
+
+  const steps: Step[] = [
+    {
+      label: "Applied",
+      icon: <FileText className="h-3 w-3" />,
+      done: true,
+      active: ["submitted", "viewed", "shortlisted"].includes(app.status),
+    },
+    ...(requiresTest ? [{
+      label: "Test",
+      icon: <TestTube className="h-3 w-3" />,
+      done: ["test_invited", "accepted", "rejected"].includes(app.status) && (app.testStatus === "passed" || app.testStatus === "failed" || app.status === "accepted"),
+      active: app.status === "test_invited",
+      danger: app.testStatus === "failed",
+    }] : []),
+    {
+      label: "Hired",
+      icon: <CheckCircle2 className="h-3 w-3" />,
+      done: app.status === "accepted" || app.status === "completed" as any,
+      active: app.status === "accepted" && app.escrowStatus !== "funded" && app.escrowStatus !== "released",
+    },
+    {
+      label: "Escrow",
+      icon: <Lock className="h-3 w-3" />,
+      done: ["funded", "approved", "released"].includes(app.escrowStatus || ""),
+      active: app.status === "accepted" && app.escrowStatus === "funded" && !app.deliveryFileUrl,
+    },
+    {
+      label: "Delivered",
+      icon: <Upload className="h-3 w-3" />,
+      done: !!app.deliveryFileUrl,
+      active: app.status === "accepted" && !!app.deliveryFileUrl && app.escrowStatus !== "released",
+    },
+    {
+      label: "Paid",
+      icon: <PackageCheck className="h-3 w-3" />,
+      done: app.escrowStatus === "released" || app.job?.status === "closed",
+      active: false,
+    },
+  ];
+
+  return (
+    <div className="flex items-center gap-0 w-full mt-3 mb-1">
+      {steps.map((step, i) => (
+        <React.Fragment key={step.label}>
+          <div className="flex flex-col items-center gap-1 min-w-0">
+            <div className={cn(
+              "h-6 w-6 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-300",
+              step.danger
+                ? "bg-rose-500 border-rose-500 text-white"
+                : step.done
+                  ? "bg-teal-500 border-teal-500 text-white"
+                  : step.active
+                    ? "bg-teal-50 border-teal-500 text-teal-600 shadow-[0_0_8px_rgba(20,184,166,0.4)] animate-pulse"
+                    : "bg-muted/40 border-border/40 text-muted-foreground"
+            )}>
+              {step.icon}
+            </div>
+            <span className={cn(
+              "text-[9px] font-semibold uppercase tracking-wider whitespace-nowrap",
+              step.danger ? "text-rose-500" : step.done || step.active ? "text-teal-600" : "text-muted-foreground/60"
+            )}>{step.label}</span>
+          </div>
+          {i < steps.length - 1 && (
+            <div className={cn(
+              "flex-1 h-0.5 mb-4 mx-1 rounded-full transition-all duration-500",
+              step.done ? "bg-teal-400" : "bg-border/40"
+            )} />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
 
 export default function MyApplicationsPage() {
   const { user } = useSession();
@@ -76,9 +156,9 @@ export default function MyApplicationsPage() {
   const filteredApps = React.useMemo(() => {
     return apps.filter((app) => {
       if (activeTab === "all") return true;
-      if (activeTab === "rejected") {
-        return app.status === "rejected";
-      }
+      if (activeTab === "rejected") return app.status === "rejected";
+      if (activeTab === "progress") return app.status === "accepted" && app.job?.status !== "closed" && app.job?.status !== "filled";
+      if (activeTab === "completed") return app.status === "accepted" && (app.job?.status === "closed" || app.job?.status === "filled");
       return true;
     });
   }, [apps, activeTab]);
@@ -309,6 +389,11 @@ export default function MyApplicationsPage() {
                               </h3>
                               <p className="text-sm text-teal-700 font-medium">In Progress</p>
                             </div>
+
+                            {/* Progress Stepper */}
+                            <div className="bg-white/70 border border-teal-100/60 rounded-xl px-4 py-3">
+                              <ApplicationProgressBar app={app} />
+                            </div>
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/60 p-4 rounded-xl border border-teal-100/50">
                               <div>
@@ -522,6 +607,8 @@ export default function MyApplicationsPage() {
                             </span>
                           </div>
                         )}
+                        {/* Progress Stepper */}
+                        <ApplicationProgressBar app={app} />
                         {app.coverLetter && (
                           <div className="mt-3 p-3 rounded-xl bg-accent/5 border border-border/20">
                             <p className="text-2xs text-muted-foreground line-clamp-3 leading-relaxed">{app.coverLetter}</p>
