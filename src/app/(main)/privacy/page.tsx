@@ -93,6 +93,36 @@ export default function PrivacyPolicyPage() {
               </div>
             </div>
           </div>
+
+          {/* Card 4: AdSense & Third-Party Advertising */}
+          <div className="glass-card rounded-2xl p-6 sm:p-8 border border-slate-800 bg-slate-900/40 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none" />
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 rounded-xl bg-teal-950/60 border border-teal-500/30 text-teal-400 shrink-0">
+                <Shield className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-100 mb-3">4. Google AdSense & Third-Party Advertising</h2>
+                <p className="text-slate-300 leading-relaxed text-sm mb-4">
+                  We use Google AdSense to serve advertisements on our platform. To ensure compliance with Google's program policies, please note the following disclosures:
+                </p>
+                <ul className="space-y-2 text-sm text-slate-400">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-teal-400 shrink-0 mt-0.5" />
+                    <span>Third-party vendors, including Google, use cookies to serve ads based on your prior visits to our website or other websites on the Internet.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-teal-400 shrink-0 mt-0.5" />
+                    <span>Google's use of advertising cookies enables it and its partners to serve ads to our users based on their visits to our site and/or other sites on the Internet.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-teal-400 shrink-0 mt-0.5" />
+                    <span>You can easily opt out of personalized advertising by visiting Google's <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">Ads Settings</a>. Alternatively, you can opt out of a third-party vendor's use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">www.aboutads.info</a>.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Support and Contact box */}

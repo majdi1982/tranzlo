@@ -78,6 +78,22 @@ export default function CookiePolicyPage() {
               </div>
             </div>
           </div>
+
+          {/* Section 4 */}
+          <div className="glass-card rounded-2xl p-6 sm:p-8 border border-slate-800 bg-slate-900/40 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none" />
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 rounded-xl bg-teal-950/60 border border-teal-500/30 text-teal-400 shrink-0">
+                <Cookie className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-100 mb-3">4. Google AdSense & Advertising Cookies</h2>
+                <p className="text-slate-300 leading-relaxed text-sm">
+                  Google AdSense utilizes advertising and tracking cookies (such as DoubleClick cookies) to serve personalized ads on our platform based on your web browsing history. These cookies allow Google and its partners to optimize ad placements and display ads that match your interests. You can opt out of these personalized advertising cookies by managing your preferences in your Google account's Ad Settings or by opting out via aboutads.info.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Support and Contact box */}
