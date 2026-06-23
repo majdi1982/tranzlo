@@ -6,6 +6,7 @@ import { appwriteBlogService } from "@/services/appwrite.service";
 import { mockBlogPosts } from "@/data/mock/blog";
 import type { BlogPost } from "@/types";
 import { Button } from "@/components/ui/button";
+import { BLOG_CATEGORIES } from "@/constants/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -13,14 +14,45 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-const CATEGORY_MAP: Record<string, string> = {
-  "translation-tech": "AI & Translation Tech",
-  "career-growth": "Linguist & Career Growth",
-  "industry-trends": "Industry Insights & Trends",
-  "best-practices": "Best Practices & Guides",
-  "platform-news": "Platform News & Updates",
-  "general": "General",
-};
+function readingTimeDisplay(post: BlogPost): string {
+  if (post.readingTime) return `${post.readingTime} min read`;
+  if (post.wordCount) return `${Math.max(1, Math.ceil(post.wordCount / 200))} min read`;
+  const wc = post.content.trim().split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.ceil(wc / 200))} min read`;
+}
+
+function renderContent(content: string) {
+  // If content contains HTML tags, render it as HTML
+  if (/<[a-z][\s\S]*>/i.test(content)) {
+    return <div className="prose prose-invert prose-cyan max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: content }} />;
+  }
+  // Otherwise parse as Markdown
+  return (
+    <div className="prose prose-invert prose-cyan max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed space-y-6">
+      {content.split("\n\n").map((paragraph, index) => {
+        if (paragraph.startsWith("## ")) {
+          return (
+            <h2 key={index} className="text-xl sm:text-2xl font-bold text-foreground mt-8 mb-4 border-l-2 border-primary pl-3">
+              {paragraph.replace("## ", "")}
+            </h2>
+          );
+        }
+        if (paragraph.startsWith("### ")) {
+          return (
+            <h3 key={index} className="text-lg font-bold text-foreground mt-6 mb-3">
+              {paragraph.replace("### ", "")}
+            </h3>
+          );
+        }
+        return (
+          <p key={index} className="whitespace-pre-line text-muted-foreground">
+            {paragraph}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
@@ -102,7 +134,7 @@ export default async function BlogPostDetailPage(props: PageProps) {
       })
     : "Draft";
 
-  const categoryName = CATEGORY_MAP[post.category || "general"] || "General";
+  const categoryName = BLOG_CATEGORIES[post.category as keyof typeof BLOG_CATEGORIES] || post.category || "General";
 
   // JSON-LD Structured Schema Markup (Google Search console indexing optimization)
   const jsonLdSchema = {
@@ -226,7 +258,7 @@ export default async function BlogPostDetailPage(props: PageProps) {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="h-4 w-4 text-primary/70" />
-                  5 min read
+                  {readingTimeDisplay(post)}
                 </span>
               </div>
 
@@ -275,29 +307,7 @@ export default async function BlogPostDetailPage(props: PageProps) {
             </h1>
 
             {/* Structured Content Area for perfect crawlability */}
-            <div className="prose prose-invert prose-cyan max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed space-y-6">
-              {post.content.split("\n\n").map((paragraph, index) => {
-                if (paragraph.startsWith("## ")) {
-                  return (
-                    <h2 key={index} className="text-xl sm:text-2xl font-bold text-foreground mt-8 mb-4 border-l-2 border-primary pl-3">
-                      {paragraph.replace("## ", "")}
-                    </h2>
-                  );
-                }
-                if (paragraph.startsWith("### ")) {
-                  return (
-                    <h3 key={index} className="text-lg font-bold text-foreground mt-6 mb-3">
-                      {paragraph.replace("### ", "")}
-                    </h3>
-                  );
-                }
-                return (
-                  <p key={index} className="whitespace-pre-line text-muted-foreground">
-                    {paragraph}
-                  </p>
-                );
-              })}
-            </div>
+            {renderContent(post.content)}
           </div>
         </article>
 

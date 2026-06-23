@@ -1090,14 +1090,81 @@ export const appwriteBlogService = {
       publishedAt: new Date().toISOString(),
     } as Partial<BlogPost>);
 
-    // Simulate auto-sharing to social media platforms
-    console.log(`\n📢 [Social Auto-Share] Auto-publishing approved article: "${post.title}" to socials...`);
-    console.log(`   🔗 Post URL: https://tranzlo.net/blog/${post.slug}`);
-    console.log(`   • [Facebook] Sharing to page Tranzlo. Payload: { message: "${post.excerpt}", link: "https://tranzlo.net/blog/${post.slug}" }`);
-    console.log(`   • [LinkedIn] Sharing as company update. Share API Payload: { text: "${post.title}\\n${post.excerpt}", link: "https://tranzlo.net/blog/${post.slug}" }`);
-    console.log(`   • [X / Twitter] Posting status tweet: "${post.title} #translation #SEO - https://tranzlo.net/blog/${post.slug}"`);
-    console.log(`   • [Pinterest] Creating Pin. Board Tranzlo: { title: "${post.title}", image: "${post.coverImage}", alt: "${post.imageAlt || ''}", link: "https://tranzlo.net/blog/${post.slug}" }`);
-    console.log(`✅ [Social Auto-Share] Shared successfully to Facebook, LinkedIn, X, and Pinterest!\n`);
+    const postUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://tranzlo.net"}/blog/${post.slug}`;
+    const plainExcerpt = (post.excerpt || post.content || "").replace(/<[^>]*>/g, "").slice(0, 200);
+    const hashtags = "#translation #localization #freelance";
+
+    // X / Twitter
+    const twitterBearer = process.env.TWITTER_BEARER_TOKEN;
+    if (twitterBearer) {
+      try {
+        const tweetText = `${post.title}\n\n${plainExcerpt}\n\n${postUrl} ${hashtags}`;
+        await fetch("https://api.twitter.com/2/tweets", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${twitterBearer}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: tweetText.slice(0, 280) }),
+        });
+      } catch (e) {
+        console.error("[Social] Twitter failed:", (e as Error).message);
+      }
+    }
+
+    // Facebook
+    const fbPageToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+    if (fbPageToken) {
+      try {
+        await fetch(`https://graph.facebook.com/v19.0/me/feed`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: `${post.title}\n\n${plainExcerpt}`,
+            link: postUrl,
+            access_token: fbPageToken,
+          }),
+        });
+      } catch (e) {
+        console.error("[Social] Facebook failed:", (e as Error).message);
+      }
+    }
+
+    // LinkedIn
+    const linkedinToken = process.env.LINKEDIN_ACCESS_TOKEN;
+    if (linkedinToken) {
+      try {
+        const profileRes = await fetch("https://api.linkedin.com/v2/userinfo", {
+          headers: { Authorization: `Bearer ${linkedinToken}` },
+        });
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          const author = `urn:li:person:${profile.sub}`;
+          await fetch("https://api.linkedin.com/v2/ugcPosts", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${linkedinToken}`,
+              "Content-Type": "application/json",
+              "X-Restli-Protocol-Version": "2.0.0",
+            },
+            body: JSON.stringify({
+              author,
+              lifecycleState: "PUBLISHED",
+              specificContent: {
+                "com.linkedin.ugc.ShareContent": {
+                  shareCommentary: { text: `${post.title}\n\n${plainExcerpt}` },
+                  shareMediaCategory: "ARTICLE",
+                  media: [{ status: "READY", originalUrl: postUrl }],
+                },
+              },
+              visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
+            }),
+          });
+        }
+      } catch (e) {
+        console.error("[Social] LinkedIn failed:", (e as Error).message);
+      }
+    }
 
     return post;
   },

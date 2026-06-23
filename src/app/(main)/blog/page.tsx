@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AdSenseUnit } from "@/components/adsense-unit";
+import { BLOG_CATEGORIES } from "@/constants/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -20,13 +21,16 @@ export const metadata = {
   },
 };
 
+function readingTime(post: BlogPost): string {
+  if (post.readingTime) return `${post.readingTime} min read`;
+  if (post.wordCount) return `${Math.max(1, Math.ceil(post.wordCount / 200))} min read`;
+  const wc = post.content.trim().split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.ceil(wc / 200))} min read`;
+}
+
 const CATEGORIES = [
   { id: "all", name: "All Topics" },
-  { id: "translation-tech", name: "AI & Translation Tech" },
-  { id: "career-growth", name: "Linguist & Career Growth" },
-  { id: "industry-trends", name: "Industry Insights & Trends" },
-  { id: "best-practices", name: "Best Practices & Guides" },
-  { id: "platform-news", name: "Platform News & Updates" },
+  ...Object.entries(BLOG_CATEGORIES).map(([id, name]) => ({ id, name })),
 ];
 
 export default async function BlogPage(props: {
@@ -191,7 +195,7 @@ export default async function BlogPage(props: {
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="h-3.5 w-3.5" />
-                              5 min read
+                              {readingTime(post)}
                             </span>
                           </div>
                           <CardTitle className="text-lg font-bold text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">

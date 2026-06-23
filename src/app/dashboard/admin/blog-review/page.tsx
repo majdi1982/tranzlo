@@ -34,6 +34,7 @@ import { RoleGuard } from "@/guards/role-guard";
 import { getServices } from "@/services";
 import type { BlogPost } from "@/types";
 import { getAccount } from "@/lib/appwrite";
+import { BLOG_CATEGORIES, BLOG_CATEGORY_SLUGS, BLOG_CATEGORY_MAP } from "@/constants/categories";
 
 
 export default function AdminBlogReviewPage() {
@@ -255,11 +256,9 @@ export default function AdminBlogReviewPage() {
                   className="w-full h-9 rounded-lg border border-border bg-background px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
                   disabled={generating}
                 >
-                  <option value="general">General</option>
-                  <option value="translation">Translation</option>
-                  <option value="technology">Technology</option>
-                  <option value="finance">Finance</option>
-                  <option value="business">Business</option>
+                  {Object.entries(BLOG_CATEGORIES).map(([slug, name]) => (
+                    <option key={slug} value={slug}>{name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -337,7 +336,29 @@ export default function AdminBlogReviewPage() {
                         {post.excerpt}
                       </p>
                       
-                      {/* SEO Image Alt Info */}
+                      {/* SEO Info Row */}
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {post.wordCount && (
+                          <span className="text-2xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                            📝 {post.wordCount} words
+                          </span>
+                        )}
+                        {post.readingTime && (
+                          <span className="text-2xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                            ⏱ {post.readingTime} min read
+                          </span>
+                        )}
+                        {post.primaryKeyword && (
+                          <span className="text-2xs text-primary bg-primary/5 px-2 py-0.5 rounded-md">
+                            🔑 {post.primaryKeyword}
+                          </span>
+                        )}
+                        {post.generatedBy && (
+                          <span className="text-2xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                            🤖 {post.generatedBy}
+                          </span>
+                        )}
+                      </div>
                       {post.imageAlt && (
                         <div className="text-2xs text-muted-foreground flex items-center gap-1.5 bg-muted/60 px-2.5 py-1 rounded-md w-fit">
                           <Globe className="h-3 w-3 text-primary" />
@@ -417,8 +438,11 @@ export default function AdminBlogReviewPage() {
                   </div>
                   <h2 className="text-xl font-bold text-foreground">{selectedPost.title}</h2>
                   
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground bg-muted p-2 rounded-md">
-                    <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Created At: {new Date(selectedPost.createdAt).toLocaleDateString()}</span>
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-muted p-2 rounded-md">
+                    <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {new Date(selectedPost.createdAt).toLocaleDateString()}</span>
+                    {selectedPost.wordCount && <span>📝 {selectedPost.wordCount} words</span>}
+                    {selectedPost.readingTime && <span>⏱ {selectedPost.readingTime} min</span>}
+                    {selectedPost.primaryKeyword && <span>🔑 {selectedPost.primaryKeyword}</span>}
                     <span className="flex items-center gap-1"><Globe className="h-3.5 w-3.5" /> Author: Automated Bot</span>
                   </div>
                 </div>

@@ -103,47 +103,45 @@ async function enrichAndTranslateWithGemini(title: string, rawContent: string): 
   imageAlt: string;
 }> {
   if (!geminiApiKey) {
-    console.warn("⚠️ GEMINI_API_KEY not found. Falling back to raw English parsing.");
+    console.warn("GEMINI_API_KEY not found. Falling back to raw English parsing.");
     return {
-      titleAr: title,
-      excerptAr: rawContent.slice(0, 150).replace(/<[^>]*>/g, "") + "...",
-      contentAr: rawContent,
-      tags: ["Objective: Creative/SEO Localization", "news", "translation"],
-      category: "Technical & Tech",
-      imageAlt: "Translation chronicle cover image"
+      title: `[News] ${title}`,
+      excerpt: rawContent.slice(0, 150).replace(/<[^>]*>/g, "") + "...",
+      content: rawContent,
+      tags: ["news", "translation"],
+      category: "industry-trends",
+      imageAlt: "Translation chronicle cover image",
+      primaryKeyword: "translation news",
     };
   }
   const prompt = `
-You are an expert SEO and translation/localization industry writer for Tranzlo (a freelance translation platform).
-Analyze this source article title and description snippet:
+You are an expert SEO and translation/localization industry writer for Tranzlo (a freelance translation marketplace).
+Brand voice: Professional, authoritative, data-driven, practical for translators and businesses.
+
+Analyze this source article:
 Title: "${title}"
-Content/Description snippet: "${rawContent.slice(0, 1000)}"
+Content: "${rawContent.slice(0, 1000)}"
 
 Task:
-1. Rewrite this article to be strictly focused on translation, localization, or multilingual communication, adapting the source content to the translation industry context.
-2. Optimize the Title into a catchy, premium English blog title. Do NOT translate to Arabic; the title must be in English.
-3. Write a professional English summary/excerpt (1-2 sentences, min 15 chars).
-4. Generate a beautifully structured, premium English blog post content in Markdown format. The content must be structured with H2 and H3 headings, clear paragraphs, and bullet points. The word count must be between 600 and 1500 words to ensure robust depth for search engine optimization (SEO). 
-5. Categorize this post into one of these exact domains (set this as the "category" property):
-   - "Academic & Scientific" (for translation of research papers, theses, etc. requiring high accuracy)
-   - "Medical & Healthcare" (for sensitive articles needing professional medical translation background)
-   - "Legal & Political" (for translation of political analysis, news, laws, and journalism)
-   - "Technical & Tech" (for translation/localization of AI, programming, hardware, or cryptocurrency)
-   - "Business & Finance" (for market analysis, entrepreneurship, case studies, finance/management localization)
-   - "SEO & Marketing" (for creative web content translation, product promotions, and SEO localization)
-   - "General & Lifestyle" (for travel, cooking, sports, art, human interest translation)
-6. Determine the localization objective. If the domain is "Academic & Scientific", "Medical & Healthcare", or "Legal & Political", set the objective to "Objective: Literal/Accurate Translation". Otherwise, set the objective to "Objective: Creative/SEO Localization".
-7. Include the chosen objective string as the first element in the "tags" array, followed by 2-4 other relevant lowercase tags (e.g. technology, AI, localization, etc.).
-8. Write a highly descriptive, SEO-friendly image alt text in English (max 120 chars) that perfectly details what the cover image should illustrate.
+1. Rewrite focused on translation, localization, or multilingual communication.
+2. Optimize the Title into a catchy English blog title (50-60 chars).
+3. Write a professional English excerpt / meta description (150-160 chars).
+4. Generate structured content in Markdown format (## for H2, ### for H3). Must be 1000-1500 words.
+5. Set category: Map to one of these slugs: translation-tech, career-growth, industry-trends, best-practices, platform-news, general.
+6. Determine objective. For academic/medical/legal content: "Objective: Literal/Accurate Translation". Otherwise: "Objective: Creative/SEO Localization". Put this as first tag.
+7. Add 2-4 more lowercase tags.
+8. Write descriptive SEO image alt text (max 120 chars).
+9. Identify the primary SEO keyword.
 
-Return your output STRICTLY as a JSON object with this exact format, with no markdown code block backticks around it:
+Return STRICTLY this JSON:
 {
-  "titleAr": "Optimized English title here",
-  "excerptAr": "Optimized English excerpt here",
-  "contentAr": "Optimized English full content here in Markdown format (must be 600 - 1500 words)",
-  "tags": ["Objective: Literal/Accurate Translation", "tag1", "tag2"],
-  "category": "Academic & Scientific",
-  "imageAlt": "Descriptive cover image alt text in English"
+  "title": "English title here",
+  "excerpt": "English excerpt / meta description here",
+  "content": "Full content in Markdown (1000-1500 words)",
+  "tags": ["Objective: ...", "tag1", "tag2"],
+  "category": "translation-tech or one of the 6 slugs",
+  "imageAlt": "Descriptive alt text",
+  "primaryKeyword": "main seo keyword"
 }
 `;
 
@@ -167,16 +165,20 @@ Return your output STRICTLY as a JSON object with this exact format, with no mar
 
     return JSON.parse(textResult.trim());
   } catch (err: any) {
-    console.error("❌ Gemini enrichment failed:", err.message);
-    const fallbackText = `### ${title}\n\n${rawContent.replace(/<[^>]*>/g, "")}\n\n` + 
+    console.error("Gemini enrichment failed:", err.message);
+    const fallbackText = `## ${title}\n\n${rawContent.replace(/<[^>]*>/g, "")}\n\n` + 
       Array(30).fill("This translation and localization overview provides key industry insights for freelance translators, technology developers, and global enterprise clients looking to scale their workflows effectively.").join(" ");
+    const wc = fallbackText.trim().split(/\s+/).filter(Boolean).length;
     return {
-      titleAr: `[News] ${title}`,
-      excerptAr: `Article summary: ${title} in technology and translation.`,
-      contentAr: fallbackText,
+      title: `[News] ${title}`,
+      excerpt: `Article summary: ${title} in technology and translation.`,
+      content: fallbackText,
       tags: ["Objective: Creative/SEO Localization", "news", "translation"],
-      category: "Technical & Tech",
-      imageAlt: "Translation chronicle cover image"
+      category: "industry-trends",
+      imageAlt: "Translation chronicle cover image",
+      primaryKeyword: "translation industry",
+      wordCount: wc,
+      readingTime: Math.max(1, Math.ceil(wc / 200))
     };
   }
 }
@@ -247,10 +249,10 @@ async function main() {
         const enriched = await enrichAndTranslateWithGemini(originalTitle, originalDesc);
 
         // Validate SEO word count constraints
-        const wordCount = enriched.contentAr.trim().split(/\s+/).filter(Boolean).length;
+        const wordCount = enriched.content.trim().split(/\s+/).filter(Boolean).length;
         console.log(`   📝 Generated content length: ${wordCount} words.`);
-        if (wordCount < 600 || wordCount > 1500) {
-          console.log(`   ⏭️ Skipping: Content length (${wordCount} words) is outside the required range (600 - 1500 words).`);
+        if (wordCount < 800 || wordCount > 2000) {
+          console.log(`   ⏭️ Skipping: Content length (${wordCount} words) is outside the required range (800 - 2000 words).`);
           continue;
         }
 
@@ -261,21 +263,25 @@ async function main() {
           
           await db.createDocument(DB_ID, COLLECTION_BLOG_POSTS, docId, {
             authorId: "system_news_bot",
-            title: enriched.titleAr,
+            title: enriched.title,
             slug: slug,
-            excerpt: enriched.excerptAr.slice(0, 490),
-            content: enriched.contentAr.slice(0, 48000),
+            excerpt: (enriched.excerpt || "").slice(0, 490),
+            content: (enriched.content || "").slice(0, 48000),
             coverImage: coverImage || "",
-            tags: enriched.tags,
+            tags: enriched.tags || [],
             category: enriched.category || "general",
             imageAlt: enriched.imageAlt || "Translation article cover image",
+            primaryKeyword: enriched.primaryKeyword || "",
+            wordCount: wordCount,
+            readingTime: Math.max(1, Math.ceil(wordCount / 200)),
+            generatedBy: "news",
             status: "pending_review",
             publishedAt: now,
             createdAt: now,
             updatedAt: now,
           });
 
-          console.log(`   ✅ SUCCESS: Post "${enriched.titleAr}" saved for review!`);
+          console.log(`   ✅ SUCCESS: Post "${enriched.title}" saved for review! (${wordCount} words)`);
         } catch (saveErr: any) {
           console.error(`   ❌ Failed to save post:`, saveErr.message);
         }

@@ -11,7 +11,10 @@
     "deploy:job-notifications": "npx -y tsx src/scripts/deploy-job-notifications.ts",
     "deploy:payout-scheduler": "npx -y tsx src/scripts/deploy-payout-scheduler.ts",
     "deploy:paypal-webhook": "npx -y tsx src/scripts/deploy-paypal-webhook.ts",
-    "deploy:test-automation": "npx -y tsx src/scripts/deploy-test-automation.ts"
+    "deploy:test-automation": "npx -y tsx src/scripts/deploy-test-automation.ts",
+    "deploy:rss-publisher": "npx -y tsx src/scripts/deploy-appwrite-function.ts",
+    "deploy:scheduled-publisher": "npx -y tsx src/scripts/deploy-scheduled-publisher.ts",
+    "rss:publish": "npx -y tsx src/scripts/auto-publish-rss.ts"
   },
   "dependencies": {
     "@open-wa/wa-automate": "^4.68.2",

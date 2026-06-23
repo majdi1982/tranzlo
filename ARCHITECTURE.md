@@ -70,6 +70,76 @@ This enables container-to-container communication (e.g. Next.js connects to Redi
 
 ## 🚀 Deployment Flow
 
+---
+
+---
+
+## 📝 Blog Content Generation
+
+### Content Format Standard
+All generated content uses **Markdown** (`##` for H2, `###` for H3). The frontend renders both Markdown and HTML content (auto-detected).
+
+### API Generator (`POST /api/blog/generate`)
+- **ML Models**: Gemini 2.5 Flash (primary) → OpenRouter (fallback)
+- **Prompt**: Brand voice (professional, authoritative, data-driven), 1000-1500 words output, SEO-optimized
+- **Pipeline**: Scrape competitor article → AI generation (Markdown) → Gemini Imagen cover image → Save as `pending_review`
+- **SEO Fields Stored**: `primaryKeyword`, `wordCount`, `readingTime`, `generatedBy`, `category` (unified slugs)
+
+### RSS Auto-Publisher
+- Same Gemini 2.5 Flash model with enhanced prompt for translation-industry focus
+- Saves `generatedBy: "news"` and unified category slugs
+- Word count target: 800-2000 words
+
+### Unified Category System
+Single source of truth in `src/constants/categories.ts`:
+```
+translation-tech → AI & Translation Tech
+career-growth    → Linguist & Career Growth
+industry-trends  → Industry Insights & Trends
+best-practices   → Best Practices & Guides
+platform-news    → Platform News & Updates
+general          → General
+```
+Includes backward-compatible aliases for RSS and AI generation outputs.
+
+### Blog Post Model (`src/types/blog.ts`)
+Extended fields:
+- `primaryKeyword` — Main SEO keyword for the article
+- `wordCount` — Total word count for SEO scoring
+- `readingTime` — Calculated minutes to read (based on 200 wpm)
+- `generatedBy` — `"ai"` | `"news"` | `"manual"`
+
+---
+
+## 🤖 Blog Automation (Appwrite Functions)
+
+Three Appwrite Functions handle blog automation:
+
+### 1. RSS Auto-Publisher (`rss-auto-publisher`)
+- **Schedule**: Every 12 hours (`0 */12 * * *`)
+- **Source**: RSS feeds (Google Blog, Dev.to - translation/localization tags)
+- **Pipeline**: Fetch RSS → Parse XML → Gemini AI enrichment (title, content, tags, SEO) → Save to `blog_posts` as `pending_review`
+- **Deploy**: `npm run deploy:rss-publisher`
+
+### 2. Scheduled Publisher (`tranzlo-scheduled-publisher`)
+- **Schedule**: Every 10 minutes (`*/10 * * * *`)
+- **Pipeline**: Query `blog_posts` where `status === "scheduled"` and `scheduledAt <= now` → Publish → Share to social media
+- **Deploy**: `npm run deploy:scheduled-publisher`
+
+### 3. Social Publisher (HTTP-triggered)
+- **Trigger**: POST `{ postId }` (called after publish)
+- **Platforms**: X/Twitter (v2 API), Facebook (Graph API), LinkedIn (UGC Posts API)
+- **Tokens**: `TWITTER_BEARER_TOKEN`, `FACEBOOK_PAGE_ACCESS_TOKEN`, `LINKEDIN_ACCESS_TOKEN`
+
+### Local Scripts
+- `npm run rss:publish` — Run RSS fetch locally (requires `GEMINI_API_KEY`)
+- `npm run deploy:rss-publisher` — Deploy RSS function to Appwrite
+- `npm run deploy:scheduled-publisher` — Deploy scheduled publisher function
+
+---
+
+## 🚀 Deployment Flow
+
 Deployments are executed from the developer workstation using `deploy.bat`, which performs the following pipeline:
 
 1. Commits local changes and pushes them to the remote git repository.

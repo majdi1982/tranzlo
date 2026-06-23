@@ -11,6 +11,10 @@ export interface BlogPost {
   tags: string[];
   category?: string;
   imageAlt?: string;
+  primaryKeyword?: string;
+  wordCount?: number;
+  readingTime?: number;
+  generatedBy?: "ai" | "news" | "manual";
   status: BlogPostStatus;
   scheduledAt?: string;
   publishedAt?: string;
