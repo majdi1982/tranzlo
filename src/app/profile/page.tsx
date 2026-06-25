@@ -52,6 +52,7 @@ function ProfileContent() {
   const role = isViewingOthers ? targetRole : ((user?.prefs?.role as Role) || "translator");
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [profileEmail, setProfileEmail] = React.useState("");
 
   React.useEffect(() => {
     if (isViewingOthers) {
@@ -173,6 +174,7 @@ function ProfileContent() {
           setProfileExists(true);
           setAvatarUrl(translatorProfile.avatarUrl || "");
           setIsVerified(translatorProfile.isVerified || false);
+          setProfileEmail(translatorProfile.email || "");
           
           let parsedPricing: { serviceId: string; rate: number; unit: string }[] = [];
           if (translatorProfile.pricing) {
@@ -254,6 +256,7 @@ function ProfileContent() {
             setProfileExists(true);
             setLogoUrl(companyProfile.logoUrl || "");
             setIsVerified(companyProfile.isVerified || false);
+            setProfileEmail(companyProfile.email || "");
             setCompanyData({
               companyName: companyProfile.companyName || "",
               fullName: companyProfile.fullName || "",
@@ -280,6 +283,7 @@ function ProfileContent() {
 
         // Fallback for self profile onboarding
         if (!foundProfile && !isViewingOthers && user) {
+          setProfileEmail(user.email || "");
           if (role === "translator") {
             setTranslatorData((prev) => ({ ...prev, fullName: user.name || "" }));
           } else {
@@ -323,6 +327,7 @@ function ProfileContent() {
   }, [role, translatorData, companyData, avatarUrl, logoUrl]);
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (isViewingOthers) return;
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
@@ -345,6 +350,7 @@ function ProfileContent() {
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, type: "cv" | "brochure" | "registration" | "tax") {
+    if (isViewingOthers) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -389,6 +395,7 @@ function ProfileContent() {
   }
 
   const handleSendChangeRequest = async () => {
+    if (isViewingOthers) return;
     if (requestedLanguages.length < 2) {
       toast({
         title: "At Least 2 Languages Required",
@@ -455,6 +462,10 @@ function ProfileContent() {
 
   async function handleSave() {
     if (!user?.$id) return;
+    if (isViewingOthers) {
+      toast({ title: "Action blocked", description: "You cannot edit another user's profile.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       const services = getServices();
@@ -698,7 +709,7 @@ function ProfileContent() {
   const profileJsonLd = profileExists && isPublic ? (role === "translator" ? {
     "@context": "https://schema.org",
     "@type": "Person",
-    "name": translatorData.fullName || user?.name,
+    "name": translatorData.fullName || (isViewingOthers ? "Translator" : user?.name),
     "description": translatorData.bio,
     "image": avatarUrl,
     "knowsLanguage": translatorData.languages.map((l) => ({
@@ -768,7 +779,9 @@ function ProfileContent() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground/95">My Profile</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground/95">
+                {isViewingOthers ? `${role === "translator" ? "Translator" : "Company"} Profile` : "My Profile"}
+              </h1>
               <p className="text-sm text-muted-foreground">
                 Manage your credentials, visibility settings, and documents
               </p>
@@ -829,14 +842,14 @@ function ProfileContent() {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold tracking-tight">
-                    {role === "translator" ? translatorData.fullName || user?.name : companyData.companyName || "New Company"}
+                    {role === "translator" ? translatorData.fullName || (isViewingOthers ? "Translator" : user?.name) : companyData.companyName || (isViewingOthers ? "Company" : "New Company")}
                   </h2>
                   <Badge variant="outline" className="bg-teal-500/10 text-teal-600 border-teal-500/20 capitalize font-medium rounded-lg">
                     {role}
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5 text-muted-foreground/60" /> {user?.email}
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground/60" /> {profileEmail}
                 </p>
 
                 {/* Country and Address Info */}

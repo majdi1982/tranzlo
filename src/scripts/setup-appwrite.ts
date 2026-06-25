@@ -559,6 +559,45 @@ const SCHEMA: Col[] = [
       { id: "idx_inv_projectId", type: "key", attributes: ["projectId"] }
     ]
   },
+  {
+    id: "withdrawal_requests", name: "Withdrawal Requests",
+    attrs: [
+      { key: "userId", type: "string", size: 64, required: true },
+      { key: "translatorName", type: "string", size: 255, required: true },
+      { key: "amount", type: "float", required: true },
+      { key: "paymentMethod", type: "enum", elements: ["paypal", "bank_transfer", "payoneer"], required: true },
+      { key: "paymentDetails", type: "string", size: 4000, required: true },
+      { key: "status", type: "enum", elements: ["pending", "approved", "rejected"], required: false, default: "pending" },
+      { key: "adminNote", type: "string", size: 2000, required: false },
+      { key: "txHash", type: "string", size: 255, required: false },
+      { key: "createdAt", type: "datetime", required: false },
+      { key: "updatedAt", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_wr_userId", type: "key", attributes: ["userId"] },
+      { id: "idx_wr_status", type: "key", attributes: ["status"] }
+    ]
+  },
+  {
+    id: "escrow_deposits", name: "Escrow Deposits",
+    attrs: [
+      { key: "jobId", type: "string", size: 64, required: true },
+      { key: "companyId", type: "string", size: 64, required: true },
+      { key: "translatorId", type: "string", size: 64, required: true },
+      { key: "amount", type: "float", required: true },
+      { key: "paymentMethod", type: "enum", elements: ["paypal", "bank_transfer", "western_union"], required: true },
+      { key: "paymentReference", type: "string", size: 1024, required: true },
+      { key: "status", type: "enum", elements: ["pending", "approved", "rejected"], required: false, default: "pending" },
+      { key: "adminNote", type: "string", size: 2000, required: false },
+      { key: "createdAt", type: "datetime", required: false },
+      { key: "updatedAt", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_ed_jobId", type: "key", attributes: ["jobId"] },
+      { id: "idx_ed_companyId", type: "key", attributes: ["companyId"] },
+      { id: "idx_ed_status", type: "key", attributes: ["status"] }
+    ]
+  },
 ];
 
 async function main() {
