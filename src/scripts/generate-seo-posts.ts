@@ -86,10 +86,11 @@ Output JSON schema:
 
 async function generateWithOpenRouter(prompt: string, apiKey: string): Promise<any> {
   const models = [
+    "google/gemini-2.5-flash",
+    "google/gemini-2.5-pro",
+    "meta-llama/llama-3.3-70b-instruct",
+    "qwen/qwen-2.5-72b-instruct",
     "meta-llama/llama-3.2-3b-instruct:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "google/gemma-4-31b-it:free",
-    "qwen/qwen3-coder:free",
   ];
 
   for (const model of models) {
