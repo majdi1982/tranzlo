@@ -93,7 +93,8 @@ module.exports = async function (context) {
         });
         if (profileRes.ok) {
           const profile = await profileRes.json();
-          const author = `urn:li:person:${profile.sub}`;
+          const orgId = process.env.LINKEDIN_ORGANIZATION_ID;
+          const author = orgId ? `urn:li:organization:${orgId}` : `urn:li:person:${profile.sub}`;
           await fetch("https://api.linkedin.com/v2/ugcPosts", {
             method: "POST",
             headers: {

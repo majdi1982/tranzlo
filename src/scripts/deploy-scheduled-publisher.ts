@@ -90,9 +90,13 @@ async function main() {
     NEXT_PUBLIC_APPWRITE_ENDPOINT: endpoint!,
     NEXT_PUBLIC_APP_URL: appUrl || "https://tranzlo.net",
   };
+  const linkedinToken = process.env.LINKEDIN_ACCESS_TOKEN;
+  const linkedinOrgId = process.env.LINKEDIN_ORGANIZATION_ID;
+
   if (twitterToken) vars.TWITTER_BEARER_TOKEN = twitterToken;
   if (fbToken) vars.FACEBOOK_PAGE_ACCESS_TOKEN = fbToken;
   if (linkedinToken) vars.LINKEDIN_ACCESS_TOKEN = linkedinToken;
+  if (linkedinOrgId) vars.LINKEDIN_ORGANIZATION_ID = linkedinOrgId;
 
   for (const [key, value] of Object.entries(vars)) {
     try {
