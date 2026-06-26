@@ -22,13 +22,32 @@ function readingTimeDisplay(post: BlogPost): string {
 }
 
 function renderContent(content: string) {
-  // If content contains HTML tags, render it as HTML
-  if (/<[a-z][\s\S]*>/i.test(content)) {
-    return <div className="prose prose-invert prose-cyan max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: content }} />;
+  // Check if content contains HTML tags (either raw or escaped)
+  const hasRawHTML = /<[a-z][\s\S]*>/i.test(content);
+  const hasEscapedHTML = /&lt;[a-z]/i.test(content);
+
+  if (hasRawHTML || hasEscapedHTML) {
+    // Decode HTML entities if they are escaped
+    let decoded = content;
+    if (hasEscapedHTML) {
+      decoded = content
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&amp;/g, "&");
+    }
+    return (
+      <div 
+        className="prose dark:prose-invert prose-cyan max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed space-y-6 [&>p]:mb-6 [&>h2]:text-xl sm:[&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-foreground [&>h2]:mt-8 [&>h2]:mb-4 [&>h2]:border-l-2 [&>h2]:border-primary [&>h2]:pl-3 [&>h3]:text-lg [&>h3]:font-bold [&>h3]:text-foreground [&>h3]:mt-6 [&>h3]:mb-3" 
+        dangerouslySetInnerHTML={{ __html: decoded }} 
+      />
+    );
   }
+
   // Otherwise parse as Markdown
   return (
-    <div className="prose prose-invert prose-cyan max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed space-y-6">
+    <div className="prose dark:prose-invert prose-cyan max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed space-y-6">
       {content.split("\n\n").map((paragraph, index) => {
         if (paragraph.startsWith("## ")) {
           return (
