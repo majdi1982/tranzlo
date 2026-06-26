@@ -128,12 +128,30 @@ export default function AdminBlogReviewPage() {
   async function handleApprove(postId: string) {
     setActionLoading(postId);
     try {
-      const services = getServices();
-      const approvedPost = await services.blog.publishPost(postId);
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const account = getAccount();
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT for publishing:", jwtErr);
+      }
+
+      const res = await fetch("/api/blog/publish", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ postId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Publishing failed.");
+      }
       
       toast({
         title: "Approved & Published! 🚀",
-        description: `Article "${approvedPost.title}" was successfully published and shared to Facebook, LinkedIn, X, and Pinterest.`,
+        description: `Article "${data.post.title}" was successfully published and shared to Facebook and LinkedIn.`,
       });
       
       // Remove from list

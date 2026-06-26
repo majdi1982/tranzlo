@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { AuthGuard } from "@/guards/auth-guard";
 import { RoleGuard } from "@/guards/role-guard";
 import { useToast } from "@/hooks/use-toast";
+import { getAccount } from "@/lib/appwrite";
 
 export default function AdminBlogPreviewPage() {
   const router = useRouter();
@@ -54,11 +55,30 @@ export default function AdminBlogPreviewPage() {
     if (!post) return;
     setActionLoading(true);
     try {
-      const services = getServices();
-      await services.blog.publishPost(post.$id);
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const account = getAccount();
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
+        }
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT for publishing:", jwtErr);
+      }
+
+      const res = await fetch("/api/blog/publish", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ postId: post.$id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Publishing failed.");
+      }
+      
       toast({
         title: "Approved & Published! 🚀",
-        description: `Article "${post.title}" is now live and shared to social media.`,
+        description: `Article "${post.title}" is now live and shared to Facebook and LinkedIn.`,
       });
       router.push("/dashboard/admin/blog-review");
     } catch (err: any) {
