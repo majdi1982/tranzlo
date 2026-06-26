@@ -84,13 +84,14 @@ Output JSON schema:
   "imagePrompt": "Detailed prompt for generating a professional blog cover image. Style: sleek, modern, blue/cyan aesthetic, representing translation/localization."
 }`;
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function generateWithOpenRouter(prompt: string, apiKey: string): Promise<any> {
   const models = [
-    "google/gemini-2.5-flash",
-    "google/gemini-2.5-pro",
-    "meta-llama/llama-3.3-70b-instruct",
-    "qwen/qwen-2.5-72b-instruct",
     "meta-llama/llama-3.2-3b-instruct:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "google/gemma-4-31b-it:free",
+    "qwen/qwen3-coder:free",
   ];
 
   for (const model of models) {
@@ -116,6 +117,10 @@ async function generateWithOpenRouter(prompt: string, apiKey: string): Promise<a
       return JSON.parse(cleaned);
     } catch (e: any) {
       console.warn(`   ⚠️ [OpenRouter] Model ${model} failed: ${e.message}`);
+      if (e.response?.status === 429) {
+        console.log("      ⏳ Rate limited (429) by OpenRouter. Sleeping for 15 seconds...");
+        await sleep(15000);
+      }
       continue;
     }
   }
@@ -137,6 +142,10 @@ async function main() {
   console.log(`   OpenRouter Key Configured: ${openRouterKey ? "YES" : "NO"}`);
 
   for (const t of TOPICS) {
+    if (TOPICS.indexOf(t) > 0) {
+      console.log("⏳ Sleeping for 10 seconds between topics to avoid rate limits...");
+      await sleep(10000);
+    }
     console.log(`\n📝 Generating article for topic: "${t.topic}"...`);
     try {
       const userPrompt = `Topic: "${t.topic}"\nCategory: "${t.category}"\n\nGenerate the complete optimized blog post according to the system prompt guidelines.`;
