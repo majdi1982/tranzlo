@@ -364,10 +364,12 @@ const SCHEMA: Col[] = [
       { key: "userName", type: "string", size: 255, required: true },
       { key: "userAvatar", type: "string", size: 512, required: false },
       { key: "content", type: "string", size: 5000, required: true },
+      { key: "status", type: "enum", elements: ["pending", "approved", "rejected"], required: false },
       { key: "createdAt", type: "datetime", required: false },
     ],
     indexes: [
       { id: "idx_comm_postId", type: "key", attributes: ["postId"] },
+      { id: "idx_comm_status", type: "key", attributes: ["status"] },
       { id: "idx_comm_createdAt", type: "key", attributes: ["createdAt"], orders: ["DESC"] },
     ],
   },

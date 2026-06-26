@@ -29,6 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuthGuard } from "@/guards/auth-guard";
 import { RoleGuard } from "@/guards/role-guard";
 import { getServices } from "@/services";
@@ -44,6 +45,10 @@ export default function AdminBlogReviewPage() {
   const [selectedPost, setSelectedPost] = React.useState<BlogPost | null>(null);
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+
+  // Comments state
+  const [comments, setComments] = React.useState<any[]>([]);
+  const [commentsLoading, setCommentsLoading] = React.useState(false);
 
   // AI Generator state
   const [competitorUrl, setCompetitorUrl] = React.useState("");
@@ -106,7 +111,43 @@ export default function AdminBlogReviewPage() {
 
   React.useEffect(() => {
     loadPendingPosts();
+    loadPendingComments();
   }, []);
+
+  async function loadPendingComments() {
+    setCommentsLoading(true);
+    try {
+      const services = getServices();
+      const allComments = await services.blog.getAllCommentsForAdmin("pending");
+      setComments(allComments);
+    } catch (err) {
+      console.error("Error loading pending comments:", err);
+    } finally {
+      setCommentsLoading(false);
+    }
+  }
+
+  async function handleApproveComment(commentId: string) {
+    try {
+      const services = getServices();
+      await services.blog.updateCommentStatus(commentId, "approved");
+      setComments(prev => prev.filter(c => c.$id !== commentId));
+      toast({ title: "Comment Approved" });
+    } catch (err: any) {
+      toast({ title: "Failed to approve comment", variant: "destructive" });
+    }
+  }
+
+  async function handleRejectComment(commentId: string) {
+    try {
+      const services = getServices();
+      await services.blog.updateCommentStatus(commentId, "rejected");
+      setComments(prev => prev.filter(c => c.$id !== commentId));
+      toast({ title: "Comment Rejected" });
+    } catch (err: any) {
+      toast({ title: "Failed to reject comment", variant: "destructive" });
+    }
+  }
 
   async function loadPendingPosts() {
     setLoading(true);
@@ -225,7 +266,20 @@ export default function AdminBlogReviewPage() {
             </Button>
           </div>
 
-          {/* Integration Details Banner */}
+          <Tabs defaultValue="articles" className="space-y-6">
+            <TabsList className="bg-primary/5 p-1 rounded-xl">
+              <TabsTrigger value="articles" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <FileText className="w-4 h-4 mr-2" />
+                AI Articles Review
+              </TabsTrigger>
+              <TabsTrigger value="comments" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Comments Moderation
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="articles" className="space-y-6">
+              {/* Integration Details Banner */}
           <Card className="border-primary/20 bg-primary/5">
             <CardContent className="pt-6 flex items-start gap-3 text-xs leading-relaxed text-muted-foreground">
               <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -517,6 +571,59 @@ export default function AdminBlogReviewPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+            </TabsContent>
+
+            <TabsContent value="comments" className="space-y-6">
+              <Card className="border-primary/20 bg-card/60 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                    Pending Comments
+                  </CardTitle>
+                  <CardDescription>
+                    Review user comments before they appear on the blog.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {commentsLoading ? (
+                    <div className="flex justify-center p-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : comments.length === 0 ? (
+                    <div className="text-center p-8 text-muted-foreground border border-dashed rounded-xl border-border/50">
+                      <Check className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                      <p className="font-semibold text-foreground">No pending comments.</p>
+                      <p className="text-sm mt-1">All caught up!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {comments.map(comment => (
+                        <div key={comment.$id} className="p-4 rounded-xl border border-border/50 bg-background/50 flex flex-col md:flex-row gap-4 justify-between md:items-center">
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm">{comment.userName}</span>
+                              <span className="text-xs text-muted-foreground">on {new Date(comment.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground bg-card p-3 rounded-lg border border-border/30 mt-2">
+                              {comment.content}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 md:flex-col">
+                            <Button size="sm" onClick={() => handleApproveComment(comment.$id)} className="w-full md:w-32 bg-green-500 hover:bg-green-600 text-white gap-2">
+                              <Check className="h-4 w-4" /> Approve
+                            </Button>
+                            <Button size="sm" onClick={() => handleRejectComment(comment.$id)} variant="destructive" className="w-full md:w-32 gap-2">
+                              <Trash2 className="h-4 w-4" /> Reject
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </RoleGuard>
     </AuthGuard>

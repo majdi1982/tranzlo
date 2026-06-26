@@ -1187,13 +1187,17 @@ export const appwriteBlogService = {
     return likes;
   },
 
-  async getComments(postId: string): Promise<BlogComment[]> {
+  async getComments(postId: string, userId?: string): Promise<BlogComment[]> {
     const db = getDatabases();
     const result = await db.listDocuments(DB_ID, COLLECTIONS.blogComments, [
       Query.equal("postId", postId),
       Query.orderDesc("createdAt"),
     ]);
-    return result.documents.map((d) => mapDoc<BlogComment>(d as Record<string, unknown>));
+    
+    // Filter logic: show if approved, OR if it belongs to the requesting user
+    return result.documents
+      .map((d) => mapDoc<BlogComment>(d as Record<string, unknown>))
+      .filter((c) => c.status === "approved" || (userId && c.userId === userId));
   },
 
   async createComment(postId: string, userId: string, userName: string, content: string, userAvatar?: string): Promise<BlogComment> {
@@ -1204,9 +1208,39 @@ export const appwriteBlogService = {
       userName,
       userAvatar: userAvatar || "",
       content,
+      status: "pending", // All new comments are pending by default
       createdAt: new Date().toISOString(),
     });
     return mapDoc<BlogComment>(doc as Record<string, unknown>);
+  },
+
+  async getAllCommentsForAdmin(statusFilter?: "pending" | "approved" | "rejected"): Promise<BlogComment[]> {
+    const db = getDatabases();
+    const queries = [Query.orderDesc("createdAt")];
+    if (statusFilter) {
+      queries.push(Query.equal("status", statusFilter));
+    }
+    const result = await db.listDocuments(DB_ID, COLLECTIONS.blogComments, queries);
+    return result.documents.map((d) => mapDoc<BlogComment>(d as Record<string, unknown>));
+  },
+
+  async updateCommentStatus(commentId: string, status: "approved" | "rejected"): Promise<void> {
+    const db = getDatabases();
+    const comment = await db.getDocument(DB_ID, COLLECTIONS.blogComments, commentId);
+    await db.updateDocument(DB_ID, COLLECTIONS.blogComments, commentId, { status });
+
+    // Notify the user about their comment status
+    if (comment.userId) {
+      await appwriteNotificationService.createNotification({
+        userId: comment.userId,
+        type: "system",
+        title: status === "approved" ? "Comment Approved! 🎉" : "Comment Rejected ❌",
+        message: status === "approved" 
+          ? `Your comment on a blog post was approved and is now live.` 
+          : `Your comment on a blog post was rejected.`,
+        actionUrl: `/blog`,
+      });
+    }
   },
 
   async deleteComment(commentId: string): Promise<void> {

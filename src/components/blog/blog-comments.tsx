@@ -26,6 +26,15 @@ export function BlogComments({ postId, initialLikes = [], initialComments = [] }
 
   const isLiked = user ? likes.includes(user.$id) : false;
 
+  React.useEffect(() => {
+    // If the user is logged in, fetch their specific comments so they can see pending ones
+    if (user) {
+      appwriteBlogService.getComments(postId, user.$id)
+        .then(setComments)
+        .catch(console.error);
+    }
+  }, [user, postId]);
+
   const handleLike = async () => {
     if (!user || liking) return;
     setLiking(true);
@@ -168,28 +177,38 @@ export function BlogComments({ postId, initialLikes = [], initialComments = [] }
                     {comment.userName.slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-foreground block sm:inline-block mr-2">
+                <div className="flex-1 space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-bold text-foreground">
                         {comment.userName}
                       </span>
+                      {comment.status === "pending" && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 border border-yellow-500/20">
+                          ⏳ قيد المراجعة (Pending)
+                        </span>
+                      )}
+                      {comment.status === "rejected" && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20">
+                          ❌ مرفوض (Rejected)
+                        </span>
+                      )}
                       <span className="text-3xs text-muted-foreground">
-                        {formatCommentDate(comment.createdAt)}
+                        {formatCommentDate(comment.createdAt!)}
                       </span>
                     </div>
 
                     {isOwner && (
                       <button
                         onClick={() => handleDeleteComment(comment.$id)}
-                        className="text-muted-foreground hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        className="text-muted-foreground hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 self-end sm:self-auto"
                         title="Delete comment"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                  <p className={`text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${comment.status === "rejected" ? "text-muted-foreground line-through opacity-70" : "text-foreground/90"}`}>
                     {comment.content}
                   </p>
                 </div>
