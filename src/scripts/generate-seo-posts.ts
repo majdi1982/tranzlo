@@ -17,9 +17,8 @@ for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
       let v = t.slice(eq + 1).trim();
       if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
       const k = t.slice(0, eq).trim();
-      if (!process.env[k]) {
-        process.env[k] = v;
-      }
+      // Always overwrite process.env
+      process.env[k] = v;
     }
   }
 }
@@ -29,11 +28,12 @@ const {
   NEXT_PUBLIC_APPWRITE_PROJECT_ID: projectId,
   APPWRITE_API_KEY: apiKey,
   GEMINI_API_KEY: geminiApiKey,
+  OPENROUTER_API_KEY: openRouterKey,
 } = process.env;
 
 const dbId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || "tranzlo_main";
 
-if (!endpoint || !projectId || !apiKey || !geminiApiKey) {
+if (!endpoint || !projectId || !apiKey) {
   console.error("❌ Missing required environment variables in .env.local");
   process.exit(1);
 }
@@ -84,65 +84,135 @@ Output JSON schema:
   "imagePrompt": "Detailed prompt for generating a professional blog cover image. Style: sleek, modern, blue/cyan aesthetic, representing translation/localization."
 }`;
 
+async function generateWithOpenRouter(prompt: string, apiKey: string): Promise<any> {
+  const models = [
+    "openrouter/free",
+    "qwen/qwen-2.5-72b-instruct:free",
+    "google/gemma-2-9b-it:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+  ];
+
+  for (const model of models) {
+    try {
+      console.log(`   🤖 [OpenRouter] Trying model: ${model}...`);
+      const res = await axios.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          model,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: prompt },
+          ],
+        },
+        {
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          timeout: 45000,
+        }
+      );
+      const text = res.data.choices[0].message.content.trim();
+      const cleaned = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
+      return JSON.parse(cleaned);
+    } catch (e: any) {
+      console.warn(`   ⚠️ [OpenRouter] Model ${model} failed: ${e.message}`);
+      continue;
+    }
+  }
+  throw new Error("All OpenRouter models failed");
+}
+
 async function main() {
   const { Client, Databases, Storage, ID, InputFile } = await import("node-appwrite");
+  const { InputFile: InputFileClass } = await import("node-appwrite/file");
   const client = new Client().setEndpoint(endpoint!).setProject(projectId!).setKey(apiKey!);
   const databases = new Databases(client);
   const storage = new Storage(client);
 
   console.log("🚀 Initializing SEO Blog Post Generator...");
+  console.log(`   API Endpoint: ${endpoint}`);
+  console.log(`   Project ID: ${projectId}`);
+  console.log(`   API Key Configured: ${apiKey ? "YES" : "NO"}`);
+  console.log(`   Gemini Key Configured: ${geminiApiKey ? "YES" : "NO"}`);
+  console.log(`   OpenRouter Key Configured: ${openRouterKey ? "YES" : "NO"}`);
 
   for (const t of TOPICS) {
     console.log(`\n📝 Generating article for topic: "${t.topic}"...`);
     try {
-      // 1. Generate text content
       const userPrompt = `Topic: "${t.topic}"\nCategory: "${t.category}"\n\nGenerate the complete optimized blog post according to the system prompt guidelines.`;
-      
-      const textRes = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\n${userPrompt}` }] }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            temperature: 0.7,
-            maxOutputTokens: 8192
-          }
-        },
-        { timeout: 90000 }
-      );
+      let generated: any = null;
 
-      const text = textRes.data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error("Empty Gemini response");
-      
-      const generated = JSON.parse(text.trim());
+      // 1. Generate text content (Gemini with OpenRouter fallback)
+      if (geminiApiKey) {
+        try {
+          console.log("   🤖 Requesting Gemini API directly...");
+          const textRes = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+            {
+              contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\n${userPrompt}` }] }],
+              generationConfig: {
+                responseMimeType: "application/json",
+                temperature: 0.7,
+                maxOutputTokens: 8192
+              }
+            },
+            { timeout: 90000 }
+          );
+
+          const text = textRes.data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!text) throw new Error("Empty Gemini response");
+          generated = JSON.parse(text.trim());
+        } catch (err: any) {
+          console.warn(`   ⚠️ Direct Gemini API failed: ${err.message} (${err.response?.status})`);
+        }
+      }
+
+      if (!generated && openRouterKey) {
+        try {
+          console.log("   🔄 Falling back to OpenRouter...");
+          generated = await generateWithOpenRouter(userPrompt, openRouterKey);
+        } catch (err: any) {
+          console.error(`   ❌ OpenRouter fallback failed: ${err.message}`);
+        }
+      }
+
+      if (!generated) {
+        throw new Error("Could not generate content using any model.");
+      }
+
       console.log(`   ✨ Content generated successfully! Title: "${generated.title}"`);
 
-      // 2. Generate Cover Image using Gemini Imagen
+      // 2. Generate Cover Image using Gemini Imagen (if key exists and not blocked)
       let coverImage = "";
-      try {
-        console.log("   🎨 Generating featured cover image via Imagen...");
-        const imagePrompt = generated.imagePrompt || `${generated.title} - professional blog cover image, sleek blue cyan vector graphic`;
-        const imagenRes = await axios.post(
-          `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:generateImages?key=${geminiApiKey}`,
-          { prompt: imagePrompt, numberOfImages: 1, outputMimeType: "image/jpeg", aspectRatio: "16:9" },
-          { timeout: 30000 }
-        );
-        const bytes = imagenRes.data.generatedImages?.[0]?.image?.imageBytes;
-        if (bytes) {
-          const file = await storage.createFile(
-            "blog_media",
-            ID.unique(),
-            InputFile.fromBuffer(Buffer.from(bytes, "base64"), `${generated.slug || "post"}.jpg`)
+      if (geminiApiKey) {
+        try {
+          console.log("   🎨 Generating featured cover image via Imagen...");
+          const imagePrompt = generated.imagePrompt || `${generated.title} - professional blog cover image, sleek blue cyan vector graphic`;
+          const imagenRes = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:generateImages?key=${geminiApiKey}`,
+            { prompt: imagePrompt, numberOfImages: 1, outputMimeType: "image/jpeg", aspectRatio: "16:9" },
+            { timeout: 30000 }
           );
-          coverImage = `${endpoint}/storage/buckets/blog_media/files/${file.$id}/view?project=${projectId}`;
-          console.log(`   ✅ Image generated and saved to storage: ${file.$id}`);
+          const bytes = imagenRes.data.generatedImages?.[0]?.image?.imageBytes;
+          if (bytes) {
+            console.log("   💾 Saving generated cover image to Appwrite storage...");
+            const file = await storage.createFile(
+              "blog_media",
+              ID.unique(),
+              InputFileClass.fromBuffer(Buffer.from(bytes, "base64"), `${generated.slug || "post"}.jpg`)
+            );
+            coverImage = `${endpoint}/storage/buckets/blog_media/files/${file.$id}/view?project=${projectId}`;
+            console.log(`   ✅ Image generated and saved to storage: ${file.$id}`);
+          }
+        } catch (imgErr: any) {
+          console.warn(`   ⚠️ Image generation failed, using fallback: ${imgErr.message}`);
+          coverImage = t.fallbackImage;
         }
-      } catch (imgErr: any) {
-        console.warn(`   ⚠️ Image generation failed, using fallback: ${imgErr.message}`);
+      } else {
         coverImage = t.fallbackImage;
       }
 
       // 3. Save to database
+      console.log("   💾 Saving blog post to Appwrite Database...");
       const wordCount = generated.content.trim().split(/\s+/).filter(Boolean).length;
       const readingTime = Math.max(1, Math.ceil(wordCount / 200));
       const tags = [
@@ -173,7 +243,7 @@ async function main() {
       console.log(`   ✅ SUCCESS: Post saved to queue!`);
 
     } catch (err: any) {
-      console.error(`   ❌ Failed to generate post: ${err.message}`);
+      console.error(`   ❌ Failed to generate/save post:`, err.stack || err.message);
     }
   }
 
