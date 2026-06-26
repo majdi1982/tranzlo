@@ -1235,10 +1235,10 @@ export const appwriteBlogService = {
         userId: comment.userId,
         type: "system",
         title: status === "approved" ? "Comment Approved! 🎉" : "Comment Rejected ❌",
-        message: status === "approved" 
+        body: status === "approved" 
           ? `Your comment on a blog post was approved and is now live.` 
           : `Your comment on a blog post was rejected.`,
-        actionUrl: `/blog`,
+        data: { actionUrl: `/blog` },
       });
     }
   },
