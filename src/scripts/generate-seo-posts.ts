@@ -122,7 +122,7 @@ async function generateWithOpenRouter(prompt: string, apiKey: string): Promise<a
 }
 
 async function main() {
-  const { Client, Databases, Storage, ID, InputFile } = await import("node-appwrite");
+  const { Client, Databases, Storage, ID } = await import("node-appwrite");
   const { InputFile: InputFileClass } = await import("node-appwrite/file");
   const client = new Client().setEndpoint(endpoint!).setProject(projectId!).setKey(apiKey!);
   const databases = new Databases(client);
