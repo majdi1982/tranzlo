@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Sparkles,
   Info,
-  Loader2
+  Loader2,
+  MessageSquare
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
