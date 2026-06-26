@@ -95,12 +95,15 @@ function extractCoverImage(xml: string): string {
 
 // Generate high quality post contents & translate using Gemini AI
 async function enrichAndTranslateWithGemini(title: string, rawContent: string): Promise<{
-  titleAr: string;
-  excerptAr: string;
-  contentAr: string;
+  title: string;
+  excerpt: string;
+  content: string;
   tags: string[];
   category: string;
   imageAlt: string;
+  primaryKeyword?: string;
+  wordCount?: number;
+  readingTime?: number;
 }> {
   if (!geminiApiKey) {
     console.warn("GEMINI_API_KEY not found. Falling back to raw English parsing.");
