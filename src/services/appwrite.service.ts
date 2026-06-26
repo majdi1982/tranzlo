@@ -20,6 +20,7 @@ import type {
   TranslatorProfile,
   CompanyProfile,
   BlogPost,
+  BlogComment,
   HubPost,
   Complaint,
   Dispute,
@@ -1172,6 +1173,44 @@ export const appwriteBlogService = {
   async deletePost(postId: string): Promise<void> {
     const db = getDatabases();
     await db.deleteDocument(DB_ID, COLLECTIONS.blogPosts, postId);
+  },
+
+  async toggleLike(postId: string, userId: string): Promise<string[]> {
+    const db = getDatabases();
+    const post = await db.getDocument(DB_ID, COLLECTIONS.blogPosts, postId);
+    const likes = (post.likes as string[]) || [];
+    const idx = likes.indexOf(userId);
+    if (idx > -1) likes.splice(idx, 1);
+    else likes.push(userId);
+    await db.updateDocument(DB_ID, COLLECTIONS.blogPosts, postId, { likes });
+    return likes;
+  },
+
+  async getComments(postId: string): Promise<BlogComment[]> {
+    const db = getDatabases();
+    const result = await db.listDocuments(DB_ID, COLLECTIONS.blogComments, [
+      Query.equal("postId", postId),
+      Query.orderDesc("createdAt"),
+    ]);
+    return result.documents.map((d) => mapDoc<BlogComment>(d as Record<string, unknown>));
+  },
+
+  async createComment(postId: string, userId: string, userName: string, content: string, userAvatar?: string): Promise<BlogComment> {
+    const db = getDatabases();
+    const doc = await db.createDocument(DB_ID, COLLECTIONS.blogComments, generateId("blogComment"), {
+      postId,
+      userId,
+      userName,
+      userAvatar: userAvatar || "",
+      content,
+      createdAt: new Date().toISOString(),
+    });
+    return mapDoc<BlogComment>(doc as Record<string, unknown>);
+  },
+
+  async deleteComment(commentId: string): Promise<void> {
+    const db = getDatabases();
+    await db.deleteDocument(DB_ID, COLLECTIONS.blogComments, commentId);
   },
 };
 

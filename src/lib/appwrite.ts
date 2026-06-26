@@ -71,6 +71,7 @@ export const COLLECTIONS = {
   notifications: "notifications",
   verificationRequests: "verification_requests",
   blogPosts: "blog_posts",
+  blogComments: "blog_comments",
   hubPosts: "hub_posts",
   complaints: "complaints",
   disputes: "disputes",

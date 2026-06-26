@@ -7,6 +7,7 @@ import { mockBlogPosts } from "@/data/mock/blog";
 import type { BlogPost } from "@/types";
 import { Button } from "@/components/ui/button";
 import { BLOG_CATEGORIES } from "@/constants/categories";
+import { BlogComments } from "@/components/blog/blog-comments";
 
 export const dynamic = "force-dynamic";
 
@@ -142,6 +143,13 @@ export default async function BlogPostDetailPage(props: PageProps) {
 
   if (!post || post.status !== "published") {
     notFound();
+  }
+
+  let comments: any[] = [];
+  try {
+    comments = await appwriteBlogService.getComments(post.$id);
+  } catch (err) {
+    console.error("Error fetching comments for blog page:", err);
   }
 
   const shareUrl = `https://tranzlo.net/blog/${post.slug}`;
@@ -327,6 +335,9 @@ export default async function BlogPostDetailPage(props: PageProps) {
 
             {/* Structured Content Area for perfect crawlability */}
             {renderContent(post.content)}
+
+            {/* Blog comments and interactions section */}
+            <BlogComments postId={post.$id} initialLikes={post.likes || []} initialComments={comments} />
           </div>
         </article>
 

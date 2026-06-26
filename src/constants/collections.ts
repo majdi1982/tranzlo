@@ -11,6 +11,7 @@ export const COLLECTIONS = {
   COMPLAINTS: "complaints",
   DISPUTES: "disputes",
   BLOG_POSTS: "blog_posts",
+  BLOG_COMMENTS: "blog_comments",
   HUB_POSTS: "hub_posts",
   HUB_COMMENTS: "hub_comments",
   RATINGS: "ratings",

@@ -77,19 +77,22 @@ if docker logs tranzlo-listmonk 2>&1 | grep -q "the database does not appear to 
 fi
 
 # 9. Build and Start Frontend Stack
-echo "🌐 Building and starting Next.js Frontend stack..."
+echo "🌐 Building Next.js Frontend stack in background..."
 cd "$TARGET_FRONTEND"
-docker compose down || true
 
-echo "🧹 Pruning unused Docker containers, builder cache, and images..."
+echo "🧹 Pruning builder cache..."
 docker builder prune -a -f
-docker system prune -af
 
 if ! docker compose build --no-cache --progress=plain; then
     echo "❌ Build Failed!"
     exit 1
 fi
+
+echo "🛑 Re-creating container..."
 docker compose up -d
+
+echo "🧹 Pruning old unused Docker containers and images..."
+docker system prune -f
 
 echo "🧹 Cleaning up dangling/old Docker images..."
 docker image prune -f

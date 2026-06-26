@@ -341,6 +341,7 @@ const SCHEMA: Col[] = [
       { key: "category", type: "string", size: 64, required: false, default: "general" },
       { key: "imageAlt", type: "string", size: 255, required: false, default: "Translation article cover image" },
       { key: "status", type: "enum", elements: ["draft", "scheduled", "pending_review", "published", "rejected"], required: true },
+      { key: "likes", type: "string", size: 64, required: false, array: true },
       { key: "scheduledAt", type: "datetime", required: false },
       { key: "publishedAt", type: "datetime", required: false },
       { key: "createdAt", type: "datetime", required: false },
@@ -349,6 +350,21 @@ const SCHEMA: Col[] = [
     indexes: [
       { id: "idx_blog_slug", type: "unique", attributes: ["slug"] },
       { id: "idx_blog_status", type: "key", attributes: ["status"] },
+    ],
+  },
+  {
+    id: "blog_comments", name: "Blog Comments",
+    attrs: [
+      { key: "postId", type: "string", size: 64, required: true },
+      { key: "userId", type: "string", size: 64, required: true },
+      { key: "userName", type: "string", size: 255, required: true },
+      { key: "userAvatar", type: "string", size: 512, required: false },
+      { key: "content", type: "string", size: 5000, required: true },
+      { key: "createdAt", type: "datetime", required: false },
+    ],
+    indexes: [
+      { id: "idx_comm_postId", type: "key", attributes: ["postId"] },
+      { id: "idx_comm_createdAt", type: "key", attributes: ["createdAt"], orders: ["DESC"] },
     ],
   },
   {

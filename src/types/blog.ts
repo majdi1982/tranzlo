@@ -16,10 +16,21 @@ export interface BlogPost {
   readingTime?: number;
   generatedBy?: "ai" | "news" | "manual";
   status: BlogPostStatus;
+  likes?: string[];
   scheduledAt?: string;
   publishedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BlogComment {
+  $id: string;
+  postId: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface BlogDraft {
