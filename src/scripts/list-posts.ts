@@ -32,7 +32,8 @@ async function main() {
   const databases = new Databases(client);
 
   console.log("Fetching documents...");
-  const result = await databases.listDocuments(dbId, "blog_posts");
+  const { Query } = await import("node-appwrite");
+  const result = await databases.listDocuments(dbId, "blog_posts", [Query.limit(100)]);
   console.log(`Found ${result.documents.length} posts:`);
   result.documents.forEach((d: any) => {
     console.log(`- [${d.status}] ID: ${d.$id} | Title: ${d.title} | Slug: ${d.slug} | CreatedAt: ${d.createdAt}`);
