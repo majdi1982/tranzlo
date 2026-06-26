@@ -30,6 +30,7 @@ export interface BlogComment {
   userName: string;
   userAvatar?: string;
   content: string;
+  status?: "pending" | "approved" | "rejected";
   createdAt: string;
 }
 
