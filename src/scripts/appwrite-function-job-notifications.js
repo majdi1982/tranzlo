@@ -85,7 +85,7 @@ async function sendWhatsApp({ to, message, log, error }) {
 }
 
 // Create In-App Notification in DB (Only creates database doc; the DB Event will send Email/WhatsApp)
-async function createInAppNotification({ db, databaseId, userId, type, title, body, log, error }) {
+async function createInAppNotification({ db, databaseId, userId, type, title, body, data, log, error }) {
   try {
     const docId = `notif_${Math.random().toString(36).substring(2, 11)}`;
     await db.createDocument(databaseId, "notifications", docId, {
@@ -93,6 +93,7 @@ async function createInAppNotification({ db, databaseId, userId, type, title, bo
       type: type || "system",
       title,
       body,
+      data: data ? JSON.stringify(data) : null,
       read: false,
       createdAt: new Date().toISOString()
     });
@@ -586,6 +587,141 @@ module.exports = async function (context) {
       }
     } catch (err) {
       error(`❌ Processing job creation error: ${err.message}`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. EVENT: NEW MESSAGE CREATED (databases.*.collections.messages.documents.create)
+  // ---------------------------------------------------------------------------
+  if (triggerEvent.includes("collections.messages.documents.create")) {
+    const { conversationId, senderId, content: msgContent } = doc;
+    log(`💬 New Message in conversation ${conversationId} from ${senderId}`);
+
+    try {
+      const conv = await db.getDocument(databaseId, "conversations", conversationId);
+      const recipientId = conv.participants.find(id => id !== senderId);
+
+      if (recipientId) {
+        // Find sender name
+        let senderName = "Someone";
+        const [transDocs, compDocs] = await Promise.all([
+          db.listDocuments(databaseId, "translator_profiles", [Query.equal("userId", senderId), Query.limit(1)]),
+          db.listDocuments(databaseId, "company_profiles", [Query.equal("userId", senderId), Query.limit(1)])
+        ]);
+
+        if (transDocs.documents.length > 0) senderName = transDocs.documents[0].fullName;
+        else if (compDocs.documents.length > 0) senderName = compDocs.documents[0].companyName;
+
+        const title = `New Message from ${senderName}`;
+        const body = msgContent.length > 100 ? msgContent.substring(0, 100) + '...' : msgContent;
+
+        await createInAppNotification({
+          db,
+          databaseId,
+          userId: recipientId,
+          type: "new_message",
+          title,
+          body,
+          log,
+          error,
+          data: { emailEnabled: false } // Disable immediate email
+        });
+      }
+    } catch (err) {
+      error(`❌ Processing new message error: ${err.message}`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6. EVENT: NEW TRANSLATOR REGISTERED (databases.*.collections.translator_profiles.documents.create)
+  // ---------------------------------------------------------------------------
+  if (triggerEvent.includes("collections.translator_profiles.documents.create")) {
+    log(`🎉 New Translator Registered: ${doc.fullName} (${doc.userId})`);
+    try {
+      await createInAppNotification({
+        db,
+        databaseId,
+        userId: doc.userId,
+        type: "welcome",
+        title: "Welcome to Tranzlo! 🚀",
+        body: "We are thrilled to have you! Complete your profile, take the verification test, and start applying for jobs to grow your freelance business.",
+        log,
+        error
+      });
+    } catch (err) {
+      error(`❌ Processing translator welcome error: ${err.message}`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 7. EVENT: NEW COMPANY REGISTERED (databases.*.collections.company_profiles.documents.create)
+  // ---------------------------------------------------------------------------
+  if (triggerEvent.includes("collections.company_profiles.documents.create")) {
+    log(`🎉 New Company Registered: ${doc.companyName} (${doc.userId})`);
+    try {
+      await createInAppNotification({
+        db,
+        databaseId,
+        userId: doc.userId,
+        type: "welcome",
+        title: "Welcome to Tranzlo! 🏢",
+        body: "Post your first translation job, invite top-rated translators, and manage your projects effortlessly.",
+        log,
+        error
+      });
+    } catch (err) {
+      error(`❌ Processing company welcome error: ${err.message}`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 8. EVENT: ADMIN NOTIFICATIONS (Disputes, Complaints, Verifications)
+  // ---------------------------------------------------------------------------
+  if (
+    triggerEvent.includes("collections.disputes.documents.create") ||
+    triggerEvent.includes("collections.complaints.documents.create") ||
+    triggerEvent.includes("collections.verifications.documents.create")
+  ) {
+    let typeName = "Alert";
+    if (triggerEvent.includes("disputes")) typeName = "Dispute";
+    if (triggerEvent.includes("complaints")) typeName = "Complaint";
+    if (triggerEvent.includes("verifications")) typeName = "Verification Request";
+    
+    log(`🚨 Admin Alert: New ${typeName} created (${doc.$id})`);
+    
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL || "admin@tranzlo.net";
+      const inviteHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 30px; text-align: center; }
+            h2 { color: #ef4444; margin-bottom: 20px; }
+            p { font-size: 16px; line-height: 1.5; color: #4b5563; }
+            .btn { display: inline-block; background-color: #ef4444; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>Admin Action Required: New ${typeName}</h2>
+            <p>A new <strong>${typeName}</strong> has been submitted on the platform and requires your review.</p>
+            <p>Document ID: ${doc.$id}</p>
+            <a href="https://tranzlo.net/dashboard/admin" class="btn">Go to Admin Dashboard</a>
+          </div>
+        </body>
+        </html>
+      `;
+      await sendEmail({
+        to: adminEmail,
+        subject: `Tranzlo Admin: New ${typeName} Requires Attention`,
+        html: inviteHtml,
+        log,
+        error
+      });
+    } catch (err) {
+      error(`❌ Processing admin alert error: ${err.message}`);
     }
   }
 
