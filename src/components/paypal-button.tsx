@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Loader2 } from "lucide-react";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 interface PayPalButtonProps {
   amount: number;
@@ -10,105 +11,89 @@ interface PayPalButtonProps {
   onError?: (err: any) => void;
 }
 
-declare global {
-  interface Window {
-    paypal?: any;
-  }
-}
-
 export function PayPalButton({ amount, applicationId, onSuccess, onError }: PayPalButtonProps) {
-  const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const buttonRef = React.useRef<HTMLDivElement>(null);
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "test";
 
-  React.useEffect(() => {
-    let active = true;
-    const clientId = process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5";
-    const scriptId = "paypal-sdk-script-capture";
+  const createOrder = async () => {
+    try {
+      const res = await fetch("/api/paypal/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: amount,
+          referenceId: applicationId,
+          description: `Tranzlo Escrow Funding`
+        }),
+      });
 
-    const initButtons = () => {
-      if (!window.paypal || !buttonRef.current) return;
-      
-      // Clear previous buttons
-      buttonRef.current.innerHTML = "";
+      const orderData = await res.json();
 
-      window.paypal.Buttons({
-        createOrder: (data: any, actions: any) => {
-          return actions.order.create({
-            purchase_units: [
-              {
-                reference_id: applicationId,
-                amount: {
-                  currency_code: "USD",
-                  value: amount.toFixed(2),
-                },
-              },
-            ],
-          });
-        },
-        onApprove: async (data: any, actions: any) => {
-          setLoading(true);
-          try {
-            const details = await actions.order.capture();
-            const captureId = details.purchase_units[0].payments.captures[0].id;
-            if (active) onSuccess(captureId);
-          } catch (err) {
-            console.error("PayPal Capture Error:", err);
-            if (active) {
-              setError("Payment capture failed. Please try again.");
-              if (onError) onError(err);
-            }
-          } finally {
-            if (active) setLoading(false);
-          }
-        },
-        onError: (err: any) => {
-          console.error("PayPal Button Error:", err);
-          if (active) {
-            setError("PayPal loaded with error. Please try again.");
-            if (onError) onError(err);
-          }
-        },
-      }).render(buttonRef.current);
-      
-      setLoading(false);
-    };
-
-    const existingScript = document.getElementById(scriptId);
-    if (existingScript) {
-      if (window.paypal) {
-        initButtons();
+      if (orderData.id) {
+        return orderData.id;
       } else {
-        existingScript.addEventListener("load", initButtons);
+        const errorDetail = orderData?.details?.[0];
+        const errorMessage = errorDetail ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})` : JSON.stringify(orderData);
+        throw new Error(errorMessage);
       }
-    } else {
-      const script = document.createElement("script");
-      script.id = scriptId;
-      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
-      script.async = true;
-      script.addEventListener("load", initButtons);
-      document.body.appendChild(script);
+    } catch (error) {
+      console.error(error);
+      setError("Could not initiate PayPal checkout");
+      if (onError) onError(error);
+      throw error;
     }
+  };
 
-    return () => {
-      active = false;
-    };
-  }, [amount, applicationId, onSuccess, onError]);
+  const onApprove = async (data: any, actions: any) => {
+    try {
+      const res = await fetch("/api/paypal/capture-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderID: data.orderID
+        })
+      });
+
+      const orderData = await res.json();
+      
+      const errorDetail = orderData?.details?.[0];
+
+      if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
+        return actions.restart();
+      } else if (errorDetail) {
+        throw new Error(`${errorDetail.description} (${orderData.debug_id})`);
+      } else if (!orderData.captureId) {
+        throw new Error(JSON.stringify(orderData));
+      } else {
+        onSuccess(orderData.captureId);
+      }
+    } catch (error) {
+      console.error(error);
+      setError("Payment capture failed. Please try again.");
+      if (onError) onError(error);
+    }
+  };
 
   return (
     <div className="w-full min-h-[160px] flex flex-col items-center justify-center p-2 relative z-0">
-      {loading && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground my-6">
-          <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          <span>Loading PayPal checkout...</span>
-        </div>
-      )}
       {error && (
         <div className="text-xs text-destructive bg-destructive/10 p-3 rounded-lg border border-destructive/20 w-full mb-3 text-center">
           {error}
         </div>
       )}
-      <div ref={buttonRef} className="w-full" style={{ zIndex: 10 }} />
+      <div className="w-full" style={{ zIndex: 10 }}>
+        <PayPalScriptProvider options={{ clientId: clientId, currency: "USD", intent: "capture" }}>
+          <PayPalButtons 
+            createOrder={createOrder}
+            onApprove={onApprove}
+            onError={(err) => {
+              setError("An error occurred with PayPal.");
+              if (onError) onError(err);
+            }}
+            style={{ layout: "vertical", shape: "rect" }}
+          />
+        </PayPalScriptProvider>
+      </div>
     </div>
   );
 }
