@@ -123,19 +123,19 @@ export default function NotificationsPage() {
                         !notif.read ? "bg-primary" : "bg-transparent"
                       )} />
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className={cn("text-sm font-semibold", !notif.read ? "text-foreground" : "text-muted-foreground")}>
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4">
+                        <p className={cn("text-sm font-semibold break-words", !notif.read ? "text-foreground" : "text-muted-foreground")}>
                           {notif.title}
                         </p>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0 mt-0.5">
                           {new Date(notif.createdAt || notif.$createdAt).toLocaleString(undefined, { 
                             dateStyle: "medium", 
                             timeStyle: "short" 
                           })}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">{notif.body}</p>
+                      <p className="text-sm text-muted-foreground break-words">{notif.body}</p>
                     </div>
                   </div>
                 ))}
