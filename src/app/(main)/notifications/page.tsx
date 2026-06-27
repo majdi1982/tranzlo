@@ -76,7 +76,7 @@ export default function NotificationsPage() {
 
   return (
     <AuthGuard>
-      <div className="container max-w-4xl py-10">
+      <div className="container max-w-5xl py-10">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
@@ -125,7 +125,7 @@ export default function NotificationsPage() {
                     </div>
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="flex items-start justify-between gap-4">
-                        <p className={cn("text-sm font-semibold break-words", !notif.read ? "text-foreground" : "text-muted-foreground")}>
+                        <p className={cn("text-sm font-semibold break-all", !notif.read ? "text-foreground" : "text-muted-foreground")}>
                           {notif.title}
                         </p>
                         <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0 mt-0.5">
@@ -135,7 +135,7 @@ export default function NotificationsPage() {
                           })}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground break-words">{notif.body}</p>
+                      <p className="text-sm text-muted-foreground break-all">{notif.body}</p>
                     </div>
                   </div>
                 ))}

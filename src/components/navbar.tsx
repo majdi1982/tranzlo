@@ -340,14 +340,14 @@ export function Navbar() {
                           !notif.read ? "bg-primary/5 hover:bg-primary/10 border-primary/10" : "hover:bg-white/[0.04]"
                         )}
                       >
-                        <div className="flex items-center gap-1.5 w-full">
+                        <div className="flex items-center gap-1.5 w-full min-w-0">
                           <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", !notif.read ? "bg-primary" : "bg-transparent")} />
                           <span className="text-xs font-semibold text-foreground truncate flex-1">{notif.title}</span>
                           <span className="text-3xs text-muted-foreground shrink-0">
                             {new Date(notif.createdAt || notif.$createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <p className="text-2xs text-muted-foreground line-clamp-2 pl-3">{notif.body}</p>
+                        <p className="text-2xs text-muted-foreground line-clamp-2 pl-3 break-all">{notif.body}</p>
                       </DropdownMenuItem>
                     ))
                   )}
