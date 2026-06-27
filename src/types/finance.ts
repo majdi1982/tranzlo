@@ -29,6 +29,7 @@ export interface Invoice {
   feeAmount: number;
   totalAmount: number;
   status: InvoiceStatus;
+  paypalTransactionId?: string;
   createdAt: string;
 }
 
