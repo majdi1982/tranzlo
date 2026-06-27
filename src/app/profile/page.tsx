@@ -30,35 +30,34 @@ import { ResponsiveSelect } from "@/components/ui/responsive-select";
 import { AdSenseUnit } from "@/components/adsense-unit";
 import { cn } from "@/lib/utils";
 
+// --- Smart Progress Bar Component ---
 function TranslatorProfileProgressBar({ 
   basicsFilled, 
   bioFilled, 
   expertiseFilled, 
   cvFilled,
   visibilityFilled,
-  activeSection
+  currentStep,
+  onStepChange
 }: { 
   basicsFilled: boolean; 
   bioFilled: boolean; 
   expertiseFilled: boolean; 
   cvFilled: boolean;
   visibilityFilled: boolean;
-  activeSection: string;
+  currentStep: number;
+  onStepChange: (step: number) => void;
 }) {
   const steps = [
-    { id: "section-translator-basics", label: "Basics", done: basicsFilled, icon: <User className="h-4 w-4" /> },
-    { id: "section-translator-bio", label: "Bio", done: bioFilled, icon: <FileText className="h-4 w-4" /> },
-    { id: "section-translator-expertise", label: "Expertise", done: expertiseFilled, icon: <Award className="h-4 w-4" /> },
-    { id: "section-translator-cv", label: "CV", done: cvFilled, icon: <Briefcase className="h-4 w-4" /> },
-    { id: "section-translator-visibility", label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
+    { id: 0, label: "Basics", done: basicsFilled, icon: <User className="h-4 w-4" /> },
+    { id: 1, label: "Bio", done: bioFilled, icon: <FileText className="h-4 w-4" /> },
+    { id: 2, label: "Expertise", done: expertiseFilled, icon: <Award className="h-4 w-4" /> },
+    { id: 3, label: "CV", done: cvFilled, icon: <Briefcase className="h-4 w-4" /> },
+    { id: 4, label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
   ];
 
   const completed = steps.filter(s => s.done).length;
   const percentage = (completed / steps.length) * 100;
-
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   return (
     <div className="sticky top-[80px] z-40 bg-background/90 backdrop-blur-xl border border-border shadow-sm rounded-xl p-4 mb-6 transition-all">
@@ -67,17 +66,17 @@ function TranslatorProfileProgressBar({
           <React.Fragment key={step.id}>
             <button 
               type="button" 
-              onClick={() => scrollTo(step.id)}
+              onClick={() => onStepChange(step.id)}
               className={cn(
                 "flex flex-col items-center gap-1.5 min-w-[50px] transition-all",
-                activeSection === step.id ? "scale-105" : "hover:opacity-80"
+                currentStep === step.id ? "scale-105" : "hover:opacity-80"
               )}
             >
               <div className={cn(
                 "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
                 step.done 
                   ? "bg-teal-500 border-teal-500 text-white" 
-                  : activeSection === step.id
+                  : currentStep === step.id
                     ? "bg-teal-50 border-teal-500 text-teal-600 shadow-[0_0_12px_rgba(20,184,166,0.4)] animate-pulse"
                     : "bg-muted border-border text-muted-foreground"
               )}>
@@ -85,7 +84,7 @@ function TranslatorProfileProgressBar({
               </div>
               <span className={cn(
                 "text-[9px] font-bold uppercase tracking-wider",
-                step.done || activeSection === step.id ? "text-teal-700" : "text-muted-foreground"
+                step.done || currentStep === step.id ? "text-teal-700" : "text-muted-foreground"
               )}>
                 {step.label}
               </span>
@@ -114,29 +113,24 @@ function TranslatorProfileProgressBar({
 function CompanyProfileProgressBar({ 
   basicsFilled, 
   contactFilled, 
-  docsFilled, 
   visibilityFilled,
-  activeSection
+  currentStep,
+  onStepChange
 }: { 
   basicsFilled: boolean; 
   contactFilled: boolean; 
-  docsFilled: boolean; 
   visibilityFilled: boolean;
-  activeSection: string;
+  currentStep: number;
+  onStepChange: (step: number) => void;
 }) {
   const steps = [
-    { id: "section-company-basics", label: "Basics", done: basicsFilled, icon: <Building2 className="h-4 w-4" /> },
-    { id: "section-company-contact", label: "Contact", done: contactFilled, icon: <Globe className="h-4 w-4" /> },
-    { id: "section-company-docs", label: "Documents", done: docsFilled, icon: <FileText className="h-4 w-4" /> },
-    { id: "section-company-visibility", label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
+    { id: 0, label: "Basics", done: basicsFilled, icon: <Building2 className="h-4 w-4" /> },
+    { id: 1, label: "Contact", done: contactFilled, icon: <Globe className="h-4 w-4" /> },
+    { id: 2, label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
   ];
 
   const completed = steps.filter(s => s.done).length;
   const percentage = (completed / steps.length) * 100;
-
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   return (
     <div className="sticky top-[80px] z-40 bg-background/90 backdrop-blur-xl border border-border shadow-sm rounded-xl p-4 mb-6 transition-all">
@@ -145,17 +139,17 @@ function CompanyProfileProgressBar({
           <React.Fragment key={step.id}>
             <button 
               type="button" 
-              onClick={() => scrollTo(step.id)}
+              onClick={() => onStepChange(step.id)}
               className={cn(
                 "flex flex-col items-center gap-1.5 min-w-[50px] transition-all",
-                activeSection === step.id ? "scale-105" : "hover:opacity-80"
+                currentStep === step.id ? "scale-105" : "hover:opacity-80"
               )}
             >
               <div className={cn(
                 "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
                 step.done 
                   ? "bg-teal-500 border-teal-500 text-white" 
-                  : activeSection === step.id
+                  : currentStep === step.id
                     ? "bg-teal-50 border-teal-500 text-teal-600 shadow-[0_0_12px_rgba(20,184,166,0.4)] animate-pulse"
                     : "bg-muted border-border text-muted-foreground"
               )}>
@@ -163,7 +157,7 @@ function CompanyProfileProgressBar({
               </div>
               <span className={cn(
                 "text-[9px] font-bold uppercase tracking-wider",
-                step.done || activeSection === step.id ? "text-teal-700" : "text-muted-foreground"
+                step.done || currentStep === step.id ? "text-teal-700" : "text-muted-foreground"
               )}>
                 {step.label}
               </span>
@@ -310,56 +304,8 @@ function ProfileContent() {
   // Common CAT tools options
   const CAT_TOOLS_OPTIONS = ["SDL Trados", "MemoQ", "Phrase (Memsource)", "Wordfast", "Smartcat", "Matecat", "XTM Cloud", "OmegaT"];
 
-  const [activeSection, setActiveSection] = React.useState("section-company-basics");
-
-  React.useEffect(() => {
-    if (role !== "company" || viewMode) return;
-    
-    const observer = new IntersectionObserver((entries) => {
-      let active = "";
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          active = entry.target.id;
-        }
-      });
-      if (active) setActiveSection(active);
-    }, { rootMargin: "-20% 0px -70% 0px" });
-
-    ["section-company-basics", "section-company-contact", "section-company-docs", "section-company-visibility"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [role, viewMode]);
-
-  const companyBasicsFilled = !!companyData.companyName && !!companyData.fullName && !!companyData.contactPerson && !!companyData.contactPersonTitle && !!companyData.about;
-  const companyContactFilled = !!companyData.address && !!companyData.country && !!companyData.website;
-  const companyDocsFilled = !!companyData.registrationDoc && !!companyData.brochureUrl;
-  const companyVisibilityFilled = companyData.isPublicPlatform || companyData.searchEngines.length > 0;
-
-  const [translatorActiveSection, setTranslatorActiveSection] = React.useState("section-translator-basics");
-
-  React.useEffect(() => {
-    if (role !== "translator" || viewMode) return;
-    
-    const observer = new IntersectionObserver((entries) => {
-      let active = "";
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          active = entry.target.id;
-        }
-      });
-      if (active) setTranslatorActiveSection(active);
-    }, { rootMargin: "-20% 0px -70% 0px" });
-
-    ["section-translator-basics", "section-translator-bio", "section-translator-expertise", "section-translator-cv", "section-translator-visibility"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [role, viewMode]);
+  const [currentCompanyStep, setCurrentCompanyStep] = React.useState(0);
+  const [currentTranslatorStep, setCurrentTranslatorStep] = React.useState(0);
 
   const translatorBasicsFilled = !!translatorData.fullName && !!translatorData.address && !!translatorData.country && !!translatorData.paypalEmail;
   const translatorBioFilled = !!translatorData.bio;
@@ -1475,10 +1421,13 @@ function ProfileContent() {
                     expertiseFilled={translatorExpertiseFilled}
                     cvFilled={translatorCvFilled}
                     visibilityFilled={translatorVisibilityFilled}
-                    activeSection={translatorActiveSection}
+                    currentStep={currentTranslatorStep}
+                    onStepChange={setCurrentTranslatorStep}
                   />
                 )}
                 {/* Basic Details (Translator) */}
+                {currentTranslatorStep === 0 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 <Card id="section-translator-basics" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Basic Information</CardTitle>
@@ -1564,7 +1513,11 @@ function ProfileContent() {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
+                )}
 
+                {currentTranslatorStep === 1 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 {/* Professional Info (Translator) */}
                 <Card id="section-translator-bio" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
@@ -1584,7 +1537,11 @@ function ProfileContent() {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
+                )}
 
+                {currentTranslatorStep === 2 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 {/* Languages Pair & Specializations (Translator) */}
                 <Card id="section-translator-expertise" className="glass-card border-border/40 rounded-2xl p-6 relative z-30 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
@@ -1939,7 +1896,11 @@ function ProfileContent() {
                     )}
                   </CardContent>
                 </Card>
+                </div>
+                )}
 
+                {currentTranslatorStep === 3 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 {/* Interactive CV Upload */}
                 <Card id="section-translator-cv" className="glass-card border-border/40 rounded-2xl p-6 relative z-0 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
@@ -1967,7 +1928,11 @@ function ProfileContent() {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
+                )}
 
+                {currentTranslatorStep === 4 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 {/* SEO & Visibility Settings (Translator) */}
                 <Card id="section-translator-visibility" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
@@ -2022,8 +1987,11 @@ function ProfileContent() {
                         className="rounded-xl"
                       />
                     </div>
+                      </div>
                   </CardContent>
                 </Card>
+                </div>
+                )}
               </div>
             ) : (
               <div className="space-y-6">
@@ -2031,12 +1999,14 @@ function ProfileContent() {
                   <CompanyProfileProgressBar 
                     basicsFilled={companyBasicsFilled}
                     contactFilled={companyContactFilled}
-                    docsFilled={companyDocsFilled}
                     visibilityFilled={companyVisibilityFilled}
-                    activeSection={activeSection}
+                    currentStep={currentCompanyStep}
+                    onStepChange={setCurrentCompanyStep}
                   />
                 )}
                 {/* Basic Details (Company) */}
+                {currentCompanyStep === 0 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 <Card id="section-company-basics" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Company Information</CardTitle>
@@ -2154,7 +2124,11 @@ function ProfileContent() {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
+                )}
 
+                {currentCompanyStep === 1 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 {/* Company Details & Website */}
                 <Card id="section-company-contact" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
@@ -2202,66 +2176,14 @@ function ProfileContent() {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
+                )}
 
-                {/* Company Documents & Brochure Upload (Company) */}
-                <Card id="section-company-docs" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
-                  <CardHeader className="px-0 pt-0">
-                    <CardTitle className="text-base font-bold">Documents & Brochure</CardTitle>
-                    <CardDescription className="text-3xs">Upload company registration docs and your public brochure showcase</CardDescription>
-                  </CardHeader>
-                  <CardContent className="px-0 pb-0 space-y-4">
-                    {/* Brochure Upload */}
-                    <div className="p-4 rounded-xl border border-border/40 bg-accent/5 space-y-2">
-                      <Label className="font-bold text-xs block">Public Company Brochure</Label>
-                      <p className="text-4xs text-muted-foreground">PDF file outlining translation requirements or company history (.pdf only)</p>
-                      <div className="flex items-center gap-2 pt-1">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={brochureUploading}
-                          onClick={() => brochureFileInputRef.current?.click()}
-                          className="rounded-xl gap-2"
-                        >
-                          {brochureUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                          {companyData.brochureUrl ? "Change Brochure File" : "Upload Brochure"}
-                        </Button>
-                        {companyData.brochureUrl && (
-                          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 rounded-lg">
-                            Brochure Uploaded
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
+                </div>
+                )}
 
-                    <div className="grid gap-4 sm:grid-cols-1">
-                      {/* Registration Doc */}
-                      <div className="p-4 rounded-xl border border-border/40 bg-accent/5 space-y-2">
-                        <Label className="font-bold text-xs block">Commercial Registration</Label>
-                        <p className="text-4xs text-muted-foreground">Upload corporate registry certificate</p>
-                        <div className="flex items-center gap-2 pt-1">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={regUploading}
-                            onClick={() => regFileInputRef.current?.click()}
-                            className="rounded-xl gap-2"
-                          >
-                            {regUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                            {companyData.registrationDoc ? "Change File" : "Upload File"}
-                          </Button>
-                          {companyData.registrationDoc && (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 rounded-md">
-                              Uploaded
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
+                {currentCompanyStep === 2 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 {/* SEO & Visibility (Company) */}
                 <Card id="section-company-visibility" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
@@ -2318,19 +2240,41 @@ function ProfileContent() {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
+                )}
               </div>
             )}
 
             {/* Bottom Actions Form */}
             <Separator />
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" className="rounded-xl" onClick={() => setViewMode(true)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={saving} className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white">
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                {profileExists ? "Save Changes" : "Create Profile"}
-              </Button>
+            <div className="flex justify-between items-center gap-3">
+              <div className="flex gap-2">
+                <Button variant="outline" className="rounded-xl" onClick={() => setViewMode(true)}>
+                  Cancel
+                </Button>
+                {((role === "translator" && currentTranslatorStep > 0) || (role === "company" && currentCompanyStep > 0)) && (
+                  <Button variant="secondary" className="rounded-xl" onClick={() => {
+                    if (role === "translator") setCurrentTranslatorStep(c => Math.max(0, c - 1));
+                    else setCurrentCompanyStep(c => Math.max(0, c - 1));
+                  }}>
+                    Back
+                  </Button>
+                )}
+              </div>
+              
+              {((role === "translator" && currentTranslatorStep < 4) || (role === "company" && currentCompanyStep < 2)) ? (
+                <Button className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white" onClick={() => {
+                  if (role === "translator") setCurrentTranslatorStep(c => Math.min(4, c + 1));
+                  else setCurrentCompanyStep(c => Math.min(2, c + 1));
+                }}>
+                  Next Step
+                </Button>
+              ) : (
+                <Button onClick={handleSave} disabled={saving} className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white">
+                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  {profileExists ? "Save Changes" : "Create Profile"}
+                </Button>
+              )}
             </div>
             {/* Language Change Request Modal */}
             {isRequestModalOpen && (

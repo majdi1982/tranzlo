@@ -132,6 +132,7 @@ export default function OnboardingPage() {
 
   const [step, setStep] = React.useState<1 | 2>(1);
   const [role, setRole] = React.useState<"translator" | "company" | null>(null);
+  const [formStep, setFormStep] = React.useState<number>(0);
 
   // Translator Form State
   const [nativeLang, setNativeLang] = React.useState("en");
@@ -461,7 +462,10 @@ export default function OnboardingPage() {
                 Skip for now
               </Button>
               <Button
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  setStep(2);
+                  setFormStep(0);
+                }}
                 disabled={!role}
                 className="rounded-md shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all font-medium"
               >
@@ -485,8 +489,21 @@ export default function OnboardingPage() {
               {role === "translator" ? (
                 // Translator Specific Form Fields
                 <div className="space-y-6">
-                  {/* Basic Information */}
-                  <div className="p-5 rounded-2xl border border-border/60 bg-accent/5 space-y-4">
+                  {/* Smart Progress Bar for Translator */}
+                  <div className="flex items-center justify-between gap-2 p-3 bg-muted/30 rounded-xl border border-border/50">
+                    {["Basics", "Languages", "Bio & Tools", "Visibility"].map((lbl, idx) => (
+                      <React.Fragment key={idx}>
+                        <div onClick={() => setFormStep(idx)} className={cn("flex flex-col items-center gap-1 cursor-pointer transition-all", formStep === idx ? "scale-105" : "opacity-70 hover:opacity-100")}>
+                           <div className={cn("h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors", formStep >= idx ? "bg-primary text-white border-primary" : "bg-background border-border text-muted-foreground")}>{idx + 1}</div>
+                           <span className={cn("text-[9px] font-bold uppercase", formStep >= idx ? "text-primary" : "text-muted-foreground")}>{lbl}</span>
+                        </div>
+                        {idx < 3 && <div className={cn("flex-1 h-0.5 transition-colors -mt-4", formStep > idx ? "bg-primary" : "bg-border")} />}
+                      </React.Fragment>
+                    ))}
+                  </div>
+
+                  {formStep === 0 && (
+                  <div className="p-5 rounded-2xl border border-border/60 bg-accent/5 space-y-4 animate-in slide-in-from-right-4 fade-in duration-300">
                     <h3 className="text-sm font-bold flex items-center gap-2 text-foreground">
                       <User className="h-4 w-4 text-primary" />
                       Basic Information
@@ -542,9 +559,11 @@ export default function OnboardingPage() {
                       </div>
                     </div>
                   </div>
+                  )}
 
+                  {formStep === 1 && (
                   {/* Language Profile Setup */}
-                  <div className="space-y-4">
+                  <div className="space-y-4 animate-in slide-in-from-right-4 fade-in duration-300">
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold">Native Language (Max 1)</Label>
                       <ResponsiveSelect
@@ -651,10 +670,15 @@ export default function OnboardingPage() {
                         )}
                       </div>
                     )}
+                      </div>
+                    )}
                   </div>
+                  )}
 
 
 
+                  {formStep === 2 && (
+                  <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                   {/* CAT Tools Selector */}
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">CAT Tools Proficiency</Label>
@@ -680,13 +704,29 @@ export default function OnboardingPage() {
                       rows={4}
                       className="bg-background rounded-md resize-none"
                     />
+                    </div>
                   </div>
+                  )}
                 </div>
               ) : (
                 // Company Specific Form Fields
                 <div className="space-y-5">
-                  {/* Basic Information */}
-                  <div className="p-5 rounded-2xl border border-border/60 bg-accent/5 space-y-4">
+                  {/* Smart Progress Bar for Company */}
+                  <div className="flex items-center justify-between gap-2 p-3 bg-muted/30 rounded-xl border border-border/50">
+                    {["Basics", "Details", "Visibility"].map((lbl, idx) => (
+                      <React.Fragment key={idx}>
+                        <div onClick={() => setFormStep(idx)} className={cn("flex flex-col items-center gap-1 cursor-pointer transition-all", formStep === idx ? "scale-105" : "opacity-70 hover:opacity-100")}>
+                           <div className={cn("h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors", formStep >= idx ? "bg-primary text-white border-primary" : "bg-background border-border text-muted-foreground")}>{idx + 1}</div>
+                           <span className={cn("text-[9px] font-bold uppercase", formStep >= idx ? "text-primary" : "text-muted-foreground")}>{lbl}</span>
+                        </div>
+                        {idx < 2 && <div className={cn("flex-1 h-0.5 transition-colors -mt-4", formStep > idx ? "bg-primary" : "bg-border")} />}
+                      </React.Fragment>
+                    ))}
+                  </div>
+
+                  {formStep === 0 && (
+                  /* Basic Information */
+                  <div className="p-5 rounded-2xl border border-border/60 bg-accent/5 space-y-4 animate-in slide-in-from-right-4 fade-in duration-300">
                     <h3 className="text-sm font-bold flex items-center gap-2 text-foreground">
                       <User className="h-4 w-4 text-primary" />
                       Basic Information
@@ -751,9 +791,13 @@ export default function OnboardingPage() {
                         onChange={(e) => setPhone(e.target.value)}
                         className="bg-background/80 rounded-lg text-sm"
                       />
+                      />
                     </div>
                   </div>
+                  )}
 
+                  {formStep === 1 && (
+                  <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                   <div className="space-y-2">
                     <Label htmlFor="website" className="text-sm font-semibold">Corporate Website URL</Label>
                     <Input
@@ -794,11 +838,14 @@ export default function OnboardingPage() {
                       className="bg-background rounded-md resize-none"
                     />
                   </div>
+                  </div>
+                  )}
                 </div>
               )}
 
               {/* Shared Platform Visibility and SEO Indexing Controls */}
-              <div className="border-t border-border pt-6 mt-6 space-y-4">
+              {((role === "translator" && formStep === 3) || (role === "company" && formStep === 2)) && (
+              <div className="border-t border-border pt-6 mt-6 space-y-4 animate-in slide-in-from-right-4 fade-in duration-300">
                 <h3 className="text-sm font-bold text-foreground">Privacy & Search Engine Indexing Settings</h3>
                 
                 {/* Internal Directory Toggle */}
@@ -906,24 +953,41 @@ export default function OnboardingPage() {
                     </div>
                   )}
                 </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
+              )}
             </CardContent>
 
             <CardFooter className="flex justify-between border-t border-border mt-4 pt-6">
               <Button
                 variant="ghost"
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  if (formStep > 0) setFormStep(s => s - 1);
+                  else setStep(1);
+                }}
                 className="hover:bg-muted/50"
               >
                 Back
               </Button>
-              <Button
-                onClick={handleFinishOnboarding}
-                disabled={submitting}
-                className="rounded-md shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold"
-              >
-                {submitting ? "Saving Profile..." : "Complete Setup"}
-              </Button>
+              {((role === "translator" && formStep < 3) || (role === "company" && formStep < 2)) ? (
+                <Button
+                  onClick={() => setFormStep(s => s + 1)}
+                  className="rounded-md shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold"
+                >
+                  Next Step
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleFinishOnboarding}
+                  disabled={submitting}
+                  className="rounded-md shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold"
+                >
+                  {submitting ? "Saving Profile..." : "Complete Setup"}
+                </Button>
+              )}
             </CardFooter>
           </Card>
         )}

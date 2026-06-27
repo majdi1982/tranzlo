@@ -34,29 +34,27 @@ function SmartProgressBar({
   skillsFilled, 
   testingFilled, 
   budgetFilled,
-  activeSection
+  currentStep,
+  onStepChange
 }: { 
   visibilityFilled: boolean;
   basicsFilled: boolean; 
   skillsFilled: boolean; 
   testingFilled: boolean; 
   budgetFilled: boolean;
-  activeSection: string;
+  currentStep: number;
+  onStepChange: (step: number) => void;
 }) {
   const steps = [
-    { id: "section-visibility", label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
-    { id: "section-basics", label: "Basics", done: basicsFilled, icon: <FileText className="h-4 w-4" /> },
-    { id: "section-skills", label: "Skills", done: skillsFilled, icon: <Globe className="h-4 w-4" /> },
-    { id: "section-testing", label: "Testing", done: testingFilled, icon: <TestTube className="h-4 w-4" /> },
-    { id: "section-budget", label: "Budget", done: budgetFilled, icon: <DollarSign className="h-4 w-4" /> },
+    { id: 0, label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
+    { id: 1, label: "Basics", done: basicsFilled, icon: <FileText className="h-4 w-4" /> },
+    { id: 2, label: "Skills", done: skillsFilled, icon: <Globe className="h-4 w-4" /> },
+    { id: 3, label: "Testing", done: testingFilled, icon: <TestTube className="h-4 w-4" /> },
+    { id: 4, label: "Budget", done: budgetFilled, icon: <DollarSign className="h-4 w-4" /> },
   ];
 
   const completed = steps.filter(s => s.done).length;
   const percentage = (completed / steps.length) * 100;
-
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   return (
     <div className="sticky top-[80px] z-40 bg-background/90 backdrop-blur-xl border border-border shadow-sm rounded-xl p-4 mb-6 transition-all">
@@ -65,17 +63,17 @@ function SmartProgressBar({
           <React.Fragment key={step.id}>
             <button 
               type="button" 
-              onClick={() => scrollTo(step.id)}
+              onClick={() => onStepChange(step.id)}
               className={cn(
                 "flex flex-col items-center gap-1.5 min-w-[50px] transition-all",
-                activeSection === step.id ? "scale-105" : "hover:opacity-80"
+                currentStep === step.id ? "scale-105" : "hover:opacity-80"
               )}
             >
               <div className={cn(
                 "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
                 step.done 
                   ? "bg-teal-500 border-teal-500 text-white" 
-                  : activeSection === step.id
+                  : currentStep === step.id
                     ? "bg-teal-50 border-teal-500 text-teal-600 shadow-[0_0_12px_rgba(20,184,166,0.4)] animate-pulse"
                     : "bg-muted border-border text-muted-foreground"
               )}>
@@ -83,7 +81,7 @@ function SmartProgressBar({
               </div>
               <span className={cn(
                 "text-[9px] font-bold uppercase tracking-wider",
-                step.done || activeSection === step.id ? "text-teal-700" : "text-muted-foreground"
+                step.done || currentStep === step.id ? "text-teal-700" : "text-muted-foreground"
               )}>
                 {step.label}
               </span>
@@ -428,26 +426,7 @@ export default function PostJobPage() {
     }
   }, [visibility, privateType, sourceLanguages, targetLanguages, specializations, user?.$id]);
 
-  const [activeSection, setActiveSection] = React.useState("section-visibility");
-
-  React.useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      let active = "";
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          active = entry.target.id;
-        }
-      });
-      if (active) setActiveSection(active);
-    }, { rootMargin: "-20% 0px -70% 0px" });
-
-    ["section-visibility", "section-basics", "section-skills", "section-testing", "section-budget"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  const [currentStep, setCurrentStep] = React.useState(0);
 
   const visibilityFilled = visibility === "public" || (visibility === "private" && privateType === "internal" && selectedTranslators.length > 0) || (visibility === "private" && privateType === "external" && !!externalTranslatorEmail);
   const basicsFilled = !!title && !!description;
@@ -703,12 +682,15 @@ export default function PostJobPage() {
             skillsFilled={skillsFilled} 
             testingFilled={testingFilled} 
             budgetFilled={budgetFilled} 
-            activeSection={activeSection} 
+            currentStep={currentStep}
+            onStepChange={setCurrentStep}
           />
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-              <Card id="section-visibility" className="scroll-mt-32">
+              {currentStep === 0 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+              <Card>
                 <CardHeader>
                   <CardTitle>Job Visibility</CardTitle>
                   <CardDescription>Determine who can see and apply for this job</CardDescription>
@@ -806,8 +788,12 @@ export default function PostJobPage() {
                   )}
                 </CardContent>
               </Card>
+              </div>
+              )}
 
-              <Card id="section-basics" className="scroll-mt-32">
+              {currentStep === 1 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+              <Card>
                 <CardHeader>
                   <CardTitle>Job Details</CardTitle>
                   <CardDescription>Basic information about the project</CardDescription>
@@ -843,8 +829,12 @@ export default function PostJobPage() {
                   </div>
                 </CardContent>
               </Card>
+              </div>
+              )}
 
-              <Card id="section-skills" className="scroll-mt-32">
+              {currentStep === 2 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+              <Card>
                 <CardHeader>
                   <CardTitle>Language & Location</CardTitle>
                   <CardDescription>Source and target language details</CardDescription>
@@ -1168,10 +1158,16 @@ export default function PostJobPage() {
                   )}
                 </CardContent>
               </Card>
+                </CardContent>
+              </Card>
+              )}
+              </div>
               )}
 
+              {currentStep === 3 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
               {visibility === "public" && (
-              <Card id="section-testing" className="scroll-mt-32">
+              <Card>
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div>
                     <CardTitle>
@@ -1305,8 +1301,12 @@ export default function PostJobPage() {
                   </div>
                 </CardContent>
               </Card>
+              </div>
+              )}
 
-              <Card id="section-budget" className="scroll-mt-32">
+              {currentStep === 4 && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+              <Card>
                 <CardHeader>
                   <CardTitle>Budget & Timeline</CardTitle>
                 </CardHeader>
@@ -1330,16 +1330,33 @@ export default function PostJobPage() {
                   </div>
                 </CardContent>
               </Card>
+              </div>
+              )}
             </div>
 
             <Separator className="my-6" />
 
-            <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-4 h-4 w-4" />}
-                Post Job
+            <div className="flex justify-between items-center gap-3">
+              <Button type="button" variant="outline" onClick={() => {
+                if (currentStep > 0) {
+                  setCurrentStep(currentStep - 1);
+                } else {
+                  router.back();
+                }
+              }}>
+                {currentStep > 0 ? "Back" : "Cancel"}
               </Button>
+
+              {currentStep < 4 ? (
+                <Button type="button" onClick={() => setCurrentStep(currentStep + 1)}>
+                  Next Step
+                </Button>
+              ) : (
+                <Button type="submit" disabled={saving}>
+                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-4 h-4 w-4" />}
+                  Post Job
+                </Button>
+              )}
             </div>
           </form>
         </div>
