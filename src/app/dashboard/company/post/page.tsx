@@ -24,6 +24,90 @@ import { CAT_TOOLS } from "@/data/cat-tools";
 import { createJobSchema } from "@/validators";
 import { getStorage, ID, BUCKETS } from "@/lib/appwrite";
 import type { TranslatorProfile } from "@/types";
+import { cn } from "@/lib/utils";
+import { CheckCircle2, DollarSign, Eye } from "lucide-react";
+
+// --- Smart Progress Bar Component ---
+function SmartProgressBar({ 
+  visibilityFilled,
+  basicsFilled, 
+  skillsFilled, 
+  testingFilled, 
+  budgetFilled,
+  activeSection
+}: { 
+  visibilityFilled: boolean;
+  basicsFilled: boolean; 
+  skillsFilled: boolean; 
+  testingFilled: boolean; 
+  budgetFilled: boolean;
+  activeSection: string;
+}) {
+  const steps = [
+    { id: "section-visibility", label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
+    { id: "section-basics", label: "Basics", done: basicsFilled, icon: <FileText className="h-4 w-4" /> },
+    { id: "section-skills", label: "Skills", done: skillsFilled, icon: <Globe className="h-4 w-4" /> },
+    { id: "section-testing", label: "Testing", done: testingFilled, icon: <TestTube className="h-4 w-4" /> },
+    { id: "section-budget", label: "Budget", done: budgetFilled, icon: <DollarSign className="h-4 w-4" /> },
+  ];
+
+  const completed = steps.filter(s => s.done).length;
+  const percentage = (completed / steps.length) * 100;
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <div className="sticky top-[80px] z-40 bg-background/90 backdrop-blur-xl border border-border shadow-sm rounded-xl p-4 mb-6 transition-all">
+      <div className="flex items-center justify-between gap-4 mb-3">
+        {steps.map((step, i) => (
+          <React.Fragment key={step.id}>
+            <button 
+              type="button" 
+              onClick={() => scrollTo(step.id)}
+              className={cn(
+                "flex flex-col items-center gap-1.5 min-w-[50px] transition-all",
+                activeSection === step.id ? "scale-105" : "hover:opacity-80"
+              )}
+            >
+              <div className={cn(
+                "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
+                step.done 
+                  ? "bg-teal-500 border-teal-500 text-white" 
+                  : activeSection === step.id
+                    ? "bg-teal-50 border-teal-500 text-teal-600 shadow-[0_0_12px_rgba(20,184,166,0.4)] animate-pulse"
+                    : "bg-muted border-border text-muted-foreground"
+              )}>
+                {step.done ? <CheckCircle2 className="h-4 w-4" /> : step.icon}
+              </div>
+              <span className={cn(
+                "text-[9px] font-bold uppercase tracking-wider",
+                step.done || activeSection === step.id ? "text-teal-700" : "text-muted-foreground"
+              )}>
+                {step.label}
+              </span>
+            </button>
+            {i < steps.length - 1 && (
+              <div className="flex-1 h-0.5 bg-border relative -mt-5">
+                <div 
+                  className="absolute inset-0 bg-teal-500 transition-all duration-700"
+                  style={{ width: steps[i].done ? '100%' : '0%' }}
+                />
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-teal-500 transition-all duration-700" style={{ width: `${percentage}%` }} />
+        </div>
+        <span className="text-xs font-bold text-teal-700 w-8">{Math.round(percentage)}%</span>
+      </div>
+    </div>
+  );
+}
 
 interface SearchableLanguageSelectProps {
   id: string;
@@ -344,6 +428,33 @@ export default function PostJobPage() {
     }
   }, [visibility, privateType, sourceLanguages, targetLanguages, specializations, user?.$id]);
 
+  const [activeSection, setActiveSection] = React.useState("section-visibility");
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      let active = "";
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          active = entry.target.id;
+        }
+      });
+      if (active) setActiveSection(active);
+    }, { rootMargin: "-20% 0px -70% 0px" });
+
+    ["section-visibility", "section-basics", "section-skills", "section-testing", "section-budget"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const visibilityFilled = visibility === "public" || (visibility === "private" && privateType === "internal" && selectedTranslators.length > 0) || (visibility === "private" && privateType === "external" && !!externalTranslatorEmail);
+  const basicsFilled = !!title && !!description;
+  const skillsFilled = sourceLanguages.length > 0 && targetLanguages.length > 0 && specializations.length > 0;
+  const testingFilled = !requiresTest || (!!testFileUrl && !!testDuration);
+  const budgetFilled = !!deadline;
+
   const availableServiceTypes = SERVICE_TYPES.filter(
     (s) => !services.find((r) => r.serviceId === s.id)
   );
@@ -586,9 +697,18 @@ export default function PostJobPage() {
             </div>
           </div>
 
+          <SmartProgressBar 
+            visibilityFilled={visibilityFilled}
+            basicsFilled={basicsFilled} 
+            skillsFilled={skillsFilled} 
+            testingFilled={testingFilled} 
+            budgetFilled={budgetFilled} 
+            activeSection={activeSection} 
+          />
+
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-              <Card>
+              <Card id="section-visibility" className="scroll-mt-32">
                 <CardHeader>
                   <CardTitle>Job Visibility</CardTitle>
                   <CardDescription>Determine who can see and apply for this job</CardDescription>
@@ -687,7 +807,7 @@ export default function PostJobPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card id="section-basics" className="scroll-mt-32">
                 <CardHeader>
                   <CardTitle>Job Details</CardTitle>
                   <CardDescription>Basic information about the project</CardDescription>
@@ -724,7 +844,7 @@ export default function PostJobPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card id="section-skills" className="scroll-mt-32">
                 <CardHeader>
                   <CardTitle>Language & Location</CardTitle>
                   <CardDescription>Source and target language details</CardDescription>
@@ -1051,7 +1171,7 @@ export default function PostJobPage() {
               )}
 
               {visibility === "public" && (
-              <Card>
+              <Card id="section-testing" className="scroll-mt-32">
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div>
                     <CardTitle>
@@ -1186,7 +1306,7 @@ export default function PostJobPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card id="section-budget" className="scroll-mt-32">
                 <CardHeader>
                   <CardTitle>Budget & Timeline</CardTitle>
                 </CardHeader>

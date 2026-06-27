@@ -28,6 +28,166 @@ import { COUNTRIES } from "@/data/countries";
 import { useDynamicSEO } from "@/hooks/use-dynamic-seo";
 import { ResponsiveSelect } from "@/components/ui/responsive-select";
 import { AdSenseUnit } from "@/components/adsense-unit";
+import { cn } from "@/lib/utils";
+
+function TranslatorProfileProgressBar({ 
+  basicsFilled, 
+  bioFilled, 
+  expertiseFilled, 
+  cvFilled,
+  visibilityFilled,
+  activeSection
+}: { 
+  basicsFilled: boolean; 
+  bioFilled: boolean; 
+  expertiseFilled: boolean; 
+  cvFilled: boolean;
+  visibilityFilled: boolean;
+  activeSection: string;
+}) {
+  const steps = [
+    { id: "section-translator-basics", label: "Basics", done: basicsFilled, icon: <User className="h-4 w-4" /> },
+    { id: "section-translator-bio", label: "Bio", done: bioFilled, icon: <FileText className="h-4 w-4" /> },
+    { id: "section-translator-expertise", label: "Expertise", done: expertiseFilled, icon: <Award className="h-4 w-4" /> },
+    { id: "section-translator-cv", label: "CV", done: cvFilled, icon: <Briefcase className="h-4 w-4" /> },
+    { id: "section-translator-visibility", label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
+  ];
+
+  const completed = steps.filter(s => s.done).length;
+  const percentage = (completed / steps.length) * 100;
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <div className="sticky top-[80px] z-40 bg-background/90 backdrop-blur-xl border border-border shadow-sm rounded-xl p-4 mb-6 transition-all">
+      <div className="flex items-center justify-between gap-4 mb-3">
+        {steps.map((step, i) => (
+          <React.Fragment key={step.id}>
+            <button 
+              type="button" 
+              onClick={() => scrollTo(step.id)}
+              className={cn(
+                "flex flex-col items-center gap-1.5 min-w-[50px] transition-all",
+                activeSection === step.id ? "scale-105" : "hover:opacity-80"
+              )}
+            >
+              <div className={cn(
+                "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
+                step.done 
+                  ? "bg-teal-500 border-teal-500 text-white" 
+                  : activeSection === step.id
+                    ? "bg-teal-50 border-teal-500 text-teal-600 shadow-[0_0_12px_rgba(20,184,166,0.4)] animate-pulse"
+                    : "bg-muted border-border text-muted-foreground"
+              )}>
+                {step.done ? <CheckCircle className="h-4 w-4" /> : step.icon}
+              </div>
+              <span className={cn(
+                "text-[9px] font-bold uppercase tracking-wider",
+                step.done || activeSection === step.id ? "text-teal-700" : "text-muted-foreground"
+              )}>
+                {step.label}
+              </span>
+            </button>
+            {i < steps.length - 1 && (
+              <div className="flex-1 h-0.5 bg-border relative -mt-5">
+                <div 
+                  className="absolute inset-0 bg-teal-500 transition-all duration-700"
+                  style={{ width: steps[i].done ? '100%' : '0%' }}
+                />
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-teal-500 transition-all duration-700" style={{ width: `${percentage}%` }} />
+        </div>
+        <span className="text-xs font-bold text-teal-700 w-8">{Math.round(percentage)}%</span>
+      </div>
+    </div>
+  );
+}
+
+function CompanyProfileProgressBar({ 
+  basicsFilled, 
+  contactFilled, 
+  docsFilled, 
+  visibilityFilled,
+  activeSection
+}: { 
+  basicsFilled: boolean; 
+  contactFilled: boolean; 
+  docsFilled: boolean; 
+  visibilityFilled: boolean;
+  activeSection: string;
+}) {
+  const steps = [
+    { id: "section-company-basics", label: "Basics", done: basicsFilled, icon: <Building2 className="h-4 w-4" /> },
+    { id: "section-company-contact", label: "Contact", done: contactFilled, icon: <Globe className="h-4 w-4" /> },
+    { id: "section-company-docs", label: "Documents", done: docsFilled, icon: <FileText className="h-4 w-4" /> },
+    { id: "section-company-visibility", label: "Visibility", done: visibilityFilled, icon: <Eye className="h-4 w-4" /> },
+  ];
+
+  const completed = steps.filter(s => s.done).length;
+  const percentage = (completed / steps.length) * 100;
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <div className="sticky top-[80px] z-40 bg-background/90 backdrop-blur-xl border border-border shadow-sm rounded-xl p-4 mb-6 transition-all">
+      <div className="flex items-center justify-between gap-4 mb-3">
+        {steps.map((step, i) => (
+          <React.Fragment key={step.id}>
+            <button 
+              type="button" 
+              onClick={() => scrollTo(step.id)}
+              className={cn(
+                "flex flex-col items-center gap-1.5 min-w-[50px] transition-all",
+                activeSection === step.id ? "scale-105" : "hover:opacity-80"
+              )}
+            >
+              <div className={cn(
+                "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
+                step.done 
+                  ? "bg-teal-500 border-teal-500 text-white" 
+                  : activeSection === step.id
+                    ? "bg-teal-50 border-teal-500 text-teal-600 shadow-[0_0_12px_rgba(20,184,166,0.4)] animate-pulse"
+                    : "bg-muted border-border text-muted-foreground"
+              )}>
+                {step.done ? <CheckCircle className="h-4 w-4" /> : step.icon}
+              </div>
+              <span className={cn(
+                "text-[9px] font-bold uppercase tracking-wider",
+                step.done || activeSection === step.id ? "text-teal-700" : "text-muted-foreground"
+              )}>
+                {step.label}
+              </span>
+            </button>
+            {i < steps.length - 1 && (
+              <div className="flex-1 h-0.5 bg-border relative -mt-5">
+                <div 
+                  className="absolute inset-0 bg-teal-500 transition-all duration-700"
+                  style={{ width: steps[i].done ? '100%' : '0%' }}
+                />
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-teal-500 transition-all duration-700" style={{ width: `${percentage}%` }} />
+        </div>
+        <span className="text-xs font-bold text-teal-700 w-8">{Math.round(percentage)}%</span>
+      </div>
+    </div>
+  );
+}
 
 const AVAILABLE_SERVICES = [
   { id: "translation", name: "Translation", defaultUnit: "word" },
@@ -149,6 +309,63 @@ function ProfileContent() {
 
   // Common CAT tools options
   const CAT_TOOLS_OPTIONS = ["SDL Trados", "MemoQ", "Phrase (Memsource)", "Wordfast", "Smartcat", "Matecat", "XTM Cloud", "OmegaT"];
+
+  const [activeSection, setActiveSection] = React.useState("section-company-basics");
+
+  React.useEffect(() => {
+    if (role !== "company" || viewMode) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+      let active = "";
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          active = entry.target.id;
+        }
+      });
+      if (active) setActiveSection(active);
+    }, { rootMargin: "-20% 0px -70% 0px" });
+
+    ["section-company-basics", "section-company-contact", "section-company-docs", "section-company-visibility"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [role, viewMode]);
+
+  const companyBasicsFilled = !!companyData.companyName && !!companyData.fullName && !!companyData.contactPerson && !!companyData.contactPersonTitle && !!companyData.about;
+  const companyContactFilled = !!companyData.address && !!companyData.country && !!companyData.website;
+  const companyDocsFilled = !!companyData.registrationDoc && !!companyData.brochureUrl;
+  const companyVisibilityFilled = companyData.isPublicPlatform || companyData.searchEngines.length > 0;
+
+  const [translatorActiveSection, setTranslatorActiveSection] = React.useState("section-translator-basics");
+
+  React.useEffect(() => {
+    if (role !== "translator" || viewMode) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+      let active = "";
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          active = entry.target.id;
+        }
+      });
+      if (active) setTranslatorActiveSection(active);
+    }, { rootMargin: "-20% 0px -70% 0px" });
+
+    ["section-translator-basics", "section-translator-bio", "section-translator-expertise", "section-translator-cv", "section-translator-visibility"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [role, viewMode]);
+
+  const translatorBasicsFilled = !!translatorData.fullName && !!translatorData.address && !!translatorData.country && !!translatorData.paypalEmail;
+  const translatorBioFilled = !!translatorData.bio;
+  const translatorExpertiseFilled = translatorData.languages.length > 0 && translatorData.specializations.length > 0 && translatorData.catTools.length > 0;
+  const translatorCvFilled = !!translatorData.cvUrl;
+  const translatorVisibilityFilled = translatorData.isPublicPlatform || translatorData.searchEngines.length > 0;
 
   React.useEffect(() => {
     async function load() {
@@ -1251,8 +1468,18 @@ function ProfileContent() {
             {/* Role Specific Forms */}
             {role === "translator" ? (
               <div className="space-y-6">
+                {!viewMode && (
+                  <TranslatorProfileProgressBar
+                    basicsFilled={translatorBasicsFilled}
+                    bioFilled={translatorBioFilled}
+                    expertiseFilled={translatorExpertiseFilled}
+                    cvFilled={translatorCvFilled}
+                    visibilityFilled={translatorVisibilityFilled}
+                    activeSection={translatorActiveSection}
+                  />
+                )}
                 {/* Basic Details (Translator) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card id="section-translator-basics" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Basic Information</CardTitle>
                     <CardDescription className="text-3xs">Provide your name and contact details</CardDescription>
@@ -1339,7 +1566,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* Professional Info (Translator) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card id="section-translator-bio" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Professional Biography</CardTitle>
                     <CardDescription className="text-3xs">Provide details about your experience and profile bio</CardDescription>
@@ -1359,7 +1586,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* Languages Pair & Specializations (Translator) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6 relative z-30">
+                <Card id="section-translator-expertise" className="glass-card border-border/40 rounded-2xl p-6 relative z-30 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Languages & Expertise</CardTitle>
                     <CardDescription className="text-3xs">Choose spoken/written languages and specialization branches</CardDescription>
@@ -1714,7 +1941,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* Interactive CV Upload */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6 relative z-0">
+                <Card id="section-translator-cv" className="glass-card border-border/40 rounded-2xl p-6 relative z-0 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Linguist CV / Resume Upload</CardTitle>
                     <CardDescription className="text-3xs">Upload your professional CV to verify your experience (.pdf only)</CardDescription>
@@ -1742,7 +1969,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* SEO & Visibility Settings (Translator) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card id="section-translator-visibility" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Privacy & SEO Indexing</CardTitle>
                     <CardDescription className="text-3xs">Configure your public visibility parameters and search engines targeting</CardDescription>
@@ -1800,8 +2027,17 @@ function ProfileContent() {
               </div>
             ) : (
               <div className="space-y-6">
+                {!viewMode && (
+                  <CompanyProfileProgressBar 
+                    basicsFilled={companyBasicsFilled}
+                    contactFilled={companyContactFilled}
+                    docsFilled={companyDocsFilled}
+                    visibilityFilled={companyVisibilityFilled}
+                    activeSection={activeSection}
+                  />
+                )}
                 {/* Basic Details (Company) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card id="section-company-basics" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Company Information</CardTitle>
                     <CardDescription className="text-3xs">Details describing your corporate identity</CardDescription>
@@ -1919,8 +2155,8 @@ function ProfileContent() {
                   </CardContent>
                 </Card>
 
-                {/* Company Details (Company) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                {/* Company Details & Website */}
+                <Card id="section-company-contact" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Company Details & Website</CardTitle>
                     <CardDescription className="text-3xs">Size, URL link, and corporate biography</CardDescription>
@@ -1968,7 +2204,7 @@ function ProfileContent() {
                 </Card>
 
                 {/* Company Documents & Brochure Upload (Company) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card id="section-company-docs" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Documents & Brochure</CardTitle>
                     <CardDescription className="text-3xs">Upload company registration docs and your public brochure showcase</CardDescription>
@@ -1998,7 +2234,7 @@ function ProfileContent() {
                       </div>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-1">
                       {/* Registration Doc */}
                       <div className="p-4 rounded-xl border border-border/40 bg-accent/5 space-y-2">
                         <Label className="font-bold text-xs block">Commercial Registration</Label>
@@ -2022,36 +2258,12 @@ function ProfileContent() {
                           )}
                         </div>
                       </div>
-
-                      {/* Tax Doc */}
-                      <div className="p-4 rounded-xl border border-border/40 bg-accent/5 space-y-2">
-                        <Label className="font-bold text-xs block">Tax Certificate</Label>
-                        <p className="text-4xs text-muted-foreground">Upload official VAT document</p>
-                        <div className="flex items-center gap-2 pt-1">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={taxUploading}
-                            onClick={() => taxFileInputRef.current?.click()}
-                            className="rounded-xl gap-2"
-                          >
-                            {taxUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                            {companyData.taxDoc ? "Change File" : "Upload File"}
-                          </Button>
-                          {companyData.taxDoc && (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 rounded-md">
-                              Uploaded
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* SEO & Visibility (Company) */}
-                <Card className="glass-card border-border/40 rounded-2xl p-6">
+                <Card id="section-company-visibility" className="glass-card border-border/40 rounded-2xl p-6 scroll-mt-32">
                   <CardHeader className="px-0 pt-0">
                     <CardTitle className="text-base font-bold">Privacy & SEO Indexing</CardTitle>
                     <CardDescription className="text-3xs">Configure your public visibility parameters and search engines targeting</CardDescription>

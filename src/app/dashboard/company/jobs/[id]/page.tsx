@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock, MessageCircle, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award, Loader2, CheckCircle2, ExternalLink, XCircle, DollarSign, MapPin, Globe, Calendar, Users, Eye, TestTube, Upload } from "lucide-react";
+import { ArrowLeft, Clock, MessageCircle, FileText, ShieldAlert, ShieldCheck, Lock, Star, User, Languages, Award, Loader2, CheckCircle2, ExternalLink, XCircle, DollarSign, MapPin, Globe, Calendar, Users, Eye, TestTube, Upload, PackageCheck } from "lucide-react";
 import { useSession } from "@/providers/session-provider";
 import { getServices } from "@/services";
 import { AuthGuard } from "@/guards/auth-guard";
@@ -23,6 +23,91 @@ import { getLanguageName } from "@/data/languages";
 import { PayPalButton } from "@/components/paypal-button";
 import type { Job } from "@/types";
 import { getStorage, BUCKETS, ID } from "@/lib/appwrite";
+import { cn } from "@/lib/utils";
+
+// ─── Progress Bar ───────────────────────────────────────────────────────────
+function CompanyApplicantProgressBar({ app, job }: { app: any, job: Job }) {
+  const requiresTest = job?.requiresTest;
+
+  type Step = { label: string; icon: React.ReactNode; done: boolean; active: boolean; danger?: boolean };
+
+  const steps: Step[] = [
+    {
+      label: "Applied",
+      icon: <FileText className="h-3 w-3" />,
+      done: true,
+      active: ["submitted", "viewed", "shortlisted"].includes(app.status),
+    },
+    ...(requiresTest ? [{
+      label: "Test",
+      icon: <TestTube className="h-3 w-3" />,
+      done: ["test_invited", "accepted", "rejected", "completed"].includes(app.status) && (app.testStatus === "passed" || app.testStatus === "failed" || app.status === "accepted" || app.status === "completed"),
+      active: app.status === "test_invited",
+      danger: app.testStatus === "failed",
+    }] : []),
+    {
+      label: "Hired",
+      icon: <CheckCircle2 className="h-3 w-3" />,
+      done: app.status === "accepted" || app.status === "completed",
+      active: app.status === "accepted" && app.escrowStatus !== "funded" && app.escrowStatus !== "released",
+    },
+    {
+      label: "Funded",
+      icon: <Lock className="h-3 w-3" />,
+      done: ["funded", "approved", "released", "disputed"].includes(app.escrowStatus || ""),
+      active: app.status === "accepted" && app.escrowStatus === "funded" && !app.deliveryFileUrl,
+    },
+    {
+      label: "Delivered",
+      icon: <Upload className="h-3 w-3" />,
+      done: !!app.deliveryFileUrl,
+      active: app.status === "accepted" && !!app.deliveryFileUrl && app.escrowStatus !== "released",
+    },
+    {
+      label: "Paid",
+      icon: <PackageCheck className="h-3 w-3" />,
+      done: app.escrowStatus === "released" || app.status === "completed",
+      active: false,
+    },
+  ];
+
+  return (
+    <div className="flex items-center gap-0 w-full mt-4 mb-2 overflow-x-auto pb-2">
+      {steps.map((step, i) => (
+        <React.Fragment key={step.label}>
+          <div className="flex flex-col items-center gap-1.5 min-w-[50px]">
+            <div className={cn(
+              "h-7 w-7 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-300",
+              step.danger
+                ? "bg-rose-500 border-rose-500 text-white"
+                : step.done
+                  ? "bg-indigo-500 border-indigo-500 text-white"
+                  : step.active
+                    ? "bg-indigo-50 border-indigo-500 text-indigo-600 shadow-[0_0_12px_rgba(99,102,241,0.5)] animate-pulse"
+                    : "bg-muted/40 border-border/40 text-muted-foreground"
+            )}>
+              {step.icon}
+            </div>
+            <span className={cn(
+              "text-[9px] font-bold uppercase tracking-wider whitespace-nowrap",
+              step.danger ? "text-rose-500" : step.done || step.active ? "text-indigo-700" : "text-muted-foreground/60"
+            )}>
+              {step.label}
+            </span>
+          </div>
+          {i < steps.length - 1 && (
+            <div className="flex-1 h-0.5 min-w-[15px] bg-border/40 -mt-5 relative">
+              <div 
+                className={cn("absolute inset-0 transition-all duration-500", step.done ? "bg-indigo-500" : "bg-transparent")} 
+                style={{ width: step.done ? '100%' : '0%' }}
+              />
+            </div>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
 
 const statusBadge: Record<string, "default" | "secondary" | "success" | "warning" | "outline"> = {
   open: "success",
@@ -654,6 +739,10 @@ export default function JobDetailsPage() {
                                       </div>
                                     </div>
                                     
+                                    <div className="w-full max-w-full">
+                                      <CompanyApplicantProgressBar app={app} job={job} />
+                                    </div>
+
                                     <p className="text-sm text-muted-foreground leading-relaxed p-3 bg-background/50 rounded-lg border border-border/20 whitespace-pre-wrap break-words">
                                       "{app.coverLetter}"
                                     </p>
@@ -842,43 +931,48 @@ export default function JobDetailsPage() {
                                           </div>
                                         )}
 
-                                        <div className="flex flex-wrap gap-3 items-center pt-4 border-t border-teal-500/20">
-                                          <Link href="/messages">
-                                            <Button size="sm" className="bg-white hover:bg-teal-50 text-teal-700 border-teal-200 shadow-sm" variant="outline"><MessageCircle className="h-4 w-4 mr-2" /> Open Chat</Button>
+                                        <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-center pt-4 border-t border-teal-500/20">
+                                          <Link href="/messages" className="w-full sm:w-auto">
+                                            <Button size="sm" className="w-full bg-white hover:bg-teal-50 text-teal-700 border-teal-200 shadow-sm" variant="outline"><MessageCircle className="h-4 w-4 mr-2" /> Open Chat</Button>
                                           </Link>
 
                                           {app.deliveryFileUrl && (
-                                            <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer">
-                                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"><FileText className="h-4 w-4 mr-2" /> Download Delivery</Button>
+                                            <a href={app.deliveryFileUrl} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                                              <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"><FileText className="h-4 w-4 mr-2" /> Download Delivery</Button>
                                             </a>
                                           )}
 
-                                          {app.deliveryFileUrl && app.status !== "completed" && (
-                                            <>
-                                              {app.escrowStatus === "disputed" ? (
-                                                <div className="flex gap-2 items-center px-4 py-2 rounded-md bg-amber-50 border border-amber-200 text-amber-700 font-bold"><ShieldAlert className="h-4 w-4 text-amber-500" /> Dispute Active</div>
-                                              ) : (
-                                                <>
-                                                  <Button size="sm" onClick={() => handleAcceptDelivery(app.$id, app.translatorId, app.bidAmount || job.budget)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-pulse hover:animate-none border-emerald-500"><CheckCircle2 className="h-4 w-4 mr-2" /> Accept Delivery</Button>
-                                                  <Button size="sm" onClick={() => setRejectTranslationApp(app)} className="bg-rose-600 hover:bg-rose-700 text-white font-semibold"><XCircle className="h-4 w-4 mr-2" /> Request Revision</Button>
-                                                  <Button size="sm" onClick={() => setDisputeApp(app)} variant="outline" className="border-rose-200 text-rose-700 font-semibold hover:bg-rose-50"><ShieldAlert className="h-4 w-4 mr-2 text-rose-500" /> File Dispute</Button>
-                                                </>
-                                              )}
-                                            </>
-                                          )}
-                                          
-                                          {app.status === "completed" && (
-                                            <div className="flex gap-2 items-center px-4 py-2 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Job Completed & Paid</div>
-                                          )}
-
                                           {app.financialFileId || app.escrowStatus === "funded" || app.status === "completed" ? (
-                                            <div className="flex items-center gap-2">
-                                              <span className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-md border border-emerald-200">💵 Escrow Funded (${app.bidAmount || job.budget})</span>
+                                            <div className="flex items-center gap-2 w-full sm:w-auto ml-auto">
+                                              <span className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-2 rounded-md border border-emerald-200 w-full">💵 Escrow Funded (${app.bidAmount || job.budget})</span>
                                             </div>
                                           ) : (
-                                            <Button size="sm" onClick={() => setHiringApp(app)} className="bg-amber-500 hover:bg-amber-600 text-white font-bold">💳 Fund Escrow & Hire</Button>
+                                            <Button size="sm" onClick={() => setHiringApp(app)} className="w-full sm:w-auto ml-auto bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-[0_0_15px_rgba(245,158,11,0.4)] animate-pulse hover:animate-none">💳 Fund Escrow & Hire</Button>
                                           )}
                                         </div>
+
+                                        {/* Post-Delivery Actions Box */}
+                                        {app.deliveryFileUrl && app.status !== "completed" && (
+                                          <div className="mt-4 p-4 rounded-xl border border-blue-200 bg-blue-50/50 shadow-sm">
+                                            <h5 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                                              <CheckCircle2 className="h-4 w-4 text-blue-600" /> Work Delivered - Your Action Required
+                                            </h5>
+                                            
+                                            {app.escrowStatus === "disputed" ? (
+                                              <div className="flex gap-2 items-center px-4 py-3 rounded-lg bg-amber-100 border border-amber-300 text-amber-800 font-bold w-full"><ShieldAlert className="h-5 w-5 text-amber-600" /> Dispute is currently active. Escrow frozen.</div>
+                                            ) : (
+                                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                <Button size="sm" onClick={() => handleAcceptDelivery(app.$id, app.translatorId, app.bidAmount || job.budget)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md"><CheckCircle2 className="h-4 w-4 mr-2" /> Approve & Pay</Button>
+                                                <Button size="sm" onClick={() => setRejectTranslationApp(app)} className="bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-md"><XCircle className="h-4 w-4 mr-2" /> Request Revision</Button>
+                                                <Button size="sm" onClick={() => setDisputeApp(app)} variant="outline" className="border-rose-300 text-rose-700 font-bold hover:bg-rose-50 shadow-sm"><ShieldAlert className="h-4 w-4 mr-2 text-rose-500" /> File Dispute</Button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                        
+                                        {app.status === "completed" && (
+                                          <div className="mt-4 flex gap-2 items-center px-4 py-3 rounded-xl bg-emerald-100/50 border border-emerald-300 text-emerald-800 font-bold"><CheckCircle2 className="h-5 w-5 text-emerald-600" /> Job Completed & Paid Successfully.</div>
+                                        )}
                                       </div>
                                     )}
                                   </div>

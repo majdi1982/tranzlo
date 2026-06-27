@@ -27,6 +27,87 @@ import {
   CheckSquare,
   Square
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+function OnboardingProgressBar({ progress, step, role }: { progress: number, step: number, role: string | null }) {
+  return (
+    <div className="w-full max-w-2xl mx-auto mb-8 bg-background/90 backdrop-blur-xl border border-border shadow-sm rounded-xl p-4 transition-all z-20 relative">
+      <div className="flex items-center justify-between gap-4 mb-3">
+        <div className="flex flex-col items-center gap-1.5 flex-1">
+          <div className={cn(
+            "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
+            step >= 1 ? "bg-teal-500 border-teal-500 text-white" : "bg-muted border-border text-muted-foreground"
+          )}>
+            <CheckCircle className="h-4 w-4" />
+          </div>
+          <span className={cn(
+            "text-[9px] font-bold uppercase tracking-wider",
+            step >= 1 ? "text-teal-700" : "text-muted-foreground"
+          )}>
+            Select Role
+          </span>
+        </div>
+        
+        <div className="flex-1 h-0.5 bg-border relative -mt-5">
+          <div 
+            className="absolute inset-0 bg-teal-500 transition-all duration-700"
+            style={{ width: step > 1 ? '100%' : '0%' }}
+          />
+        </div>
+
+        <div className="flex flex-col items-center gap-1.5 flex-1">
+          <div className={cn(
+            "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
+            step === 2 && progress < 100
+              ? "bg-teal-50 border-teal-500 text-teal-600 shadow-[0_0_12px_rgba(20,184,166,0.4)] animate-pulse"
+              : progress === 100 
+                ? "bg-teal-500 border-teal-500 text-white"
+                : "bg-muted border-border text-muted-foreground"
+          )}>
+            {progress === 100 ? <CheckCircle className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
+          </div>
+          <span className={cn(
+            "text-[9px] font-bold uppercase tracking-wider",
+            step === 2 ? "text-teal-700" : "text-muted-foreground"
+          )}>
+            {role === "translator" ? "Linguist Details" : role === "company" ? "Company Details" : "Details"}
+          </span>
+        </div>
+
+        <div className="flex-1 h-0.5 bg-border relative -mt-5">
+          <div 
+            className="absolute inset-0 bg-teal-500 transition-all duration-700"
+            style={{ width: progress === 100 ? '100%' : '0%' }}
+          />
+        </div>
+
+        <div className="flex flex-col items-center gap-1.5 flex-1">
+          <div className={cn(
+            "h-8 w-8 rounded-full flex items-center justify-center border-2 shrink-0 transition-all duration-500",
+            progress === 100
+              ? "bg-teal-500 border-teal-500 text-white shadow-[0_0_12px_rgba(20,184,166,0.4)] animate-pulse"
+              : "bg-muted border-border text-muted-foreground"
+          )}>
+            <Check className="h-4 w-4" />
+          </div>
+          <span className={cn(
+            "text-[9px] font-bold uppercase tracking-wider",
+            progress === 100 ? "text-teal-700" : "text-muted-foreground"
+          )}>
+            Complete
+          </span>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-teal-500 transition-all duration-700" style={{ width: `${progress}%` }} />
+        </div>
+        <span className="text-xs font-bold text-teal-700 w-8">{Math.round(progress)}%</span>
+      </div>
+    </div>
+  );
+}
 
 const CAT_TOOLS = [
   "SDL Trados Studio",
@@ -318,7 +399,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center py-16 px-4 bg-grid relative">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[300px] bg-hero-glow pointer-events-none" />
 
-
+      <OnboardingProgressBar progress={progressPercent} step={step} role={role} />
 
       <div className="w-full max-w-2xl relative z-10">
         {step === 1 ? (
