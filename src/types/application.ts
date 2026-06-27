@@ -30,6 +30,8 @@ export interface Application {
   revisionStatus?: "none" | "requested" | "submitted";
   revisionReason?: string;
   revisionReviewedFileUrl?: string;
+  earlyReleaseRequested?: boolean;
+  earlyReleaseRequestedAt?: string;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;
