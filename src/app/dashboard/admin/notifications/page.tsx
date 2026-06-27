@@ -124,8 +124,7 @@ export default function AdminNotificationsPage() {
         const transDocs = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
           Query.or([
             Query.equal("userId", targetIdentifier.trim()),
-            Query.equal("email", targetIdentifier.trim()),
-            Query.equal("emailAddress", targetIdentifier.trim())
+            Query.equal("email", targetIdentifier.trim())
           ]),
           Query.limit(1)
         ]);
@@ -138,8 +137,7 @@ export default function AdminNotificationsPage() {
           const compDocs = await db.listDocuments(DB_ID, COLLECTIONS.companyProfiles, [
             Query.or([
               Query.equal("userId", targetIdentifier.trim()),
-              Query.equal("email", targetIdentifier.trim()),
-              Query.equal("emailAddress", targetIdentifier.trim())
+              Query.equal("email", targetIdentifier.trim())
             ]),
             Query.limit(1)
           ]);
