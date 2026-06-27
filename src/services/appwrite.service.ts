@@ -621,6 +621,20 @@ export const appwriteApplicationService = {
     return result.documents.map((d) => mapDoc<Application>(d as Record<string, unknown>));
   },
 
+  async getAllApplications(): Promise<Application[]> {
+    try {
+      const db = getDatabases();
+      const res = await db.listDocuments(DB_ID, COLLECTIONS.applications, [
+        Query.limit(100),
+        Query.orderDesc("$createdAt")
+      ]);
+      return res.documents.map((d) => mapDoc<Application>(d as Record<string, unknown>));
+    } catch (error) {
+      console.error("Failed to fetch all applications:", error);
+      return [];
+    }
+  },
+
   async getMyApplications(translatorId: string): Promise<Application[]> {
     const db = getDatabases();
     const result = await db.listDocuments(DB_ID, COLLECTIONS.applications, [
@@ -656,7 +670,7 @@ export const appwriteApplicationService = {
 
   async updateApplicationWithFeedback(
     applicationId: string,
-    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string; testReviewedFileUrl?: string; extensionStatus?: string; extensionReason?: string; extensionRequestedAt?: string; extensionDate?: string; deliveryFileUrl?: string; deliveryDate?: string; escrowStatus?: string; disputeId?: string; revisionStatus?: string; revisionReason?: string; revisionReviewedFileUrl?: string; }
+    data: { testStatus?: string; testFeedback?: string; status?: string; rejectionReason?: string; testReviewedFileUrl?: string; extensionStatus?: string; extensionReason?: string; extensionRequestedAt?: string; extensionDate?: string; deliveryFileUrl?: string; deliveryDate?: string; escrowStatus?: string; disputeId?: string; revisionStatus?: string; revisionReason?: string; revisionReviewedFileUrl?: string; earlyReleaseRequested?: boolean; }
   ): Promise<Application> {
     const db = getDatabases();
     const updateData: Record<string, any> = {
@@ -668,6 +682,20 @@ export const appwriteApplicationService = {
     }
     const doc = await db.updateDocument(DB_ID, COLLECTIONS.applications, applicationId, updateData);
     return mapDoc<Application>(doc as Record<string, unknown>);
+  },
+
+  async requestEarlyRelease(applicationId: string): Promise<Application> {
+    try {
+      const db = getDatabases();
+      const res = await db.updateDocument(DB_ID, COLLECTIONS.applications, applicationId, {
+        earlyReleaseRequested: true,
+        updatedAt: new Date().toISOString()
+      });
+      return mapDoc<Application>(res as Record<string, unknown>);
+    } catch (error) {
+      console.error("Failed to request early release:", error);
+      throw error;
+    }
   },
 
   async selectTranslator(jobId: string, selectedAppId: string): Promise<void> {
@@ -1454,47 +1482,71 @@ export const appwriteLedgerService = {
     const db = getDatabases();
     
     // 1. Get Company Profile to check plan Tier
-    const profiles = await db.listDocuments(DB_ID, COLLECTIONS.companyProfiles, [
+    const companyProfiles = await db.listDocuments(DB_ID, COLLECTIONS.companyProfiles, [
       Query.equal("userId", companyId),
       Query.limit(1)
     ]);
-    const planTier = profiles.documents.length > 0 ? (profiles.documents[0].planTier || "free") : "free";
+    const companyPlanTier = companyProfiles.documents.length > 0 ? (companyProfiles.documents[0].planTier || "free") : "free";
 
-    // 2. Calculate Fee (Company: 10% / 5% / 0%)
-    const feePercent = getCompanyCommissionRate(planTier);
-    const feeAmount = baseValue * feePercent;
-    const totalAmount = baseValue + feeAmount;
+    // 2. Get Translator Profile to check plan Tier and lock in the fee
+    const transProfiles = await db.listDocuments(DB_ID, COLLECTIONS.translatorProfiles, [
+      Query.equal("userId", translatorId),
+      Query.limit(1)
+    ]);
+    const transPlanTier = transProfiles.documents.length > 0 ? (transProfiles.documents[0].planTier || "free") : "free";
 
-    // 3. Create Company Invoice
+    // 3. Calculate Fees
+    const companyFeePercent = getCompanyCommissionRate(companyPlanTier);
+    const companyFeeAmount = baseValue * companyFeePercent;
+    const totalAmount = baseValue + companyFeeAmount;
+
+    const transFeePercent = getTranslatorCommissionRate(transPlanTier);
+    const translatorFeeAmount = baseValue * transFeePercent;
+
+    // 4. Find Application and Lock in Fees
+    const apps = await db.listDocuments(DB_ID, COLLECTIONS.applications, [
+      Query.equal("jobId", jobId),
+      Query.equal("translatorId", translatorId),
+      Query.limit(1)
+    ]);
+    if (apps.documents.length > 0) {
+      await db.updateDocument(DB_ID, COLLECTIONS.applications, apps.documents[0].$id, {
+        companyFeeAmount,
+        translatorFeeAmount,
+      });
+    }
+
+    // 5. Create Company Invoice
     await db.createDocument(DB_ID, COLLECTIONS.invoices, generateId("inv"), {
-      invoiceNumber: `INV-${Date.now()}`,
+      invoiceNumber: `INV-${Date.now()}-C`,
       projectId: jobId,
       companyId: companyId,
       translatorId: translatorId,
       jobBaseValue: baseValue,
-      companyFeeAmount: feeAmount,
+      companyFeeAmount: companyFeeAmount,
       translatorFeeAmount: 0,
       totalCompanyPaid: totalAmount,
       netTranslatorEarned: 0,
       status: "completed",
+      paypalTransactionId: captureId, // Save PayPal Capture ID
     });
 
-    // 4. Create Transaction Ledger entry
+    // 6. Create Transaction Ledger entry
     return this.createTransaction({
       transactionId: captureId,
       code: `escrow_fund_${jobId}`,
       userId: companyId,
-      userName: profiles.documents[0]?.companyName || "Company",
+      userName: companyProfiles.documents[0]?.companyName || "Company",
       userEmail: "", 
       type: "job_escrow",
-      planTier,
+      planTier: companyPlanTier,
       amount: totalAmount,
-      feeDeducted: feeAmount,
+      feeDeducted: companyFeeAmount,
       status: "funded"
     });
   },
 
-  async processEscrowRelease(jobId: string, translatorId: string, baseValue: number): Promise<any> {
+  async processEscrowRelease(jobId: string, translatorId: string, baseValue: number, payoutBatchId?: string): Promise<any> {
     const db = getDatabases();
     
     // Get job to find companyId
@@ -1509,14 +1561,28 @@ export const appwriteLedgerService = {
     const profile = profiles.documents[0];
     const planTier = profile?.planTier || "free";
 
-    // 2. Calculate Fee (Translator: 20% / 15% / 5%)
-    const feePercent = getTranslatorCommissionRate(planTier);
-    const feeAmount = baseValue * feePercent;
+    // 2. Read Locked Fee from Application
+    const apps = await db.listDocuments(DB_ID, COLLECTIONS.applications, [
+      Query.equal("jobId", jobId),
+      Query.equal("translatorId", translatorId),
+      Query.limit(1)
+    ]);
+    
+    let feeAmount = 0;
+    if (apps.documents.length > 0 && apps.documents[0].translatorFeeAmount !== undefined) {
+      feeAmount = apps.documents[0].translatorFeeAmount;
+    } else {
+      // Fallback if missing
+      const feePercent = getTranslatorCommissionRate(planTier);
+      feeAmount = baseValue * feePercent;
+    }
     const netPayout = baseValue - feeAmount;
 
     // 3. Create Translator Invoice
+    const transactionId = payoutBatchId || generateId("payout");
+    
     await db.createDocument(DB_ID, COLLECTIONS.invoices, generateId("inv"), {
-      invoiceNumber: `INV-${Date.now()}`,
+      invoiceNumber: `INV-${Date.now()}-T`,
       projectId: jobId,
       companyId: companyId,
       translatorId: translatorId,
@@ -1526,6 +1592,7 @@ export const appwriteLedgerService = {
       totalCompanyPaid: 0,
       netTranslatorEarned: netPayout,
       status: "completed",
+      paypalTransactionId: transactionId, // Save PayPal Payout Batch ID
     });
 
     // 4. Update Translator Balance
@@ -1538,7 +1605,7 @@ export const appwriteLedgerService = {
 
     // 5. Create Transaction Ledger entry
     return this.createTransaction({
-      transactionId: generateId("payout"),
+      transactionId: transactionId,
       code: `escrow_release_${jobId}`,
       userId: translatorId,
       userName: profile?.fullName || "Translator",

@@ -61,6 +61,7 @@ export interface IJobService {
 export interface IApplicationService {
   apply(data: ApplyInput & { translatorId: string }): Promise<Application>;
   getApplications(jobId: string): Promise<Application[]>;
+  getAllApplications(): Promise<Application[]>;
   getMyApplications(translatorId: string): Promise<Application[]>;
   updateApplicationStatus(
     applicationId: string,

@@ -127,6 +127,9 @@ export default function MyApplicationsPage() {
   const [selectedApp, setSelectedApp] = React.useState<(Application & { job?: Job }) | null>(null);
   const [testFile, setTestFile] = React.useState<File | null>(null);
   const [uploadingTest, setUploadingTest] = React.useState(false);
+  const [uploadingDelivery, setUploadingDelivery] = React.useState(false);
+  const [requestingRelease, setRequestingRelease] = React.useState<string | null>(null);
+  const [translatorProfile, setTranslatorProfile] = React.useState<any>(null);
   const [extensionReason, setExtensionReason] = React.useState("");
   const [extensionDate, setExtensionDate] = React.useState("");
   const [requestingExtension, setRequestingExtension] = React.useState(false);
@@ -141,6 +144,9 @@ export default function MyApplicationsPage() {
       const services = getServices();
       const myApps = await services.application.getMyApplications(user.$id);
       const jobs = await services.job.getJobs();
+      const profile = await services.profile.getTranslatorProfile(user.$id);
+      setTranslatorProfile(profile);
+      
       const enriched = myApps.map((app) => ({
         ...app,
         job: jobs.find((j) => j.$id === app.jobId),
@@ -211,6 +217,22 @@ export default function MyApplicationsPage() {
       setUploadingTest(false);
     }
   }
+
+  const handleRequestEarlyRelease = async (applicationId: string) => {
+    try {
+      setRequestingRelease(applicationId);
+      const services = getServices();
+      await services.application.requestEarlyRelease(applicationId);
+      setApps(prev => prev.map(app => 
+        app.$id === applicationId ? { ...app, earlyReleaseRequested: true } : app
+      ));
+      toast({ title: "Success", description: "Early release request sent successfully." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to request early release", variant: "destructive" });
+    } finally {
+      setRequestingRelease(null);
+    }
+  };
 
   async function handleDeliverySubmit() {
     if (!selectedApp || !testFile) return;
@@ -302,6 +324,14 @@ export default function MyApplicationsPage() {
       setRequestingExtension(false);
     }
   }
+
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const earlyReleasesThisMonth = apps.filter(a => a.earlyReleaseRequested && new Date(a.updatedAt).getMonth() === currentMonth && new Date(a.updatedAt).getFullYear() === currentYear).length;
+  const planTier = translatorProfile?.planTier || "free";
+  const releaseLimit = planTier === "plus" ? Infinity : planTier === "pro" ? 3 : 1;
+  const hasReachedLimit = earlyReleasesThisMonth >= releaseLimit;
+  const hasActiveNewJob = apps.some(a => a.status === 'accepted');
 
   return (
     <AuthGuard>
@@ -625,6 +655,40 @@ export default function MyApplicationsPage() {
                               <span className="text-xs text-muted-foreground ml-2">
                                 Feedback: {app.testFeedback}
                               </span>
+                            )}
+                          </div>
+                        )}
+                        {app.status === "completed" && app.escrowStatus === "approved" && (
+                          <div className="mt-4 p-4 rounded-xl bg-teal-50 border border-teal-200">
+                            <p className="text-sm font-semibold text-teal-800">Job Approved!</p>
+                            <p className="text-xs text-teal-700 mt-1">Your funds are in escrow and will be automatically released in 30 days.</p>
+                            
+                            {!app.earlyReleaseRequested ? (
+                              hasActiveNewJob ? (
+                                hasReachedLimit ? (
+                                  <p className="text-xs text-rose-600 mt-2 font-medium">You have reached your limit of {releaseLimit} early payout request(s) this month. Upgrade your plan to increase limits.</p>
+                                ) : (
+                                  (new Date().getTime() - new Date(app.updatedAt).getTime()) > 10 * 24 * 60 * 60 * 1000 ? (
+                                    <Button 
+                                      size="sm" 
+                                      className="mt-3 bg-amber-500 hover:bg-amber-600 text-white"
+                                      onClick={() => handleRequestEarlyRelease(app.$id)}
+                                      disabled={requestingRelease === app.$id}
+                                    >
+                                      {requestingRelease === app.$id ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                      Request Early Payout
+                                    </Button>
+                                  ) : (
+                                    <p className="text-xs text-teal-600 mt-2 font-medium">Early payout can be requested 10 days after approval.</p>
+                                  )
+                                )
+                              ) : (
+                                <p className="text-xs text-teal-600 mt-2 font-medium">Early payout requests are available only when you start working on a new active project.</p>
+                              )
+                            ) : (
+                              <p className="text-xs text-amber-600 mt-2 font-bold flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5" /> Early release requested. Pending Admin review.
+                              </p>
                             )}
                           </div>
                         )}

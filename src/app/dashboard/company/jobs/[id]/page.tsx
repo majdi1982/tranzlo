@@ -476,7 +476,7 @@ export default function JobDetailsPage() {
                 <div className="text-sm leading-relaxed whitespace-pre-wrap">{job.description}</div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Requirements & Details</h4>
                   <ul className="space-y-2 text-sm">
@@ -510,7 +510,7 @@ export default function JobDetailsPage() {
                 </div>
                 
                 <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Testing & Materials</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Testing Requirements</h4>
                   <ul className="space-y-3 text-sm">
                     <li className="flex gap-2 items-start">
                       <span className="font-medium min-w-24">Test Required:</span>
@@ -536,12 +536,22 @@ export default function JobDetailsPage() {
                         </a>
                       </li>
                     )}
-                    {job.translationFileUrl && (
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Job Materials</h4>
+                  <ul className="space-y-3 text-sm">
+                    {job.translationFileUrl ? (
                       <li className="flex gap-2 items-center pt-1">
-                        <span className="font-medium min-w-24">Reference File:</span>
+                        <span className="font-medium min-w-24">Work File:</span>
                         <a href={job.translationFileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
                           <ExternalLink className="h-3.5 w-3.5" /> View File
                         </a>
+                      </li>
+                    ) : (
+                      <li className="flex gap-2 items-center pt-1">
+                        <span className="text-muted-foreground italic text-xs">No work file uploaded.</span>
                       </li>
                     )}
                   </ul>

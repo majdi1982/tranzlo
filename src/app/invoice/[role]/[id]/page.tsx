@@ -28,7 +28,11 @@ export default function InvoicePage() {
         const companyProfile = await services.profile.getCompanyProfile(job.companyId);
         const translatorProfile = await services.profile.getTranslatorProfile(app.translatorId);
 
-        setData({ app, job, companyProfile, translatorProfile });
+        // Fetch actual invoice if available to get locked fees and paypal transaction ID
+        const invoices = await services.ledger.getInvoicesByJob(job.$id);
+        const invoice = invoices.find(inv => role === "company" ? inv.companyFeeAmount > 0 : inv.translatorFeeAmount > 0);
+
+        setData({ app, job, companyProfile, translatorProfile, invoice });
       } catch (err: any) {
         setError(err.message || "Failed to load invoice data");
       } finally {
@@ -58,24 +62,24 @@ export default function InvoicePage() {
     );
   }
 
-  const { app, job, companyProfile, translatorProfile } = data;
+  const { app, job, companyProfile, translatorProfile, invoice } = data;
   
   // Financial calculations
-  const platformFeeRate = 0.05; // 5% for company, or 10% for translator (simplified)
-  
   const subtotal = job.budget;
   let platformFee = 0;
   let total = 0;
   
   if (role === "company") {
-    // Company pays budget + 5% fee
-    platformFee = subtotal * platformFeeRate;
-    total = subtotal + platformFee;
+    // If invoice exists (locked at funding), use its values. Otherwise fallback to current rate.
+    platformFee = invoice ? invoice.companyFeeAmount : (app.companyFeeAmount || subtotal * 0.05);
+    total = invoice ? invoice.totalCompanyPaid : (subtotal + platformFee);
   } else {
-    // Translator receives budget - 10% fee (assuming base plan)
-    platformFee = subtotal * 0.10;
-    total = subtotal - platformFee;
+    // Translator receives budget - fee
+    platformFee = invoice ? invoice.translatorFeeAmount : (app.translatorFeeAmount || subtotal * 0.10);
+    total = invoice ? invoice.netTranslatorEarned : (subtotal - platformFee);
   }
+
+  const paypalTxId = invoice?.paypalTransactionId;
 
   const handlePrint = () => {
     window.print();
@@ -175,11 +179,18 @@ export default function InvoicePage() {
                       <span className="font-black text-2xl text-teal-600">${total.toFixed(2)} USD</span>
                    </div>
                 </div>
+                
+                {paypalTxId && (
+                  <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                    <p className="text-sm font-semibold text-slate-700">Payment Reference</p>
+                    <p className="text-sm text-slate-600 mt-1">PayPal Transaction ID: <span className="font-mono">{paypalTxId}</span></p>
+                  </div>
+                )}
              </div>
 
              {/* Footer */}
-             <div className="mt-16 pt-8 border-t border-slate-200 text-center text-sm text-slate-500">
-                <p>Thank you for using Tranzlo.</p>
+             <div className="mt-12 pt-8 border-t border-slate-200 text-center text-sm text-slate-500">
+                <p className="font-medium">Thank you for using Tranzlo!</p>
                 <p className="mt-1">If you have any questions concerning this invoice, contact support@tranzlo.com</p>
              </div>
           </div>
