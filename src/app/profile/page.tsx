@@ -315,6 +315,10 @@ function ProfileContent() {
   const translatorCvFilled = !!translatorData.cvUrl;
   const translatorVisibilityFilled = translatorData.isPublicPlatform || translatorData.searchEngines.length > 0;
 
+  const companyBasicsFilled = !!companyData.companyName && !!companyData.fullName && !!companyData.address && !!companyData.country;
+  const companyContactFilled = !!companyData.companySize && !!companyData.about;
+  const companyVisibilityFilled = companyData.isPublicPlatform || companyData.searchEngines.length > 0;
+
   React.useEffect(() => {
     async function load() {
       if (!targetUserId) return;
@@ -1993,7 +1997,6 @@ function ProfileContent() {
                         className="rounded-xl"
                       />
                     </div>
-                      </div>
                   </CardContent>
                 </Card>
                 </div>
@@ -2185,8 +2188,6 @@ function ProfileContent() {
                 </div>
                 )}
 
-                </div>
-                )}
 
                 {currentCompanyStep === 2 && (
                 <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">

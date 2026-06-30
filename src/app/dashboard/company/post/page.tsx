@@ -1158,8 +1158,6 @@ export default function PostJobPage() {
                   )}
                 </CardContent>
               </Card>
-                </CardContent>
-              </Card>
               )}
               </div>
               )}

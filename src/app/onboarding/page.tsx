@@ -562,7 +562,6 @@ export default function OnboardingPage() {
                   )}
 
                   {formStep === 1 && (
-                  {/* Language Profile Setup */}
                   <div className="space-y-4 animate-in slide-in-from-right-4 fade-in duration-300">
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold">Native Language (Max 1)</Label>
@@ -594,7 +593,6 @@ export default function OnboardingPage() {
                           }
                           setSelectedLangs(selectedCodes);
                           
-                          // Auto suggest pairs when languages update
                           const newPairs: string[] = [];
                           selectedCodes.forEach(src => {
                             selectedCodes.forEach(tgt => {
@@ -612,7 +610,6 @@ export default function OnboardingPage() {
                       />
                     </div>
 
-                    {/* Dynamic Language Pairs List */}
                     {selectedLangs.length > 0 && (
                       <div className="p-4 rounded-xl border border-border/40 bg-muted/10 space-y-3">
                         <div className="space-y-1">
@@ -670,12 +667,8 @@ export default function OnboardingPage() {
                         )}
                       </div>
                     )}
-                      </div>
-                    )}
                   </div>
                   )}
-
-
 
                   {formStep === 2 && (
                   <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
@@ -790,7 +783,6 @@ export default function OnboardingPage() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         className="bg-background/80 rounded-lg text-sm"
-                      />
                       />
                     </div>
                   </div>
@@ -911,6 +903,7 @@ export default function OnboardingPage() {
                       );
                     })}
                   </div>
+                </div>
 
                   {/* Custom SEO Keywords - dynamic expand based on search engine selection */}
                   {selectedSearchEngines.length > 0 && (
@@ -953,11 +946,6 @@ export default function OnboardingPage() {
                     </div>
                   )}
                 </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
               )}
             </CardContent>
 
