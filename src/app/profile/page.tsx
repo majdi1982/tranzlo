@@ -234,6 +234,7 @@ function ProfileContent() {
     planTier: "free",
     pricing: [] as { serviceId: string; rate: number; unit: string }[],
     paypalEmail: "",
+    veemEmail: "",
     languagesUnlocked: false,
   });
 
@@ -256,6 +257,7 @@ function ProfileContent() {
     searchEngines: [] as string[],
     seoKeywords: "",
     paypalEmail: "",
+    veemEmail: "",
     planTier: "free",
   });
 
@@ -383,6 +385,7 @@ function ProfileContent() {
             planTier: translatorProfile.planTier || "free",
             pricing: parsedPricing,
             paypalEmail: translatorProfile.paypalEmail || "",
+            veemEmail: (translatorProfile as any).veemEmail || "",
             languagesUnlocked: (translatorProfile as any).languagesUnlocked || false,
           });
           setInitialLanguages(translatorProfile.languages || []);
@@ -438,6 +441,7 @@ function ProfileContent() {
               searchEngines: companyProfile.searchEngines || [],
               seoKeywords: companyProfile.seoKeywords || "",
               paypalEmail: companyProfile.paypalEmail || "",
+              veemEmail: (companyProfile as any).veemEmail || "",
               planTier: companyProfile.planTier || "free",
             });
             foundProfile = true;
@@ -680,6 +684,7 @@ function ProfileContent() {
           onboardingComplete: true,
           pricing: JSON.stringify(translatorData.pricing || []),
           paypalEmail: translatorData.paypalEmail || undefined,
+          veemEmail: translatorData.veemEmail || undefined,
         };
 
         if (languagesChanged) {
@@ -719,6 +724,7 @@ function ProfileContent() {
           seoKeywords: companyData.seoKeywords,
           onboardingComplete: true,
           paypalEmail: companyData.paypalEmail || undefined,
+          veemEmail: companyData.veemEmail || undefined,
         } as any);
       }
       toast({
@@ -1500,16 +1506,16 @@ function ProfileContent() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="paypalEmail">PayPal Payout Email</Label>
+                      <Label htmlFor="veemEmail">Veem Payout Email</Label>
                       <Input
-                        id="paypalEmail"
+                        id="veemEmail"
                         type="email"
-                        value={translatorData.paypalEmail}
-                        onChange={(e) => setTranslatorData((p) => ({ ...p, paypalEmail: e.target.value }))}
-                        placeholder="your-paypal-email@domain.com"
+                        value={translatorData.veemEmail}
+                        onChange={(e) => setTranslatorData((p) => ({ ...p, veemEmail: e.target.value }))}
+                        placeholder="your-veem-email@domain.com"
                         className="rounded-xl"
                       />
-                      <p className="text-4xs text-muted-foreground">PayPal payouts are sent directly to this address. Ensure it is correct.</p>
+                      <p className="text-4xs text-muted-foreground">Veem payouts are sent directly to this address. Ensure it is correct.</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -2034,16 +2040,16 @@ function ProfileContent() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="companyPaypalEmail">PayPal Billing Email</Label>
+                      <Label htmlFor="companyVeemEmail">Veem Billing Email</Label>
                       <Input
-                        id="companyPaypalEmail"
+                        id="companyVeemEmail"
                         type="email"
-                        value={companyData.paypalEmail}
-                        onChange={(e) => setCompanyData((p) => ({ ...p, paypalEmail: e.target.value }))}
-                        placeholder="billing-paypal@company.com"
+                        value={companyData.veemEmail}
+                        onChange={(e) => setCompanyData((p) => ({ ...p, veemEmail: e.target.value }))}
+                        placeholder="billing-veem@company.com"
                         className="rounded-xl"
                       />
-                      <p className="text-4xs text-muted-foreground">PayPal invoice billing email for payments and refunds.</p>
+                      <p className="text-4xs text-muted-foreground">Veem billing email for payments and refunds.</p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">

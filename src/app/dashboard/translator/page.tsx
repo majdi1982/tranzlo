@@ -27,7 +27,7 @@ export default function TranslatorDashboard() {
   
   // Withdrawal State
   const [withdrawing, setWithdrawing] = React.useState(false);
-  const [paypalEmail, setPaypalEmail] = React.useState("");
+  const [veemEmail, setVeemEmail] = React.useState("");
   const [withdrawSuccess, setWithdrawSuccess] = React.useState<string | null>(null);
   const [withdrawError, setWithdrawError] = React.useState<string | null>(null);
 
@@ -53,8 +53,10 @@ export default function TranslatorDashboard() {
            setOpenDisputesCount(disputes.filter(d => d.status === "open").length);
         }
         setProfile(userProfile);
-        if (userProfile?.paypalEmail || userProfile?.email) {
-          setPaypalEmail(userProfile.paypalEmail || userProfile.email);
+        if ((userProfile as any)?.veemEmail) {
+          setVeemEmail((userProfile as any).veemEmail);
+        } else if (userProfile?.email) {
+          setVeemEmail(userProfile.email);
         }
       } catch {
         // ignore
@@ -69,8 +71,8 @@ export default function TranslatorDashboard() {
   const inProgress = applications.filter((a) => a.status === "submitted").length;
 
   const handleWithdraw = async () => {
-    if (!paypalEmail) {
-      setWithdrawError("Please enter your PayPal email address.");
+    if (!veemEmail) {
+      setWithdrawError("Please enter your Veem email address.");
       return;
     }
     setWithdrawing(true);
@@ -80,12 +82,15 @@ export default function TranslatorDashboard() {
       const res = await fetch("/api/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user?.$id, paypalEmail }),
+        body: JSON.stringify({
+          userId: user?.$id,
+          veemEmail: veemEmail
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Withdrawal failed");
       
-      setWithdrawSuccess("Withdrawal successful! Check your PayPal account.");
+      setWithdrawSuccess("Withdrawal successful! Check your Veem account.");
       setProfile((prev) => prev ? { ...prev, availableBalance: 0 } : null);
     } catch (err: any) {
       setWithdrawError(err.message);
@@ -135,22 +140,22 @@ export default function TranslatorDashboard() {
                 ${(profile?.availableBalance || 0).toFixed(2)}
               </h2>
               <p className="text-xs text-muted-foreground mt-2">
-                Funds are instantly transferable to your PayPal account.
+                Funds are instantly transferable to your Veem account.
               </p>
             </div>
           </div>
           
           <div className="w-full md:w-auto bg-muted/30 p-4 rounded-xl border border-border/50">
-            <div className="space-y-3 min-w-[280px]">
+            <div className="space-y-4 min-w-[280px]">
               <div className="space-y-1.5">
-                <Label htmlFor="paypalEmail" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  PayPal Email
+                <Label htmlFor="veemEmail" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Veem Email
                 </Label>
                 <Input 
-                  id="paypalEmail"
+                  id="veemEmail"
                   type="email" 
-                  value={paypalEmail}
-                  onChange={(e) => setPaypalEmail(e.target.value)}
+                  value={veemEmail}
+                  onChange={(e) => setVeemEmail(e.target.value)}
                   placeholder="name@example.com"
                   className="bg-background"
                   disabled={withdrawing || (profile?.availableBalance || 0) <= 0}
