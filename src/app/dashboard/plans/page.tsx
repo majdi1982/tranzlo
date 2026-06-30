@@ -126,6 +126,12 @@ export default function PlansPage() {
   const [promoError, setPromoError] = React.useState<string | null>(null);
   const [promoSuccess, setPromoSuccess] = React.useState<string | null>(null);
 
+  // Veem Subscription States
+  const [veemEmail, setVeemEmail] = React.useState<string>("");
+  const [veemSubmitting, setVeemSubmitting] = React.useState<boolean>(false);
+  const [veemSuccess, setVeemSuccess] = React.useState<string | null>(null);
+  const [veemError, setVeemError] = React.useState<string | null>(null);
+
   const role = (user?.prefs?.role as Role) || "translator";
   // Pro Member tier maps to pro
   const userPlans = role === "company" ? PLANS.company(isAnnual) : PLANS.translator(isAnnual);
@@ -143,12 +149,17 @@ export default function PlansPage() {
       if (!user?.$id) return;
       try {
         const services = getServices();
+        let profile;
         if (role === "translator") {
-          const profile = await services.profile.getTranslatorProfile(user.$id);
-          if (profile) setCurrentTier(profile.planTier || "free");
+          profile = await services.profile.getTranslatorProfile(user.$id);
         } else {
-          const profile = await services.profile.getCompanyProfile(user.$id);
-          if (profile) setCurrentTier(profile.planTier || "free");
+          profile = await services.profile.getCompanyProfile(user.$id);
+        }
+        if (profile) {
+          setCurrentTier(profile.planTier || "free");
+          if (profile.veemEmail) {
+            setVeemEmail(profile.veemEmail);
+          }
         }
       } catch (err) {
         console.error("Failed to load user plan:", err);
@@ -164,93 +175,59 @@ export default function PlansPage() {
   }, [user?.$id, role, loading]);
 
   React.useEffect(() => {
-    if (!processingPlan || !isCheckoutOpen) return;
+    if (user?.email && !veemEmail) {
+      setVeemEmail(user.email);
+    }
+  }, [user?.email]);
 
-    // If 100% free discount is active, do not render PayPal
-    if (appliedPromo && (appliedPromo.discountType === "free" || appliedPromo.discountPercent === 100)) {
+  const handleVeemSubscribe = async () => {
+    if (!veemEmail.trim()) {
+      setVeemError("Please enter your Veem account email.");
       return;
     }
-
-    const plan = userPlans.find((p: any) => p.tier === processingPlan);
-    if (!plan) return;
-
-    const mode = process.env.NEXT_PUBLIC_PAYPAL_MODE || "live";
-    const clientId = mode === "live"
-      ? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
-      : (process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "AXPRlo7oi-GRgNxmCtjDMJwaKnz1Z2pdrTehZpO4xd_2GPV-m_AeTnacnuZieJatk0pD1R_TOjCMvfT5");
-    const containerId = `paypal-sub-container-${processingPlan}`;
-
-    const renderButton = () => {
-      const container = document.getElementById(containerId);
-      if (!container) {
-        setTimeout(renderButton, 50);
-        return;
-      }
-
-      if ((window as any).paypal) {
-        container.innerHTML = ""; // Clear existing loading spinner
-        
-        let finalPrice = parseFloat(plan.price.replace("$", ""));
-        if (appliedPromo && appliedPromo.discountType === "percentage" && appliedPromo.discountPercent < 100) {
-          finalPrice = parseFloat((finalPrice * (1 - appliedPromo.discountPercent / 100)).toFixed(2));
+    setVeemSubmitting(true);
+    setVeemError(null);
+    setVeemSuccess(null);
+    try {
+      const account = getAccount();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const jwtObj = await account.createJWT();
+        if (jwtObj?.jwt) {
+          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
         }
-
-        const customId = `plan_upgrade:${user?.$id}:${role}:${plan.tier}:${appliedPromo?.code || 'none'}`;
-
-        (window as any).paypal.Buttons({
-          style: {
-            shape: "rect",
-            color: "blue",
-            layout: "vertical",
-            label: "pay"
-          },
-          createOrder: function(data: any, actions: any) {
-            return actions.order.create({
-              purchase_units: [{
-                custom_id: customId,
-                description: `Upgrade to ${plan.name} (${isAnnual ? "Annual" : "Monthly"})`,
-                amount: {
-                  currency_code: "USD",
-                  value: finalPrice.toFixed(2)
-                }
-              }]
-            });
-          },
-          onApprove: function(data: any, actions: any) {
-            return actions.order.capture().then(function(details: any) {
-              alert(`🎉 Payment successful! Order ID: ${details.id}. Your account will be upgraded within a few moments.`);
-              setProcessingPlan(null);
-              setIsCheckoutOpen(false);
-              window.location.reload();
-            });
-          },
-          onError: function(err: any) {
-            console.error("Payment Error Data:", err);
-            alert("❌ Payment could not be processed. Please check the console for details and try again.");
-            setProcessingPlan(null);
-            setIsCheckoutOpen(false);
-          }
-        }).render(`#${containerId}`);
-      } else {
-        // If script is loading or loaded but paypal object not initialized, retry
-        setTimeout(renderButton, 100);
+      } catch (jwtErr) {
+        console.warn("Failed to generate JWT, using session cookie:", jwtErr);
       }
-    };
 
-    const scriptId = "paypal-sdk-script-capture";
-    let script = document.getElementById(scriptId) as HTMLScriptElement;
+      const res = await fetch("/api/subscribe/veem-invoice", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          userId: user?.$id,
+          planTier: selectedPlan?.tier,
+          email: veemEmail.trim(),
+          isAnnual
+        })
+      });
 
-    if (!script && !(window as any).paypal) {
-      script = document.createElement("script");
-      script.id = scriptId;
-      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
-      script.onload = renderButton;
-      document.body.appendChild(script);
-    } else {
-      // Small timeout to allow React to commit DOM render of container
-      setTimeout(renderButton, 100);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to process Veem subscription invoice.");
+      }
+
+      setVeemSuccess(data.message);
+      setTimeout(() => {
+        setIsCheckoutOpen(false);
+        setProcessingPlan(null);
+        window.location.reload();
+      }, 4000);
+    } catch (err: any) {
+      setVeemError(err.message);
+    } finally {
+      setVeemSubmitting(false);
     }
-  }, [processingPlan, isCheckoutOpen, appliedPromo, user?.$id, userPlans]);
+  };
 
   const handleSubscribe = (planTier: string) => {
     const plan = userPlans.find((p: any) => p.tier === planTier);
@@ -474,23 +451,52 @@ export default function PlansPage() {
                     </Button>
                   </div>
                 ) : (
-                  /* Regular PayPal payment */
+                  /* Regular Veem payment */
                   <div className="space-y-4 pt-2">
-                    <div className="flex items-center gap-2 justify-center py-1 bg-blue-500/5 border border-blue-500/10 rounded-xl">
-                      <CreditCard className="h-3.5 w-3.5 text-blue-500" />
-                      <span className="text-3xs font-bold text-blue-500">Pay securely with Credit Card or PayPal</span>
+                    <div className="flex items-center gap-2 justify-center py-1 bg-cyan-500/5 border border-cyan-500/10 rounded-xl">
+                      <CreditCard className="h-3.5 w-3.5 text-cyan-500" />
+                      <span className="text-3xs font-bold text-cyan-500">Pay securely with Veem Invoice</span>
                     </div>
 
-                    <div id={`paypal-sub-container-${selectedPlan.tier}`} className="w-full min-h-[150px] bg-accent/10 rounded-xl flex items-center justify-center border border-dashed border-border/50 p-4">
-                      <div className="flex flex-col items-center gap-2 text-center">
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                        <span className="text-4xs text-muted-foreground font-medium">Initializing secure PayPal gateway...</span>
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label htmlFor="veemCheckoutEmail" className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                          Veem Billing Email
+                        </label>
+                        <Input
+                          id="veemCheckoutEmail"
+                          type="email"
+                          value={veemEmail}
+                          onChange={(e) => setVeemEmail(e.target.value)}
+                          placeholder="your-veem-email@domain.com"
+                          className="h-10 rounded-xl bg-background"
+                          disabled={veemSubmitting}
+                        />
                       </div>
+
+                      <Button
+                        onClick={handleVeemSubscribe}
+                        className="w-full h-10 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold"
+                        disabled={veemSubmitting}
+                      >
+                        {veemSubmitting ? (
+                          <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Upgrading Plan...</>
+                        ) : (
+                          "Send Invoice & Activate Plan"
+                        )}
+                      </Button>
                     </div>
+
+                    {veemError && (
+                      <p className="text-3xs text-rose-500 font-semibold text-center mt-2">❌ {veemError}</p>
+                    )}
+                    {veemSuccess && (
+                      <p className="text-3xs text-emerald-500 font-semibold text-center mt-2">✅ {veemSuccess}</p>
+                    )}
 
                     <p className="text-4xs text-center text-muted-foreground flex items-center justify-center gap-1">
                       <Shield className="h-3 w-3 text-primary" />
-                      <span>Secure billing. Cancel at any time via PayPal.</span>
+                      <span>An invoice request will be sent to your Veem account.</span>
                     </p>
                   </div>
                 )}
