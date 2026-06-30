@@ -80,10 +80,10 @@ fi
 echo "🌐 Building Next.js Frontend stack in background..."
 cd "$TARGET_FRONTEND"
 
-echo "🧹 Pruning builder cache..."
-docker builder prune -a -f
+# echo "🧹 Pruning builder cache..."
+# docker builder prune -a -f
 
-if ! docker compose build --no-cache --progress=plain; then
+if ! docker compose build --progress=plain; then
     echo "❌ Build Failed!"
     exit 1
 fi
