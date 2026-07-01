@@ -1510,16 +1510,17 @@ function ProfileContent() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="veemEmail">Veem Payout Email</Label>
+                      <Label htmlFor="paypalEmail">PayPal Payout Email</Label>
                       <Input
-                        id="veemEmail"
+                        id="paypalEmail"
                         type="email"
-                        value={translatorData.veemEmail}
-                        onChange={(e) => setTranslatorData((p) => ({ ...p, veemEmail: e.target.value }))}
-                        placeholder="your-veem-email@domain.com"
+                        value={translatorData.paypalEmail}
+                        onChange={(e) => setTranslatorData((p) => ({ ...p, paypalEmail: e.target.value }))}
+                        placeholder="your-paypal-email@domain.com"
                         className="rounded-xl"
+                        required
                       />
-                      <p className="text-4xs text-muted-foreground">Veem payouts are sent directly to this address. Ensure it is correct.</p>
+                      <p className="text-4xs text-muted-foreground">PayPal payouts are sent directly to this address. Ensure it is correct, active, and belongs to a PayPal account.</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -2043,16 +2044,16 @@ function ProfileContent() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="companyVeemEmail">Veem Billing Email</Label>
+                      <Label htmlFor="companyPaypalEmail">PayPal Billing Email</Label>
                       <Input
-                        id="companyVeemEmail"
+                        id="companyPaypalEmail"
                         type="email"
-                        value={companyData.veemEmail}
-                        onChange={(e) => setCompanyData((p) => ({ ...p, veemEmail: e.target.value }))}
-                        placeholder="billing-veem@company.com"
+                        value={companyData.paypalEmail}
+                        onChange={(e) => setCompanyData((p) => ({ ...p, paypalEmail: e.target.value }))}
+                        placeholder="billing-paypal@company.com"
                         className="rounded-xl"
                       />
-                      <p className="text-4xs text-muted-foreground">Veem billing email for payments and refunds.</p>
+                      <p className="text-4xs text-muted-foreground">PayPal billing email for payments, subscriptions, and refunds.</p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">

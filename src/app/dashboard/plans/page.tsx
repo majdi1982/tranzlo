@@ -12,6 +12,7 @@ import type { Role } from "@/types";
 import { getServices } from "@/services";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getAccount } from "@/lib/appwrite";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 // Plan mappings corresponding to our Appwrite PayPal Webhook PLAN_MAP
 const PLANS = {
@@ -126,11 +127,15 @@ export default function PlansPage() {
   const [promoError, setPromoError] = React.useState<string | null>(null);
   const [promoSuccess, setPromoSuccess] = React.useState<string | null>(null);
 
-  // Veem Subscription States
-  const [veemEmail, setVeemEmail] = React.useState<string>("");
-  const [veemSubmitting, setVeemSubmitting] = React.useState<boolean>(false);
-  const [veemSuccess, setVeemSuccess] = React.useState<string | null>(null);
-  const [veemError, setVeemError] = React.useState<string | null>(null);
+  // PayPal checkout states
+  const [paypalError, setPaypalError] = React.useState<string | null>(null);
+  const [paypalSuccess, setPaypalSuccess] = React.useState<string | null>(null);
+  const [paypalSubmitting, setPaypalSubmitting] = React.useState<boolean>(false);
+
+  const paypalMode = process.env.NEXT_PUBLIC_PAYPAL_MODE || "sandbox";
+  const paypalClientId = paypalMode === "live"
+    ? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || ""
+    : process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID || "test";
 
   const role = (user?.prefs?.role as Role) || "translator";
   // Pro Member tier maps to pro
@@ -157,9 +162,6 @@ export default function PlansPage() {
         }
         if (profile) {
           setCurrentTier(profile.planTier || "free");
-          if (profile.veemEmail) {
-            setVeemEmail(profile.veemEmail);
-          }
         }
       } catch (err) {
         console.error("Failed to load user plan:", err);
@@ -174,61 +176,6 @@ export default function PlansPage() {
     }
   }, [user?.$id, role, loading]);
 
-  React.useEffect(() => {
-    if (user?.email && !veemEmail) {
-      setVeemEmail(user.email);
-    }
-  }, [user?.email]);
-
-  const handleVeemSubscribe = async () => {
-    if (!veemEmail.trim()) {
-      setVeemError("Please enter your Veem account email.");
-      return;
-    }
-    setVeemSubmitting(true);
-    setVeemError(null);
-    setVeemSuccess(null);
-    try {
-      const account = getAccount();
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      try {
-        const jwtObj = await account.createJWT();
-        if (jwtObj?.jwt) {
-          headers["Authorization"] = `Bearer ${jwtObj.jwt}`;
-        }
-      } catch (jwtErr) {
-        console.warn("Failed to generate JWT, using session cookie:", jwtErr);
-      }
-
-      const res = await fetch("/api/subscribe/veem-invoice", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          userId: user?.$id,
-          planTier: selectedPlan?.tier,
-          email: veemEmail.trim(),
-          isAnnual
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to process Veem subscription invoice.");
-      }
-
-      setVeemSuccess(data.message);
-      setTimeout(() => {
-        setIsCheckoutOpen(false);
-        setProcessingPlan(null);
-        window.location.reload();
-      }, 4000);
-    } catch (err: any) {
-      setVeemError(err.message);
-    } finally {
-      setVeemSubmitting(false);
-    }
-  };
-
   const handleSubscribe = (planTier: string) => {
     const plan = userPlans.find((p: any) => p.tier === planTier);
     if (!plan) return;
@@ -238,6 +185,9 @@ export default function PlansPage() {
     setPromoCode("");
     setPromoError(null);
     setPromoSuccess(null);
+    setPaypalError(null);
+    setPaypalSuccess(null);
+    setPaypalSubmitting(false);
     setIsCheckoutOpen(true);
   };
 
@@ -451,52 +401,84 @@ export default function PlansPage() {
                     </Button>
                   </div>
                 ) : (
-                  /* Regular Veem payment */
+                  /* Regular PayPal payment */
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center gap-2 justify-center py-1 bg-cyan-500/5 border border-cyan-500/10 rounded-xl">
                       <CreditCard className="h-3.5 w-3.5 text-cyan-500" />
-                      <span className="text-3xs font-bold text-cyan-500">Pay securely with Veem Invoice</span>
+                      <span className="text-3xs font-bold text-cyan-500">Pay securely with PayPal</span>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label htmlFor="veemCheckoutEmail" className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
-                          Veem Billing Email
-                        </label>
-                        <Input
-                          id="veemCheckoutEmail"
-                          type="email"
-                          value={veemEmail}
-                          onChange={(e) => setVeemEmail(e.target.value)}
-                          placeholder="your-veem-email@domain.com"
-                          className="h-10 rounded-xl bg-background"
-                          disabled={veemSubmitting}
-                        />
-                      </div>
-
-                      <Button
-                        onClick={handleVeemSubscribe}
-                        className="w-full h-10 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold"
-                        disabled={veemSubmitting}
-                      >
-                        {veemSubmitting ? (
-                          <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Upgrading Plan...</>
-                        ) : (
-                          "Send Invoice & Activate Plan"
-                        )}
-                      </Button>
+                    <div className="w-full min-h-[150px] relative z-0">
+                      {paypalError && (
+                        <p className="text-3xs text-rose-500 font-semibold text-center mb-2">❌ {paypalError}</p>
+                      )}
+                      {paypalSuccess && (
+                        <p className="text-3xs text-emerald-500 font-semibold text-center mb-2">✅ {paypalSuccess}</p>
+                      )}
+                      
+                      {!paypalSuccess && (
+                        <PayPalScriptProvider options={{ clientId: paypalClientId, currency: "USD", intent: "capture" }}>
+                          <PayPalButtons 
+                            style={{ layout: "vertical", shape: "rect", height: 40 }}
+                            disabled={paypalSubmitting}
+                            createOrder={async () => {
+                              setPaypalSubmitting(true);
+                              setPaypalError(null);
+                              try {
+                                const res = await fetch("/api/paypal/create-order", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    amount: finalPriceVal,
+                                    referenceId: `plan_upgrade:${user?.$id}:${role}:${selectedPlan?.tier}:${appliedPromo?.code || "none"}`,
+                                    description: `Tranzlo ${selectedPlan?.name} Upgrade`
+                                  })
+                                });
+                                const orderData = await res.json();
+                                if (orderData.id) {
+                                  return orderData.id;
+                                } else {
+                                  throw new Error(orderData.error || "Failed to create PayPal order.");
+                                }
+                              } catch (err: any) {
+                                setPaypalError(err.message || "Failed to initiate PayPal checkout.");
+                                setPaypalSubmitting(false);
+                                throw err;
+                              }
+                            }}
+                            onApprove={async (data, actions) => {
+                              try {
+                                const res = await fetch("/api/paypal/capture-order", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ orderID: data.orderID })
+                                });
+                                const captureData = await res.json();
+                                if (captureData.success) {
+                                  setPaypalSuccess("Subscription upgrade captured! Activating...");
+                                  setTimeout(() => {
+                                    window.location.reload();
+                                  }, 3000);
+                                } else {
+                                  throw new Error(captureData.error || "Failed to capture payment.");
+                                }
+                              } catch (err: any) {
+                                setPaypalError(err.message || "Payment capture failed. Please try again.");
+                                setPaypalSubmitting(false);
+                              }
+                            }}
+                            onError={(err) => {
+                              setPaypalError("An error occurred with PayPal checkout.");
+                              setPaypalSubmitting(false);
+                            }}
+                          />
+                        </PayPalScriptProvider>
+                      )}
                     </div>
-
-                    {veemError && (
-                      <p className="text-3xs text-rose-500 font-semibold text-center mt-2">❌ {veemError}</p>
-                    )}
-                    {veemSuccess && (
-                      <p className="text-3xs text-emerald-500 font-semibold text-center mt-2">✅ {veemSuccess}</p>
-                    )}
 
                     <p className="text-4xs text-center text-muted-foreground flex items-center justify-center gap-1">
                       <Shield className="h-3 w-3 text-primary" />
-                      <span>An invoice request will be sent to your Veem account.</span>
+                      <span>Upgrade transaction secured via PayPal Gateway.</span>
                     </p>
                   </div>
                 )}
