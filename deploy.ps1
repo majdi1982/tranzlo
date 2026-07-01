@@ -49,7 +49,12 @@ Remove-Item -Force $zipFile
 
 # Extract and Execute on VPS (prompts 3)
 Write-Host "[5/5] Extracting package and executing Remote Deployment script..."
-ssh -o StrictHostKeyChecking=no "${VPS_USER}@${VPS_HOST}" "apt-get install -y unzip && cd ${PROJECT_DIR} && unzip -o deploy.zip && rm deploy.zip && chmod +x deploy.sh && chmod +x scripts/*.sh && ./deploy.sh && (crontab -l 2>/dev/null | grep -v 'backup-vps.ts' | grep -v 'auto-update.sh' ; echo '0 3 * * * /root/tranzlo-project/scripts/auto-update.sh') | crontab -"
+ssh -o StrictHostKeyChecking=no "${VPS_USER}@${VPS_HOST}" "apt-get install -y unzip && cd ${PROJECT_DIR} && (unzip -o deploy.zip || true) && rm -f deploy.zip && chmod +x deploy.sh && chmod +x scripts/*.sh && ./deploy.sh && (crontab -l 2>/dev/null | grep -v 'backup-vps.ts' | grep -v 'auto-update.sh' ; echo '0 3 * * * /root/tranzlo-project/scripts/auto-update.sh') | crontab -"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "❌ Deployment failed on VPS! Please check the output logs above."
+    exit 1
+}
 
 Write-Host "=================================================="
 Write-Host "✅ Deployment Successful and Verified!"
